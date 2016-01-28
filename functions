@@ -9,6 +9,7 @@ function test_overcloud {
     echo "Something weird happened"
   fi
 }
+
 function delete_overcloud {
   echo "Deleting overcloud...."
   heat=$( heat stack-list | grep overcloud )
