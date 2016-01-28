@@ -1,7 +1,3 @@
-
-
-source overcloud
-
 if [ ! -d images ]; then
   mkdir images
 fi
@@ -12,6 +8,4 @@ if [ ! -e images/cirros-0.3.4-x86_64-disk.img ]; then
   cd ..
 fi
 
-glance image-create --name "cirros-0.3.4-x86_64" --file images/cirros-0.3.4-x86_64-disk.img \
-  --disk-format qcow2 --container-format bare --is-public True --progress
-
+glance image-create --name "cirros-0.3.4-x86_64" --file images/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public True --progress

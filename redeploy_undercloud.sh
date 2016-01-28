@@ -55,7 +55,8 @@ function baremetal_setup {
 }
 
 function test_overcloud {
-    if [ -e overcloudrc ]; then
+    if [ -e ~/overcloudrc ]; then
+      source ~/overcloudrc
       bash setup_images.sh
       bash create_network.sh
       bash boot_vm.sh
@@ -66,19 +67,21 @@ function test_overcloud {
 
 function deploy_overcloud {
   if [ -d  /home/stack/images ]; then
-    create_oc_images()
-    baremetal_setup()
-    create_flavors()
-    tag_hosts()
-    bash create.sh
-    test_overcloud()
-  else 
+    if [ -e ~/overcloudrc ]; then
+      create_oc_images()
+      baremetal_setup()
+      create_flavors()
+      tag_hosts()
+      bash create.sh
+    else 
+      echo "Undercloud wasn't successfully deployed!"
+    fi
+  else
     echo "Please download the overcloud-* images and put them in /home/stack/images"
   fi
 }
 
 function install_undercloud {
-  source stackrc
   openstack undercloud install
 }
 
@@ -92,3 +95,4 @@ cleanup_undercloud()
 install_undercloud()
 validate_network_environment()
 deploy_overcloud()
+test_overcloud()
