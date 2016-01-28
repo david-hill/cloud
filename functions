@@ -30,7 +30,9 @@ function delete_overcloud {
       if [[ "$heat" =~ FAILED ]]; then
         echo "Stack deletion failed... retrying!"
         heat stack-delete overcloud
+        sleep 1
       fi
+      sleep 1
     done
   fi
 }
