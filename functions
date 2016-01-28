@@ -1,13 +1,22 @@
 function test_overcloud {
+  nc=255
   echo "Testing overcloud ..."
   if [ -e ~/overcloudrc ]; then
     source ~/overcloudrc
     bash setup_images.sh
-    bash create_network.sh
-    bash boot_vm.sh
+    nc=$?
+    if [ $nc -eq 0 ]; then
+      bash create_network.sh
+      nc=$?
+      if [ $nc -eq 0 ]; then
+        bash boot_vm.sh
+        nc=$?
+      fi
+    fi
   else
     echo "Something weird happened"
   fi
+  return $nc
 }
 
 function delete_overcloud {
