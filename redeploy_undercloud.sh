@@ -1,6 +1,7 @@
 #!/bin/bash
 
 function cleanup_undercloud {
+  echo "Uninstalling undercloud..."
   rm overcloudrc
   yum remove -y openstack-* python-oslo-*
   yum remove -y mariadb
@@ -9,6 +10,7 @@ function cleanup_undercloud {
 }
 
 function delete_overcloud {
+  echo "Deleting overcloud...."
   heat=$( heat stack-list | grep overcloud )
   if [ ! -z "$heat" ]; then
     heat stack-delete overcloud
@@ -24,6 +26,7 @@ function delete_overcloud {
 }
 
 function create_flavors {
+  echo "Creating flavors..."
   for profile in control compute ceph-storage; do
     openstack flavor create --id auto --ram 6144 --disk 40 --vcpus 4 $profile
     openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile
@@ -33,6 +36,7 @@ function create_flavors {
 }
 
 function tag_hosts {
+  echo "Tagging hosts..."
   inc=0
   for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
     if [ $inc -lt 3 ]; then
@@ -47,16 +51,19 @@ function tag_hosts {
 }
 
 function create_oc_images {
+  echo "Importing overcloud images..."
   openstack overcloud image upload --image-path /home/stack/images
 }
 
 function baremetal_setup {
+  echo "Configure baremetal hosts..."
   openstack baremetal import --json /home/stack/instackenv.json
   openstack baremetal configure boot
   openstack baremetal introspection bulk start
 }
 
 function test_overcloud {
+  echo "Testing overcloud ..."
   if [ -e ~/overcloudrc ]; then
     source ~/overcloudrc
     bash setup_images.sh
@@ -68,6 +75,7 @@ function test_overcloud {
 }
 
 function deploy_overcloud {
+  echo "Deploying overcloud ..."
   if [ -d  /home/stack/images ]; then
     if [ -e ~/overcloudrc ]; then
       create_oc_images()
@@ -84,10 +92,12 @@ function deploy_overcloud {
 }
 
 function install_undercloud {
+  echo "Installing undercloud ..."
   openstack undercloud install
 }
 
 function validate_network_environment {
+  echo "Validating network environment..."
   git clone https://github.com/rthallisey/clapper
   python clapper/network-environment-validator.py
 }
