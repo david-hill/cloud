@@ -1,4 +1,4 @@
-cleanup {
+function cleanup_undercloud {
   rm overcloudrc
   yum remove -y openstack-* python-oslo-*
   yum remove -y mariadb
@@ -6,7 +6,7 @@ cleanup {
   yum install -y python-rdomanager-oscplugin
 }
 
-delete_old_stack {
+function delete_overcloud {
   heat=$( heat stack-list | grep overcloud )
   if [ ! -z "$heat" ]; then
     heat stack-delete overcloud
@@ -21,7 +21,7 @@ delete_old_stack {
   fi
 }
 
-create_flavors {
+function create_flavors {
     for profile in control compute ceph-storage; do
       openstack flavor create --id auto --ram 6144 --disk 40 --vcpus 4 $profile
       openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile
@@ -30,7 +30,7 @@ create_flavors {
     openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 4 baremetal
 }
 
-tag_hosts {
+function tag_hosts {
     inc=0
     for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
       if [ $inc -lt 3 ]; then
@@ -44,15 +44,17 @@ tag_hosts {
     done
 }
 
-create_oc_images {
+function create_oc_images {
     openstack overcloud image upload --image-path /home/stack/images
 }
-baremetal_setup {
+
+function baremetal_setup {
     openstack baremetal import --json /home/stack/instackenv.json
     openstack baremetal configure boot
     openstack baremetal introspection bulk start
 }
-test_overcloud {
+
+function test_overcloud {
     if [ -e overcloudrc ]; then
       bash setup_images.sh
       bash create_network.sh
@@ -61,7 +63,8 @@ test_overcloud {
       echo "Something weird happened"
     fi
 }
-deploy_overcloud {
+
+function deploy_overcloud {
   if [ -d  /home/stack/images ]; then
     create_oc_images()
     baremetal_setup()
@@ -74,17 +77,18 @@ deploy_overcloud {
   fi
 }
 
-install_undercloud {
+function install_undercloud {
   source stackrc
   openstack undercloud install
 }
-validate_network_environment {
+
+function validate_network_environment {
   git clone https://github.com/rthallisey/clapper
   python clapper/network-environment-validator.py
 }
 
-delete_old_stack()
-cleanup()
+delete_overcloud()
+cleanup_undercloud()
 install_undercloud()
 validate_network_environment()
 deploy_overcloud()
