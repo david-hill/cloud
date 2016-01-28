@@ -13,10 +13,17 @@ function create_overcloud {
   return $rc
 }
 delete_overcloud
-create_overcloud
 rc=$?
-if [ $? -eq 0 ]; then
-  test_overcloud
+if [ $rc -ne 0 ]; then
+  create_overcloud
   rc=$?
+  if [ $? -eq 0 ]; then
+    test_overcloud
+    rc=$?
+  else 
+    echo "Overcloud creation failed..."
+  fi
+else
+  echo "Overcloud deletion failed..."
 fi
 exit $rc
