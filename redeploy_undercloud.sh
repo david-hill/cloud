@@ -52,4 +52,6 @@ bash create.sh
 
 if [ -e overcloudrc ]; then
 	bash setup_images.sh
+        bash create_network.sh
+        bash boot_vm.sh
 fi
