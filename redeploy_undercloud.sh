@@ -1,3 +1,18 @@
+heat=$( heat stack-list | grep overcloud )
+if [ ! -z "$heat" ]; then
+  heat stack-delete overcloud
+  while [ ! -z "$heat" ]; do
+    heat=$( heat stack-list | grep overcloud )
+    echo -n "."
+    if [[ "$heat" =~ FAILED ]]; then
+      echo "Stack deletion failed... retrying!"
+      heat stack-delete overcloud
+    fi
+  done
+
+fi
+
+
 yum remove -y openstack-* python-oslo-*
 yum remove -y mariadb
 rm -rf /var/lib/mysql
