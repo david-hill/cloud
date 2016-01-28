@@ -83,6 +83,9 @@ function deploy_overcloud {
       create_flavors
       tag_hosts
       bash create.sh
+      if [ $? -ne 0 ]; then
+        exit 255
+      fi
     else 
       echo "Undercloud wasn't successfully deployed!"
     fi
