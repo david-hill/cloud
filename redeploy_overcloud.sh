@@ -4,12 +4,8 @@ source setup.cfg
 source functions
 
 function create_overcloud {
-  if [ -z $cephscale ] || [ -z $controlscale ] || [ -z $computescale ]; then
-    rc=255;
-  else
-    openstack_oc_deploy
-    rc=$?
-  fi
+  openstack_oc_deploy
+  rc=$?
   return $rc
 }
 delete_overcloud

@@ -20,8 +20,14 @@ function test_overcloud {
 }
 
 function openstack_oc_deploy {
-  openstack overcloud deploy $deploymentargs
-  rc=$?
+  if [ -z $cephscale ] || [ -z $controlscale ] || [ -z $computescale ]; then
+    rc=255
+  elif [ $(expr $cephscale % 2) -eq 0 ] || [ $(expr $controlscale % 2) -eq 0 ]; then
+    rc=254
+  else 
+    openstack overcloud deploy $deploymentargs
+    rc=$?
+  fi
   return $rc
 }
 function delete_overcloud {

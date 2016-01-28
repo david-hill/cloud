@@ -1,12 +1,9 @@
 #!/bin/bash
 
 source setup.cfg
+source functions 
 
-if [ -z $cephscale ] || [ -z $controlscale ] || [ -z $computescale ]; then
-  rc=255;
-else
-  openstack_oc_deploy
-  rc=$?
-fi
+openstack_oc_deploy
+rc=$?
 
 exit $rc
