@@ -1,3 +1,5 @@
+#!/bin/bash
+
 function cleanup_undercloud {
   rm overcloudrc
   yum remove -y openstack-* python-oslo-*

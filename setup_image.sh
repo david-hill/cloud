@@ -1,3 +1,5 @@
+#!/bin/bash
+
 if [ ! -d images ]; then
   mkdir images
 fi

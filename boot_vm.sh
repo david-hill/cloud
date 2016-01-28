@@ -1,3 +1,5 @@
+#!/bin/bash
+
 image=$( glance image-list | grep cirros | head -1 | awk '{ print $2 }')
 neutron=$( neutron net-list | grep test | awk '{ print $2 }')
 

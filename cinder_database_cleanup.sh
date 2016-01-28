@@ -1,4 +1,5 @@
 #!/bin/bash
+
 date=$(date +%Y%m%d.%H%M%S)
 iam=$(whoami)
 mysql=$(which mysql)
