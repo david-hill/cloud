@@ -30,6 +30,7 @@ function openstack_oc_deploy {
   fi
   return $rc
 }
+
 function delete_overcloud {
   inc=0
   rc=0
