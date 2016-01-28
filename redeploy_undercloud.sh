@@ -82,7 +82,7 @@ function deploy_overcloud {
       baremetal_setup
       create_flavors
       tag_hosts
-      bash create.sh
+      bash deploy_overcloud.sh
       if [ $? -ne 0 ]; then
         exit 255
       fi
