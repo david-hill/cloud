@@ -19,6 +19,11 @@ function test_overcloud {
   return $nc
 }
 
+function openstack_oc_deploy {
+  openstack overcloud deploy $deploymentargs
+  rc=$?
+  return $rc
+}
 function delete_overcloud {
   inc=0
   rc=0
