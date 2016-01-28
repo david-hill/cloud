@@ -44,31 +44,47 @@ tag_hosts {
     done
 }
 
-deploy_overcloud {
-  if [ -d  /home/stack/images ]; then
+create_oc_images {
     openstack overcloud image upload --image-path /home/stack/images
-    openstack baremetal import --json instackenv.json
+}
+baremetal_setup {
+    openstack baremetal import --json /home/stack/instackenv.json
     openstack baremetal configure boot
     openstack baremetal introspection bulk start
-    create_flavors()
-    tag_hosts()
-    bash create.sh
+}
+test_overcloud {
     if [ -e overcloudrc ]; then
       bash setup_images.sh
       bash create_network.sh
       bash boot_vm.sh
+    else
+      echo "Something weird happened"
     fi
+}
+deploy_overcloud {
+  if [ -d  /home/stack/images ]; then
+    create_oc_images()
+    baremetal_setup()
+    create_flavors()
+    tag_hosts()
+    bash create.sh
+    test_overcloud()
   else 
     echo "Please download the overcloud-* images and put them in /home/stack/images"
   fi
 }
+
+install_undercloud {
+  source stackrc
+  openstack undercloud install
+}
+validate_network_environment {
+  git clone https://github.com/rthallisey/clapper
+  python clapper/network-environment-validator.py
+}
+
 delete_old_stack()
 cleanup()
-
-source stackrc
-openstack undercloud install
-
-git clone https://github.com/rthallisey/clapper
-python clapper/network-environment-validator.py
-
+install_undercloud()
+validate_network_environment()
 deploy_overcloud()
