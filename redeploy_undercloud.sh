@@ -1,5 +1,7 @@
 #!/bin/bash
 
+source functions
+
 function cleanup_undercloud {
   echo "Uninstalling undercloud..."
   rm overcloudrc
@@ -62,17 +64,6 @@ function baremetal_setup {
   openstack baremetal introspection bulk start
 }
 
-function test_overcloud {
-  echo "Testing overcloud ..."
-  if [ -e ~/overcloudrc ]; then
-    source ~/overcloudrc
-    bash setup_images.sh
-    bash create_network.sh
-    bash boot_vm.sh
-  else
-    echo "Something weird happened"
-  fi
-}
 
 function deploy_overcloud {
   echo "Deploying overcloud ..."

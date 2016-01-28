@@ -1,0 +1,11 @@
+function test_overcloud {
+  echo "Testing overcloud ..."
+  if [ -e ~/overcloudrc ]; then
+    source ~/overcloudrc
+    bash setup_images.sh
+    bash create_network.sh
+    bash boot_vm.sh
+  else
+    echo "Something weird happened"
+  fi
+}
