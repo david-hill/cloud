@@ -11,6 +11,8 @@ if [ ! -z "$heat" ]; then
   done
 fi
 
+rm overcloudrc
+
 yum remove -y openstack-* python-oslo-*
 yum remove -y mariadb
 rm -rf /var/lib/mysql
@@ -46,3 +48,8 @@ for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
   inc=$( expr $inc + 1)
 done
 
+bash create.sh
+
+if [ -e overcloudrc ]; then
+	bash setup_images.sh
+fi
