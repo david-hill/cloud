@@ -9,9 +9,7 @@ if [ ! -z "$heat" ]; then
       heat stack-delete overcloud
     fi
   done
-
 fi
-
 
 yum remove -y openstack-* python-oslo-*
 yum remove -y mariadb
@@ -37,7 +35,6 @@ done
 openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 4 baremetal
 
 inc=0
-
 for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
   if [ $inc -lt 3 ]; then
     ironic node-update $p add properties/capabilities='profile:control,boot_option:local'
