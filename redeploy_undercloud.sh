@@ -76,12 +76,12 @@ function test_overcloud {
 
 function deploy_overcloud {
   echo "Deploying overcloud ..."
-  if [ -d  /home/stack/images ]; then
-    if [ -e ~/overcloudrc ]; then
-      create_oc_images()
-      baremetal_setup()
-      create_flavors()
-      tag_hosts()
+  if [ -d  "/home/stack/images" ]; then
+    if [ -e "~/stackrc" ]; then
+      create_oc_images
+      baremetal_setup
+      create_flavors
+      tag_hosts
       bash create.sh
     else 
       echo "Undercloud wasn't successfully deployed!"
@@ -102,9 +102,9 @@ function validate_network_environment {
   python clapper/network-environment-validator.py
 }
 
-delete_overcloud()
-cleanup_undercloud()
-install_undercloud()
-validate_network_environment()
-deploy_overcloud()
-test_overcloud()
+delete_overcloud
+cleanup_undercloud
+install_undercloud
+validate_network_environment
+deploy_overcloud
+test_overcloud
