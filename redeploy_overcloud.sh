@@ -3,22 +3,6 @@
 source setup.cfg
 source functions
 
-function delete_overcloud {
-  echo "Deleting overcloud...."
-  heat=$( heat stack-list | grep overcloud )
-  if [ ! -z "$heat" ]; then
-    heat stack-delete overcloud
-    while [ ! -z "$heat" ]; do
-      heat=$( heat stack-list | grep overcloud )
-      echo -n "."
-      if [[ "$heat" =~ FAILED ]]; then
-        echo "Stack deletion failed... retrying!"
-        heat stack-delete overcloud
-      fi
-    done
-  fi
-}
-
 function create_overcloud {
   if [ -z $cephscale ] || [ -z $controlscale ] || [ -z $computescale ]; then
     rc=255;
