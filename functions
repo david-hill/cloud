@@ -1,16 +1,16 @@
 function test_overcloud {
-  nc=255
+  rc=255
   echo "Testing overcloud ..."
   if [ -e ~/overcloudrc ]; then
     source ~/overcloudrc
     bash setup_images.sh
-    nc=$?
-    if [ $nc -eq 0 ]; then
+    rc=$?
+    if [ $rc -eq 0 ]; then
       bash create_network.sh
-      nc=$?
-      if [ $nc -eq 0 ]; then
+      rc=$?
+      if [ $rc -eq 0 ]; then
         bash boot_vm.sh
-        nc=$?
+        rc=$?
       fi
     fi
   else
@@ -20,6 +20,8 @@ function test_overcloud {
 }
 
 function delete_overcloud {
+  inc=0
+  rc=0
   echo "Deleting overcloud...."
   heat=$( heat stack-list | grep overcloud )
   if [ ! -z "$heat" ]; then
@@ -28,12 +30,19 @@ function delete_overcloud {
       heat=$( heat stack-list | grep overcloud )
       echo -n "."
       if [[ "$heat" =~ FAILED ]]; then
-        echo "Stack deletion failed... retrying!"
-        heat stack-delete overcloud
-        sleep 1
+        inc=$( expr $inc + 1 )
+        if [ $inc -le $maxfailedcount ]; then
+          echo "Stack deletion failed... retrying!"
+          heat stack-delete overcloud
+          sleep 1
+        else
+          rc=255
+          break
+        fi
       fi
       sleep 1
     done
   fi
+  return $rc
 }
 
