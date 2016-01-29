@@ -14,7 +14,7 @@ function cleanup_undercloud {
 function conformance {
   yum install -y ntpdate
   service ntpd stop
-  ntpdate pool.ntp.org
+  ntpdate $ntpserver
 }
 
 function create_flavors {
