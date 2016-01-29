@@ -3,7 +3,7 @@ function test_overcloud {
   echo "Testing overcloud ..."
   if [ -e ~/overcloudrc ]; then
     source ~/overcloudrc
-    bash setup_images.sh
+    bash setup_image.sh
     rc=$?
     if [ $rc -eq 0 ]; then
       bash create_network.sh
