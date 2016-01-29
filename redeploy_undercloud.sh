@@ -12,7 +12,8 @@ function cleanup_undercloud {
 }
 
 function conformance {
-  yum install -y ntpdate
+  yum update -y
+  yum install -y ntpdate ntp
   service ntpd stop
   ntpdate $ntpserver
 }
