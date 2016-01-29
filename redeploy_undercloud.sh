@@ -17,6 +17,7 @@ function conformance {
   yum install -y ntpdate ntp screen
   service ntpd stop
   ntpdate $ntpserver
+  service ntpd start
 }
 
 function create_flavors {
