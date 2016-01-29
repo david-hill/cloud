@@ -1,5 +1,7 @@
 #!/bin/bash
 
+rc=255
+
 image=$( glance image-list | grep cirros | head -1 | awk '{ print $2 }')
 neutron=$( neutron net-list | grep test | awk '{ print $2 }')
 
@@ -12,10 +14,14 @@ while [[ ! "$state" =~ ACTIVE ]] && [[ ! "$state" =~ FAILED ]]; do
   echo -n .
 done
 
-echo "Deleting test VM..."
-nova delete test-vm
-state=$(nova list | grep test-vm  )
-while [ "$state" != "" ]; do
-  state=$(nova list | grep test-vm )
-  echo -n .
-done
+if [[ "$state" =~ ACTIVE ]]; then
+  echo "Deleting test VM..."
+  nova delete test-vm
+  state=$(nova list | grep test-vm  )
+  while [ "$state" != "" ]; do
+    state=$(nova list | grep test-vm )
+    echo -n .
+  done
+fi
+
+exit $rc

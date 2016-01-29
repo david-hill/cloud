@@ -16,7 +16,7 @@ function test_overcloud {
   else
     echo "Something weird happened"
   fi
-  return $nc
+  return $rc
 }
 
 function openstack_oc_deploy {
