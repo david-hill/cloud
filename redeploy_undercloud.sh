@@ -5,19 +5,19 @@ source functions
 function cleanup_undercloud {
   echo "Uninstalling undercloud..."
   rm overcloudrc
-  yum remove -y openstack-* python-oslo-*
-  yum remove -y mariadb
-  rm -rf /var/lib/mysql
-  yum install -y python-rdomanager-oscplugin
-  echo >/var/log/heat/heat-engine.log
+  sudo yum remove -y openstack-* python-oslo-*
+  sudo yum remove -y mariadb
+  sudo rm -rf /var/lib/mysql
+  sudo yum install -y python-rdomanager-oscplugin
+  sudo echo >/var/log/heat/heat-engine.log
 }
 
 function conformance {
-  yum update -y
-  yum install -y ntpdate ntp screen
-  service ntpd stop
-  ntpdate $ntpserver
-  service ntpd start
+  sudo yum update -y
+  sudo yum install -y ntpdate ntp screen
+  sudo service ntpd stop
+  sudo ntpdate $ntpserver
+  sudo service ntpd start
 }
 
 function create_flavors {
