@@ -9,6 +9,7 @@ function cleanup_undercloud {
   yum remove -y mariadb
   rm -rf /var/lib/mysql
   yum install -y python-rdomanager-oscplugin
+  echo >/var/log/heat/heat-engine.log
 }
 
 function conformance {
