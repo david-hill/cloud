@@ -11,6 +11,10 @@ function test_overcloud {
       if [ $rc -eq 0 ]; then
         bash boot_vm.sh
         rc=$?
+        if [ $rc -eq 0 ]; then
+          bash delete_network.sh
+          rc=$?
+        fi
       fi
     fi
   else

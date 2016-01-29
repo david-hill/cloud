@@ -8,5 +8,6 @@ setup_image.sh : Download cirros and send it to glance<BR>
 deploy_overcloud.sh : Deploy the overcloud <BR>
 redeploy_overcloud.sh : Delete/Deploy the overcloud <BR>
 create_network.sh : Create neutron test network<BR>
+delete_network.sh : Delete neutron test network<BR>
 boot_vm.sh : Create a test VM<BR>
 functions : Contains common functions<BR>
