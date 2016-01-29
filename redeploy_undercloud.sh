@@ -11,6 +11,12 @@ function cleanup_undercloud {
   yum install -y python-rdomanager-oscplugin
 }
 
+function conformance {
+  yum install -y ntpdate
+  service ntpd stop
+  ntpdate pool.ntp.org
+}
+
 function create_flavors {
   echo "Creating flavors..."
   for profile in control compute ceph-storage; do
@@ -82,6 +88,7 @@ function validate_network_environment {
 
 delete_overcloud
 cleanup_undercloud
+conformance
 install_undercloud
 validate_network_environment
 deploy_overcloud
