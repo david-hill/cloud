@@ -22,6 +22,7 @@ if [[ "$state" =~ ACTIVE ]]; then
     state=$(nova list | grep test-vm )
     echo -n .
   done
+  rc=0
 fi
 
 exit $rc
