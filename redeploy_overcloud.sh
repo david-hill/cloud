@@ -11,13 +11,17 @@ function create_overcloud {
 delete_overcloud
 rc=$?
 if [ $rc -ne 0 ]; then
-  create_overcloud
+  sudo openstack-service restart
   rc=$?
   if [ $? -eq 0 ]; then
-    test_overcloud
+    create_overcloud
     rc=$?
-  else 
-    echo "Overcloud creation failed..."
+    if [ $? -eq 0 ]; then
+      test_overcloud
+      rc=$?
+    else 
+      echo "Overcloud creation failed..."
+    fi
   fi
 else
   echo "Overcloud deletion failed..."
