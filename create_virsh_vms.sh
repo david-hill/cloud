@@ -54,8 +54,15 @@ function create_vm {
 }
 
 function send_images {
-  ssh stack@$undercloudip 'mkdir images'
-  scp images/* stack@$undercloudip:images/
+  ssh stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi'
+  cd images
+  for file in *; do
+    ssh stack@$undercloudip "if [ -e $p ]; then exit 200; fi"
+    if [ $? -ne 200 ] ; then
+      scp $p stack@$undercloudip:images/
+    fi
+  done
+  cd ..
 }
 function send_instackenv {
   scp instackenv.json stack@$undercloudip:
