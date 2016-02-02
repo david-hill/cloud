@@ -16,7 +16,7 @@ function gen_xml {
     sed -i "s/###DISK###/$type-$inc/" $tmpfile
 }
 function gen_disks {
-    sudo qemu-img create -f qcow2 /var/lib/libvirt/images/$type-$inc.qcow2 10G
+    sudo qemu-img create -f qcow2 /var/lib/libvirt/images/$type-$inc.qcow2 40G
 }
 function create_domain {
     sudo virsh define $tmpfile
