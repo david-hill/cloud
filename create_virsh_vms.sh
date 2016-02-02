@@ -16,10 +16,10 @@ function gen_xml {
     sed -i "s/###DISK###/$type-$inc/" $tmpfile
 }
 function gen_disks {
-    qemu-img create -f qcow2 /var/lib/libvirt/images/$type-$inc.qcow2 10G
+    sudo qemu-img create -f qcow2 /var/lib/libvirt/images/$type-$inc.qcow2 10G
 }
 function create_domain {
-    virsh create $tmpfile
+    sudo virsh create $tmpfile
 }
 
 function update_instackenv {
