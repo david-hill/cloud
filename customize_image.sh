@@ -9,8 +9,9 @@ for p in *; do
     tar xf $p
     virt-customize -a overcloud-full.qcow2 --root-password password:rootpwd
     tar uf $p *
+    cp $p ../
     cd ../
+    rm -rf tmp/
   fi
 done
-
-
+cd ../
