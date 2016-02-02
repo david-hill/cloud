@@ -19,16 +19,17 @@ function gen_disks {
     sudo qemu-img create -f qcow2 /var/lib/libvirt/images/$type-$inc.qcow2 10G
 }
 function create_domain {
-    sudo virsh create $tmpfile
+    sudo virsh define $tmpfile
+ 
 }
 
 function update_instackenv {
   if [ ! -z "$rootpassword" ]; then
     if [ ! -e instackenv.json ]; then
-       echo "nodes\": [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"localhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ]" > instackenv.json
+       echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }" > instackenv.json
     else
-       sed -i 's/\} \]$//' instackenv.json
-       echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"localhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ]">> instackenv.json
+       sed -i 's/\} \] \}$//' instackenv.json
+       echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }">> instackenv.json
     fi
   fi
 }
@@ -37,6 +38,8 @@ function create_vm {
   inc=0
   if [[ $type =~ control ]]; then
     max=$controlscale
+  elif [[ $type =~ ceph ]]; then
+    max=$cephscale
   else
     max=$computescale
   fi
@@ -57,9 +60,10 @@ function send_images {
   ssh stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi'
   cd images
   for file in *; do
-    ssh stack@$undercloudip "if [ -e $p ]; then exit 200; fi"
-    if [ $? -ne 200 ] ; then
-      scp $p stack@$undercloudip:images/
+    rc=$(ssh stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
+    if [[ ! "$rc" =~ present ]] ; then
+      scp $file stack@$undercloudip:images/
+      ssh stack@$undercloudip "cd images; tar xf $file"
     fi
   done
   cd ..
@@ -73,5 +77,6 @@ function cleanup {
 }
 create_vm control
 create_vm compute
+create_vm ceph
 send_instackenv
 send_images
