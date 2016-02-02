@@ -61,7 +61,7 @@ function baremetal_setup {
 function deploy_overcloud {
   echo "Deploying overcloud ..."
   if [ -d  "/home/stack/images" ]; then
-    if [ -e "~/stackrc" ]; then
+    if [ -e "/home/stack/stackrc" ]; then
       create_oc_images
       baremetal_setup
       create_flavors
