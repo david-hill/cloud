@@ -13,7 +13,7 @@ function delete_vms {
     max=$computescale
   fi
   while [ $inc -lt $max ]; do
-    sudo virsh destroy $type-$inc
+    sudo virsh undefine $type-$inc
     inc=$(expr $inc + 1)
   done
 }
