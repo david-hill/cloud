@@ -53,8 +53,13 @@ function create_vm {
   done
 }
 
+function send_instackenv {
+  scp instackenv.json stack@$undercloudip:
+
+}
 function cleanup {
     rm -rf $tmpfile
 }
 create_vm control
 create_vm compute
+send_instackenv
