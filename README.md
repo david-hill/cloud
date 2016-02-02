@@ -11,3 +11,6 @@ create_network.sh : Create neutron test network<BR>
 delete_network.sh : Delete neutron test network<BR>
 boot_vm.sh : Create a test VM<BR>
 functions : Contains common functions<BR>
+template.xml : Default domain XML template
+create_virsh_vm.sh : Create required virsh VMs for an overcloud deployment
+delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment 
