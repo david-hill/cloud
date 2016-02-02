@@ -17,5 +17,9 @@ function delete_vms {
   done
 }
 
+function cleanup {
+  sudo rm -rf instackenv.json
+}
 delete_vms control
 delete_vms compute
+cleanup

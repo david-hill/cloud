@@ -21,6 +21,17 @@ function gen_disks {
 function create_domain {
     virsh create $tmpfile
 }
+
+function update_instackenv {
+  if [ ! -z "$rootpassword" ]; then
+    if [ ! -e instackenv.json ]; then
+       echo "nodes\": [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"localhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ]" > instackenv.json
+    else
+       sed -i 's/\} \]$//' instackenv.json
+       echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"localhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ]">> instackenv.json
+    fi
+  fi
+}
 function create_vm {
   type=$1
   inc=0
@@ -37,6 +48,7 @@ function create_vm {
     gen_disks
     create_domain
     cleanup
+    update_instackenv
     inc=$(expr $inc + 1)
   done
 }
