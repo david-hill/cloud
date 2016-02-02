@@ -53,6 +53,10 @@ function create_vm {
   done
 }
 
+function send_images {
+  ssh stack@$undercloudip 'mkdir images'
+  scp images/* stack@$undercloudip:images/
+}
 function send_instackenv {
   scp instackenv.json stack@$undercloudip:
 
@@ -63,3 +67,4 @@ function cleanup {
 create_vm control
 create_vm compute
 send_instackenv
+send_images
