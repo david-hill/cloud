@@ -15,3 +15,20 @@ template.xml : Default domain XML template
 create_virsh_vm.sh : Create required virsh VMs for an overcloud deployment
 delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment 
 customize_image.sh : Customize overcloud-full image
+
+# Deployment howto for virtual environment 
+1. git clone https://github.com/david-hill/cloud on the KVM host
+2. Generate a root key as root (ssh-keygen -b 2048)
+3. Edit setup.cfg
+4. Run create_virsh_vm.sh
+5. Run redeploy_undercloud.sh
+6. In a different window, run "watch.sh"
+
+# Deployment howto for physical environment
+1. git clone https://github.com/david-hill/cloud on the undercloud host
+2. Edit setup.cfg
+3. Run redeploy_undercloud.sh
+4. In a different window, run "watch.sh"
+
+# Known issues
+1. Single controller deployment is not supported
