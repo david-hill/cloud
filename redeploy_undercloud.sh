@@ -91,7 +91,7 @@ function validate_network_environment {
 
 function delete_nova_nodes {
   echo "Deleting nova nodes.."
-  for node in $(nova list | awk '{ print $2 }'); do
+  for node in $(nova list | awk '{ print $2 }' | grep -v ID); do
     nova delete $node
   done
   tnode=$(nova list | grep $node)
