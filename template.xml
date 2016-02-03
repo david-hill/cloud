@@ -8,8 +8,8 @@ or other application using the libvirt API.
 <domain type='kvm'>
   <name>###TYPE-INC###</name>
   <uuid>###UUID###</uuid>
-  <memory unit='KiB'>1048576</memory>
-  <currentMemory unit='KiB'>1048576</currentMemory>
+  <memory unit='KiB'>###MEM###</memory>
+  <currentMemory unit='KiB'>###MEM###</currentMemory>
   <vcpu placement='static'>1</vcpu>
   <os>
     <type arch='x86_64' machine='pc-i440fx-2.4'>hvm</type>
@@ -40,7 +40,7 @@ or other application using the libvirt API.
     <emulator>/usr/bin/qemu-kvm</emulator>
     <disk type='file' device='disk'>
       <driver name='qemu' type='qcow2'/>
-      <source file='/var/lib/libvirt/images/###DISK###.qcow2'/>
+      <source file='###PATH###/###DISK###.qcow2'/>
       <target dev='hda' bus='ide'/>
       <boot order='2'/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
