@@ -13,7 +13,7 @@ function gen_xml {
     sed -i "s/###MAC2###/$mac2/" $tmpfile
     sed -i "s/###MEM###/$memory/" $tmpfile
     sed -i "s/###UUID###/$uuid/" $tmpfile
-    sed -i "s/###TYPE-INC###/$uuid/" $tmpfile
+    sed -i "s/###TYPE-INC###/$type-$inc/" $tmpfile
     sed -i "s/###DISK###/$type-$inc/" $tmpfile
     sed -i "s|###PATH###|$tpath|" $tmpfile
 }
@@ -40,10 +40,13 @@ function create_vm {
   inc=0
   if [[ $type =~ control ]]; then
     max=$controlscale
+    memory=$controlmemory
   elif [[ $type =~ ceph ]]; then
     max=$cephscale
+    memory=$cephmemory
   else
     max=$computescale
+    memory=$computememory
   fi
   while [ $inc -lt $max ]; do
     tmpfile=$(mktemp)
