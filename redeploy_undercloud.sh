@@ -89,7 +89,28 @@ function validate_network_environment {
   python clapper/network-environment-validator.py
 }
 
+function delete_nova_nodes {
+  echo "Deleting nova nodes.."
+  for node in $(nova list | awk '{ print $2 }'); do
+    nova delete $node
+  done
+}
+function delete_ironic_nodes {
+  echo "Deleting ironic nodes.."
+  for node in $(ironic node-list | egrep "True|False" | awk '{ print $2 }'); do
+    ironic node-delete $node
+  done
+}
+function delete_nodes {
+  echo "Deleting nodes..."
+  delete_nova_nodes
+  delete_ironic_nodes
+
+}
+
+
 delete_overcloud
+delete_nodes
 cleanup_undercloud
 conformance
 install_undercloud
