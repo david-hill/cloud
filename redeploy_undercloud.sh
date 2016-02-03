@@ -36,7 +36,7 @@ function tag_hosts {
   for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
     if [ $inc -lt 3 ]; then
       ironic node-update $p add properties/capabilities='profile:control,boot_option:local'
-    elif [ $inc -lt 6 ]; then
+    elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
       ironic node-update $p add properties/capabilities='profile:cep-storage,boot_option:local'
     else
       ironic node-update $p add properties/capabilities='profile:compute,boot_option:local'
