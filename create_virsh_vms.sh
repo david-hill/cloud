@@ -11,6 +11,7 @@ function gen_xml {
     cp template.xml $tmpfile
     sed -i "s/###MAC1###/$mac1/" $tmpfile
     sed -i "s/###MAC2###/$mac2/" $tmpfile
+    sed -i "s/###MEM###/$memory/" $tmpfile
     sed -i "s/###UUID###/$uuid/" $tmpfile
     sed -i "s/###TYPE-INC###/$type-$inc/" $tmpfile
     sed -i "s/###DISK###/$type-$inc/" $tmpfile
