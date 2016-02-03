@@ -102,6 +102,17 @@ function delete_nova_nodes {
     done
   fi
 }
+function poweroff_ironic_nodes {
+  echo "Powering off ironic nodes.."
+  for node in $(ironic node-list | grep "power on" | awk '{ print $2 }'); do
+    ironic node-set-power-state $node off
+    tnode=$(ironic node-list | grep $node | grep "power on")
+    while [[ "$tnode" =~ $node ]]; do
+      tnode=$(ironic node-list | grep $node | grep "power on")
+      echo -n "."
+    done
+  done
+}
 function delete_ironic_nodes {
   echo "Deleting ironic nodes.."
   for node in $(ironic node-list | egrep "True|False" | awk '{ print $2 }'); do
@@ -116,6 +127,7 @@ function delete_ironic_nodes {
 function delete_nodes {
   echo "Deleting nodes..."
   delete_nova_nodes
+  poweroff_ironic_nodes
   delete_ironic_nodes
 }
 
