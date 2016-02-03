@@ -86,7 +86,9 @@ function install_undercloud {
 function validate_network_environment {
   echo "Validating network environment..."
   git clone https://github.com/rthallisey/clapper
-  python clapper/network-environment-validator.py
+  python clapper/network-environment-validator.py -n ../templates/network-environment.yaml
+  rc=$?
+  return $rc
 }
 
 function delete_nova_nodes {
@@ -137,5 +139,9 @@ cleanup_undercloud
 conformance
 install_undercloud
 validate_network_environment
-deploy_overcloud
-test_overcloud
+if [ $? -eq 0 ]; then
+  deploy_overcloud
+  test_overcloud
+else
+  exit 255
+fi
