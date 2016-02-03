@@ -94,20 +94,28 @@ function delete_nova_nodes {
   for node in $(nova list | awk '{ print $2 }'); do
     nova delete $node
   done
+  tnode=$(nova list | grep $node)
+  while [[ "$tnode" =~ $node ]]; do
+    tnode=$(nova list | grep $node)
+    echo -n "."
+  done
 }
 function delete_ironic_nodes {
   echo "Deleting ironic nodes.."
   for node in $(ironic node-list | egrep "True|False" | awk '{ print $2 }'); do
     ironic node-delete $node
+    tnode=$(ironic node-list | grep $node)
+    while [[ "$tnode" =~ $node ]]; do
+      tnode=$(ironic node-list | grep $node)
+      echo -n "."
+    done
   done
 }
 function delete_nodes {
   echo "Deleting nodes..."
   delete_nova_nodes
   delete_ironic_nodes
-
 }
-
 
 delete_overcloud
 delete_nodes
