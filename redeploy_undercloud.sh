@@ -94,11 +94,13 @@ function delete_nova_nodes {
   for node in $(nova list | awk '{ print $2 }' | grep -v ID); do
     nova delete $node
   done
-  tnode=$(nova list | grep $node)
-  while [[ "$tnode" =~ $node ]]; do
+  if [ ! -z "$node" ]; then
     tnode=$(nova list | grep $node)
-    echo -n "."
-  done
+    while [[ "$tnode" =~ $node ]]; do
+      tnode=$(nova list | grep $node)
+      echo -n "."
+    done
+  fi
 }
 function delete_ironic_nodes {
   echo "Deleting ironic nodes.."
