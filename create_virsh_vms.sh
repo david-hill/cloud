@@ -13,11 +13,12 @@ function gen_xml {
     sed -i "s/###MAC2###/$mac2/" $tmpfile
     sed -i "s/###MEM###/$memory/" $tmpfile
     sed -i "s/###UUID###/$uuid/" $tmpfile
-    sed -i "s/###TYPE-INC###/$type-$inc/" $tmpfile
+    sed -i "s/###TYPE-INC###/$uuid/" $tmpfile
     sed -i "s/###DISK###/$type-$inc/" $tmpfile
+    sed -i "s|###PATH###|$tpath|" $tmpfile
 }
 function gen_disks {
-    sudo qemu-img create -f qcow2 /var/lib/libvirt/images/$type-$inc.qcow2 40G
+    sudo qemu-img create -f qcow2 $tpath/$type-$inc.qcow2 40G
 }
 function create_domain {
     sudo virsh define $tmpfile
@@ -47,6 +48,7 @@ function create_vm {
   while [ $inc -lt $max ]; do
     tmpfile=$(mktemp)
     uuid=$(uuidgen)
+    tpath=$(df | sort -k4,4n | tail -1 | awk '{ print $6 }')
     gen_macs
     gen_xml
     gen_disks
