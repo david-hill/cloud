@@ -19,10 +19,11 @@ customize_image.sh : Customize overcloud-full image
 # Deployment howto for virtual environment 
 1. git clone https://github.com/david-hill/cloud on the KVM host
 2. Generate a root key as root (ssh-keygen -b 2048)
-3. Edit setup.cfg
-4. Run create_virsh_vm.sh
-5. Run redeploy_undercloud.sh
-6. In a different window, run "watch.sh"
+3. Copy the public key on the KVM host in authorized_keys
+4. Edit setup.cfg
+5. Run create_virsh_vm.sh
+6. Run redeploy_undercloud.sh
+7. In a different window, run "watch.sh"
 
 # Deployment howto for physical environment
 1. git clone https://github.com/david-hill/cloud on the undercloud host
