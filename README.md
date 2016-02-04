@@ -19,6 +19,11 @@ undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 
 # Deploying the Undercloud/Overcloud on a KVM host
 
+The default setup.cfg configuration permits a full Undercloud/Overcloud deployment
+on a laptop with 16GB of available RAM.  This is against memory recommendations but
+can work at some extent.  32GB of available RAM is recommended in order to allocate
+more memory to the controller VMs.
+
 1. git clone https://github.com/david-hill/cloud on the KVM host
 2. Generate a root key as root (ssh-keygen -b 2048)
 3. Copy the public key on the KVM host in authorized_keys
