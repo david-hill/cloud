@@ -148,6 +148,10 @@ function delete_nodes {
   poweroff_ironic_nodes
   delete_ironic_nodes
 }
+function create_overcloud_route {
+  ip addr add 10.1.2.9 dev br-ctlplane
+  route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
+}
 
 delete_overcloud
 delete_nodes
@@ -157,6 +161,7 @@ install_undercloud
 validate_network_environment
 if [ $? -eq 0 ]; then
   deploy_overcloud
+  create_overcloud_route
   test_overcloud
 else
   exit 255
