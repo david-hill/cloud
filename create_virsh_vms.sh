@@ -74,6 +74,30 @@ function send_images {
   done
   cd ..
 }
+
+function validate_env {
+  rc=255
+  sudo dmidecode |grep -i QEMU
+  if [ $? -ne 0 ]; then
+    rc=0;
+  fi
+  return $rc
+  sudo dmidecode |grep -i QEMU
+  if [ $? -ne 0 ]; then
+    rc=0;
+  fi
+  return $rc
+  sudo dmidecode |grep -i QEMU
+  if [ $? -ne 0 ]; then
+    rc=0;
+  fi
+  return $rc
+  sudo dmidecode |grep -i QEMU
+  if [ $? -ne 0 ]; then
+    rc=0;
+  fi
+  return $rc
+}
 function send_instackenv {
   scp instackenv.json stack@$undercloudip:
 
@@ -81,6 +105,7 @@ function send_instackenv {
 function cleanup {
     rm -rf $tmpfile
 }
+validate_env
 create_vm control
 create_vm compute
 create_vm ceph
