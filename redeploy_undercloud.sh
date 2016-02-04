@@ -22,12 +22,25 @@ function conformance {
 
 function create_flavors {
   echo "Creating flavors..."
+  if [ -z "$kvmhost" ]; then
+    ram=1024
+    disk=10
+    vcpus=1
+    swap=2048
+    bram=1024
+  else
+    ram=6144
+    disk=40
+    vcpus=4
+    swap=0
+    bram=4095
+  fi
   for profile in control compute ceph-storage; do
-    openstack flavor create --id auto --ram 6144 --disk 40 --vcpus 4 $profile
+    openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile
     openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile
   done
 
-  openstack flavor create --id auto --ram 4096 --disk 40 --vcpus 4 baremetal
+  openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal
 }
 
 function tag_hosts {
