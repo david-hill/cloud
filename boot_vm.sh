@@ -17,6 +17,7 @@ while [[ ! "$state" =~ ACTIVE ]] && [[ ! "$state" =~ ERROR ]]; do
 done
 
 if [[ "$state" =~ ACTIVE ]]; then
+  echo "VM creation was successful ! :)"
   echo "Deleting test VM..."
   nova delete test-vm
   state=$(nova list | grep test-vm  )
@@ -25,6 +26,8 @@ if [[ "$state" =~ ACTIVE ]]; then
     echo -n .
   done
   rc=0
+else
+  echo "VM creation failed ! :("
 fi
 
 exit $rc
