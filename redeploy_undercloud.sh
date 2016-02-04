@@ -52,8 +52,11 @@ function create_oc_images {
 
 function baremetal_setup {
   echo "Configure baremetal hosts..."
+  echo "Importing instackenv.json..."
   openstack baremetal import --json /home/stack/instackenv.json
+  echo "Configure node boot..."
   openstack baremetal configure boot
+  echo "Starting introspection..."
   openstack baremetal introspection bulk start
 }
 
