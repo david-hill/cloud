@@ -17,9 +17,8 @@ delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment<BR>
 customize_image.sh : Customize overcloud-full image<BR>
 undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 
-# Deploying the Undercloud/Overcloud in KVM
+# Deploying the Undercloud/Overcloud on a KVM host
 
-# Deployment howto for virtual environment 
 1. git clone https://github.com/david-hill/cloud on the KVM host
 2. Generate a root key as root (ssh-keygen -b 2048)
 3. Copy the public key on the KVM host in authorized_keys
@@ -30,7 +29,6 @@ undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 
 # Deploying the Undercloud/Overcloud on Baremetal
 
-# Deployment howto for physical environment
 1. git clone https://github.com/david-hill/cloud on the undercloud host
 2. Edit setup.cfg
 3. Run redeploy_undercloud.sh
