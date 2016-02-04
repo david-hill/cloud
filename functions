@@ -1,8 +1,8 @@
 function test_overcloud {
   rc=255
   echo "Testing overcloud ..."
-  if [ -e ~/overcloudrc ]; then
-    source ~/overcloudrc
+  if [ -e /home/stack/cloud/overcloudrc ]; then
+    source /home/stack/cloud/overcloudrc
     bash setup_image.sh
     rc=$?
     if [ $rc -eq 0 ]; then
