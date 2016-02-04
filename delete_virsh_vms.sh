@@ -13,15 +13,15 @@ function delete_vms {
     max=$computescale
   fi
   while [ $inc -lt $max ]; do
-    output=$(sudo virsh list | grep "$type-$inc")
+    output=$(sudo virsh list --all | grep "$type-$inc")
     if [[ "$output" =~ $type-$inc ]]; then 
-      virsh undefine $type-$inc
+      sudo virsh undefine $type-$inc
     else
       ip=$(ip addr)
-      if [[ ! "$kvmhost" =~ $ip ]]; then
-        output=$(ssh stack@$kvmhost "sudo virsh list | grep $type-$inc")
+      if [[ ! "$ip" =~ $kvmhost ]]; then
+        output=$(ssh root@$kvmhost "sudo virsh list --all | grep $type-$inc")
         if [[ "$output" =~ $type-$inc ]]; then
-          ssh stack@$kvmhost "sudo virsh undefine $type-$inc"
+          ssh root@$kvmhost "sudo virsh undefine $type-$inc"
         fi
       fi
     fi
@@ -31,6 +31,10 @@ function delete_vms {
 
 function cleanup {
   sudo rm -rf instackenv.json
+  ip=$(ip addr)
+  if [[ ! "$ip" =~ $kvmhost ]]; then
+    ssh root@$kvmhost /home/stack/instackenv.json
+  fi
 }
 delete_vms control
 delete_vms ceph
