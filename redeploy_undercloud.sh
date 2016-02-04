@@ -14,7 +14,7 @@ function cleanup_undercloud {
 
 function conformance {
   sudo yum update -y
-  sudo yum install -y ntpdate ntp screen libguestfs-tools
+  sudo yum install -y ntpdate ntp screen libguestfs-tools wget
   sudo service ntpd stop
   sudo ntpdate $ntpserver
   sudo service ntpd start
