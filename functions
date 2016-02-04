@@ -28,8 +28,13 @@ function openstack_oc_deploy {
     rc=255
   elif [ \( $(expr $cephscale % 2) -eq 0 -a $cephscale -ne 0 \) ] || [ $(expr $controlscale % 2) -or 0 -a $controlscale -eq 1 ]; then
     rc=254
-  else 
-    openstack overcloud deploy $deploymentargs
+  else
+    if [ -z "$kvmhost" ]; then
+      libvirttype=kvm
+    else
+      libvirttype=qemu
+    fi
+    openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype
     rc=$?
   fi
   return $rc
