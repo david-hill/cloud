@@ -13,7 +13,12 @@ function delete_vms {
     max=$computescale
   fi
   while [ $inc -lt $max ]; do
-    sudo virsh undefine $type-$inc
+    output=$(sudo "virsh list" | grep "$type-$inc")
+    if [[ "$output" =~ $type-$inc ]]; then 
+      virsh undefine $type-$inc
+    else
+      ssh root@$kvmhost "virsh undefine $type-$inc"
+    fi
     inc=$(expr $inc + 1)
   done
 }
