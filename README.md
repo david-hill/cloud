@@ -11,11 +11,11 @@ create_network.sh : Create neutron test network<BR>
 delete_network.sh : Delete neutron test network<BR>
 boot_vm.sh : Create a test VM<BR>
 functions : Contains common functions<BR>
-template.xml : Default domain XML template
-create_virsh_vm.sh : Create required virsh VMs for an overcloud deployment
-delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment 
-customize_image.sh : Customize overcloud-full image
-undercloud_database_cleanup.sh : Cleans up mysql database
+template.xml : Default domain XML template<BR>
+create_virsh_vm.sh : Create required virsh VMs for an overcloud deployment<BR>
+delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment<BR>
+customize_image.sh : Customize overcloud-full image<BR>
+undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 
 # Deployment howto for virtual environment 
 1. git clone https://github.com/david-hill/cloud on the KVM host
