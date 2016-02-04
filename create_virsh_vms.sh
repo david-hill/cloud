@@ -77,7 +77,7 @@ function send_images {
 
 function validate_env {
   rc=255
-  sudo dmidecode |grep -i QEMU
+  sudo dmidecode |grep -iq QEMU
   if [ $? -ne 0 ]; then
     rc=0;
   fi
