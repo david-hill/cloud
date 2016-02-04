@@ -82,21 +82,6 @@ function validate_env {
     rc=0;
   fi
   return $rc
-  sudo dmidecode |grep -i QEMU
-  if [ $? -ne 0 ]; then
-    rc=0;
-  fi
-  return $rc
-  sudo dmidecode |grep -i QEMU
-  if [ $? -ne 0 ]; then
-    rc=0;
-  fi
-  return $rc
-  sudo dmidecode |grep -i QEMU
-  if [ $? -ne 0 ]; then
-    rc=0;
-  fi
-  return $rc
 }
 function send_instackenv {
   scp instackenv.json stack@$undercloudip:
@@ -106,8 +91,12 @@ function cleanup {
     rm -rf $tmpfile
 }
 validate_env
-create_vm control
-create_vm compute
-create_vm ceph
-send_instackenv
-send_images
+if [ $? -eq 0 ]; then
+  create_vm control
+  create_vm compute
+  create_vm ceph
+  send_instackenv
+  send_images
+else
+  echo "Please run this from the KVM host..."
+fi
