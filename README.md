@@ -15,6 +15,7 @@ template.xml : Default domain XML template
 create_virsh_vm.sh : Create required virsh VMs for an overcloud deployment
 delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment 
 customize_image.sh : Customize overcloud-full image
+undercloud_database_cleanup.sh : Cleans up mysql database
 
 # Deployment howto for virtual environment 
 1. git clone https://github.com/david-hill/cloud on the KVM host
