@@ -26,7 +26,7 @@ function test_overcloud {
 function openstack_oc_deploy {
   if [ -z $cephscale ] || [ -z $controlscale ] || [ -z $computescale ]; then
     rc=255
-  elif [ \( $(expr $cephscale % 2) -eq 0 -a $cephscale -ne 0 \) ] || [ $(expr $controlscale % 2) -or 0 -a $controlscale -eq 1 ]; then
+  elif [ \( $(expr $cephscale % 2) -eq 0 -a $cephscale -ne 0 \) ] || [ $(expr $controlscale % 2) -eq 0 -a $controlscale -eq 1 ]; then
     rc=254
   else
     if [ -z "$kvmhost" ]; then
