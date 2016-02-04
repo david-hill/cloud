@@ -18,14 +18,35 @@ done
 
 if [[ "$state" =~ ACTIVE ]]; then
   echo "VM creation was successful ! :)"
-  echo "Deleting test VM..."
-  nova delete test-vm
-  state=$(nova list | grep test-vm  )
-  while [ "$state" != "" ]; do
-    state=$(nova list | grep test-vm )
-    echo -n .
-  done
-  rc=0
+
+  nova floating-ip-create ext-net
+  if [ $? -eq 0 ]; then
+    ip=$( nova floating-ip-list | grep ext-net | awk -F\| '{print $3 }')
+    if [ ! -z "$ip" ]; then
+      nova floating-ip-associate test-vm $ip
+      if [ $? -eq 0 ]; then
+        ping -c1 $ip
+        if [ $? -eq 0 ]; then
+          echo "Deleting test VM..."
+          nova delete test-vm
+          state=$(nova list | grep test-vm  )
+          while [ "$state" != "" ]; do
+            state=$(nova list | grep test-vm )
+            echo -n .
+          done
+          rc=0
+        else
+          echo "Failed to ping the floating ip..."
+        fi
+      else
+        echo "Failed to associate the floating ip..."
+      fi
+    else
+      echo "Failed to create a floating ip..."
+    fi
+  else
+    echo "Failure to create a floating ip ..."
+  fi
 else
   echo "VM creation failed ! :("
 fi
