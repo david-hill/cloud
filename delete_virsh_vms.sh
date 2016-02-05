@@ -30,7 +30,7 @@ function delete_vms {
 }
 
 function cleanup {
-  sudo rm -rf instackenv.json
+  sudo rm -rf /home/stack/instackenv.json
   ip=$(ip addr)
   if [[ ! "$ip" =~ $kvmhost ]]; then
     ssh root@$kvmhost /home/stack/instackenv.json
