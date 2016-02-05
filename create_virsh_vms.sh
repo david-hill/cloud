@@ -90,6 +90,7 @@ function send_instackenv {
 function cleanup {
     rm -rf $tmpfile
 }
+rm -rf instackenv.json
 validate_env
 if [ $? -eq 0 ]; then
   create_vm control
