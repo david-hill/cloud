@@ -16,6 +16,8 @@ while [ ! -z "$op" ]; do
   echo -n "."
 done
 
+neutron router-interface-delete test-router test-subnet
+neutron router-gateway-clear test-router
 neutron subnet-delete ext-subnet
 neutron net-delete ext-net
 neutron router-delete test-router
