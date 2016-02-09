@@ -2,6 +2,10 @@
 
 source setup.cfg
 
+neutron router-interface-delete test-router test-subnet
+neutron router-interface-delete test-router ext-subnet
+neutron router-gateway-clear test-router
+
 neutron subnet-delete test-subnet
 op=$( neutron subnet-list | grep test-subnet )
 while [ ! -z "$op" ]; do
@@ -16,9 +20,8 @@ while [ ! -z "$op" ]; do
   echo -n "."
 done
 
-neutron router-interface-delete test-router test-subnet
-neutron router-gateway-clear test-router
 neutron subnet-delete ext-subnet
 neutron net-delete ext-net
+
 neutron router-delete test-router
 exit 0
