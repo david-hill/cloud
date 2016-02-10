@@ -3,7 +3,6 @@
 source setup.cfg
 
 neutron router-interface-delete test-router test-subnet
-neutron router-interface-delete test-router ext-subnet
 neutron router-gateway-clear test-router
 
 neutron subnet-delete test-subnet
