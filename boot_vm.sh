@@ -26,6 +26,7 @@ if [[ "$state" =~ ACTIVE ]]; then
       if [ ! -z "$ip" ]; then
         nova floating-ip-associate test-vm $ip
         if [ $? -eq 0 ]; then
+          sleep 5
           ping -c1 $ip
           if [ $? -eq 0 ]; then
             nova secgroup-delete-rule default icmp -1 -1 0/0
