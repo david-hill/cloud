@@ -38,7 +38,10 @@ if [[ "$state" =~ ACTIVE ]]; then
                 state=$(nova list | grep test-vm )
                 echo -n .
               done
-              rc=0
+              nova floating-ip-delete $ip
+              if [ $? -eq 0 ]; then
+                rc=0
+              fi
             else
               echo "Failed to delete secgroup rule..."
             fi
