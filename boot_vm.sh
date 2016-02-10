@@ -29,7 +29,7 @@ if [[ "$state" =~ ACTIVE ]]; then
           sleep 5
           ping -c1 $ip
           if [ $? -eq 0 ]; then
-            nova secgroup-delete-rule default icmp -1 -1 0/0
+            nova secgroup-delete-rule default icmp -1 -1 0.0.0.0/0
             if [ $? -eq 0 ]; then
               echo "Deleting test VM..."
               nova delete test-vm
