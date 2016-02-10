@@ -10,7 +10,7 @@ function create_overcloud {
 }
 delete_overcloud
 rc=$?
-if [ $rc -ne 0 ]; then
+if [ $rc -eq 0 ]; then
   sudo openstack-service restart
   rc=$?
   if [ $? -eq 0 ]; then
