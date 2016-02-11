@@ -8,6 +8,7 @@ function cleanup_undercloud {
   sudo yum remove -y openstack-* python-oslo-*
   sudo yum remove -y mariadb
   sudo rm -rf /var/lib/mysql
+  sudo rm -rf /var/lib/ironic-discoverd/discoverd.sqlite
   sudo yum install -y python-rdomanager-oscplugin
   sudo echo >/var/log/heat/heat-engine.log
 }
@@ -148,8 +149,8 @@ function delete_nodes {
   poweroff_ironic_nodes
   delete_ironic_nodes
 }
+
 function create_overcloud_route {
-  sudo ip addr add 10.1.2.9 dev br-ctlplane
   sudo ip addr add 10.1.2.1 dev br-ctlplane
   sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
 }
@@ -161,8 +162,8 @@ conformance
 install_undercloud
 validate_network_environment
 if [ $? -eq 0 ]; then
-  deploy_overcloud
   create_overcloud_route
+  deploy_overcloud
   test_overcloud
 else
   exit 255
