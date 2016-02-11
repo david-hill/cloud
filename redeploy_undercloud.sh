@@ -150,6 +150,7 @@ function delete_nodes {
 }
 function create_overcloud_route {
   sudo ip addr add 10.1.2.9 dev br-ctlplane
+  sudo ip addr add 10.1.2.1 dev br-ctlplane
   sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
 }
 
