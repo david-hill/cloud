@@ -18,9 +18,9 @@ customize_image.sh : Customize overcloud-full image<BR>
 undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 
 # Requirements
-- 9GB of RAM ( 1 undercloud, 3 controllers, 1 compute)
-OR
-- 5GB of RAM ( 1 undercloud, 1 controller, 1 compute)
+- 9GB of RAM ( 1 undercloud, 3 controllers, 1 compute)<BR>
+OR<BR>
+- 5GB of RAM ( 1 undercloud, 1 controller, 1 compute)<BR>
 
 # Deploying the Undercloud/Overcloud on a KVM host
 
@@ -43,6 +43,3 @@ more memory to the controller VMs.
 2. Edit setup.cfg
 3. Run redeploy_undercloud.sh
 4. In a different window, run "watch.sh"
-
-# Known issues
-1. Single controller deployment is not supported
