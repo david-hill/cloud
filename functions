@@ -23,6 +23,23 @@ function test_overcloud {
   return $rc
 }
 
+function openstack_oc_update {
+  if [ -z $cephscale ] || [ -z $controlscale ] || [ -z $computescale ]; then
+    rc=255
+  elif [ \( $(expr $cephscale % 2) -eq 0 -a $cephscale -ne 0 \) ] || [ $(expr $controlscale % 2) -eq 0 -a $controlscale -eq 1 ]; then
+    rc=254
+  else
+    if [ -z "$kvmhost" ]; then
+      libvirttype=kvm
+    else
+      libvirttype=qemu
+    fi
+    openstack overcloud update $deploymentargs --libvirt-type $libvirttype
+    rc=$?
+  fi
+  return $rc
+}
+
 function openstack_oc_deploy {
   if [ -z $cephscale ] || [ -z $controlscale ] || [ -z $computescale ]; then
     rc=255
