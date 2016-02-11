@@ -13,7 +13,7 @@ neutron router-list | grep -q test-router
 if [ $? -ne 0 ]; then
   neutron router-create test-router
   neutron net-create ext-net --router:external True --provider:physical_network datacentre --provider:network_type flat
-  neutron subnet-create --name ext-subnet --allocation-pool start=10.1.2.60,end=10.1.2.70 --dns-namservers 8.8.8.8 --disable-dhcp $gwarg ext-net 10.1.2.0/24
+  neutron subnet-create --name ext-subnet --allocation-pool start=192.168.122.201,end=192.168.122.254 --dns-namservers 8.8.8.8 --disable-dhcp $gwarg ext-net 192.168.122.0/24
   neutron router-gateway-set test-router ext-net
   neutron net-create --provider:network_type  $neutronnwtype test
   neutron subnet-create test 10.254.0.0/16 --name test-subnet
