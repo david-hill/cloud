@@ -17,6 +17,11 @@ delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment<BR>
 customize_image.sh : Customize overcloud-full image<BR>
 undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 
+# Requirements
+- 9GB of RAM ( 1 undercloud, 3 controllers, 1 compute)
+OR
+- 5GB of RAM ( 1 undercloud, 1 controller, 1 compute)
+
 # Deploying the Undercloud/Overcloud on a KVM host
 
 The default setup.cfg configuration permits a full Undercloud/Overcloud deployment
