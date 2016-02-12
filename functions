@@ -42,6 +42,11 @@ function openstack_oc_deploy {
     fi
     openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype
     rc=$?
+    if [ $rc -eq 0 ]; then
+      for ip in $(nova list | grep ACTIVE | awk -F= '{ print $2 }' | awk '{ print $1 }'); do
+        ssh-keygen -R $ip
+      done
+    fi
   fi
   return $rc
 }
