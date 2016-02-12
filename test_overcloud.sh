@@ -1,8 +1,11 @@
 #!/bin/bash
 
 source functions
-
-test_overcloud
+source_rc overcloudrc
 rc=$?
+if [ $rc -eq 0 ]; then
+  test_overcloud
+  rc=$?
+fi
 
 exit $rc
