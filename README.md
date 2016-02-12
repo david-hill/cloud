@@ -49,3 +49,8 @@ more memory to the controller VMs.
 2. Edit setup.cfg
 3. Run redeploy_undercloud.sh
 4. In a different window, run "watch.sh"
+
+# Side notes
+
+subscription-manager list --available<BR>
+subscription-manager orgs<BR>
