@@ -34,7 +34,7 @@ function test_overcloud {
 }
 
 function openstack_oc_update {
-  openstack overcloud update stack $updateargs overcloud
+  openstack overcloud update stack $updateargs -i overcloud
   rc=$?
   return $rc
 }
