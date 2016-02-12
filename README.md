@@ -23,6 +23,10 @@ update_overcloud.sh : Updates the overcloud<BR>
 OR<BR>
 - 5GB of RAM ( 1 undercloud, 1 controller, 1 compute)<BR>
 
+# Notes
+- Make sure you kill local dnsmasq on the KVM host otherwise you'll have 2 DHCP servers running.<BR>
+- Configure a static IP address on the undercloud VM<BR>
+
 # Deploying the Undercloud/Overcloud on a KVM host
 
 The default setup.cfg configuration permits a full Undercloud/Overcloud deployment
