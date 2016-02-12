@@ -2,6 +2,14 @@
 
 source functions
 
+function cleanup_logs {
+  dirs="ceilometer heat glance horizon ironic ironic-discoverd keystone neutron nova swift"
+  for dir in $dirs; do
+    if [ -d "/var/log/$dir" ]; then
+      rm -rf "/var/log/$dir/*"
+    fi
+  done
+}
 function cleanup_undercloud {
   echo "Uninstalling undercloud..."
   rm overcloudrc
@@ -10,7 +18,7 @@ function cleanup_undercloud {
   sudo rm -rf /var/lib/mysql
   sudo rm -rf /var/lib/ironic-discoverd/discoverd.sqlite
   sudo yum install -y python-rdomanager-oscplugin
-  sudo echo >/var/log/heat/heat-engine.log
+  cleanup_logs
 }
 
 function conformance {
