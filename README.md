@@ -17,6 +17,7 @@ delete_virsh_vm.sh : Delete virsh VMs of the overcloud deployment<BR>
 customize_image.sh : Customize overcloud-full image<BR>
 undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 update_overcloud.sh : Updates the overcloud<BR>
+test_overcloud.sh : Tests the overcloud<BR>
 
 # Requirements
 - 9GB of RAM ( 1 undercloud, 3 controllers, 1 compute)<BR>
