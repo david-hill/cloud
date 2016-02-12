@@ -1,3 +1,13 @@
+function source_rc {
+  file=$1
+  rc=255
+  if [ -e $file ]; then
+    source $file
+    rc=0
+  fi
+  return $?
+}
+
 function test_overcloud {
   rc=255
   echo "Testing overcloud ..."
