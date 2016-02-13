@@ -106,7 +106,10 @@ function gen_xml {
 
 function create_domain {
     sudo virsh define $tmpfile
+}
 
+function start_domain {
+    sudo virsh start $vmname
 }
 
 function cleanup {

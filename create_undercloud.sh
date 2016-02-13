@@ -34,6 +34,7 @@ if [ $? -eq 0 ]; then
   gen_macs
   gen_xml
   create_domain
+  start_domain
   cleanup
 else
   echo "Please run this on baremetal..."
