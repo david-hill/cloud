@@ -1,6 +1,7 @@
 #!/bin/bash
 
 source functions
+source setup.cfg
 
 function cleanup_logs {
   dirs="ceilometer heat glance horizon ironic ironic-discoverd keystone neutron nova swift"
@@ -59,7 +60,7 @@ function tag_hosts {
     if [ $inc -lt 3 ]; then
       ironic node-update $p add properties/capabilities='profile:control,boot_option:local'
     elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
-      ironic node-update $p add properties/capabilities='profile:cep-storage,boot_option:local'
+      ironic node-update $p add properties/capabilities='profile:ceph-storage,boot_option:local'
     else
       ironic node-update $p add properties/capabilities='profile:compute,boot_option:local'
     fi
