@@ -35,4 +35,6 @@ cd /home/stack
 git clone http://github.com/david-hill/cloud
 git clone http://github.com/david-hill/rhosp7
 sed -i 's/localhost4.localdomain4/localhost4.localdomain4 ###TYPE###-###INC###/' /etc/hosts
+sed -i 's/Defaults.*requiretty//' /etc/sudoers
+su - stack -c "cd /home/stack/cloud; bash redeploy_undercloud.sh
 rm -rf /etc/rc3.d/S01customize
