@@ -16,7 +16,7 @@ if [ $? -eq 0 ]; then
   memory=$undercloudmemory
   type=undercloud
   inc=rhosp8
-  vmname="${undercloud}-${inc}"
+  vmname="${type}-${inc}"
   if [ -e "S01customize.local" ]; then
     cp S01customize.local tmp/S01customize
   else    
