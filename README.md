@@ -1,6 +1,6 @@
 # cloud repository containing various scripts
 
-
+analyze_failure.sh : Analyze failed overcloud deployment<BR>
 cinder_database_cleanup.sh : Delete old volume  entries from cinder database<BR>
 watch.sh : Watch an overcloud deployment status<BR>
 redeploy_undercloud.sh : Redeploy undercloud<BR>
