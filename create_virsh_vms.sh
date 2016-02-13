@@ -1,30 +1,11 @@
 #!/bin/bash
 
+source functions
 source setup.cfg
 
-function gen_macs {
-    mac1=$(echo -n 52:54:00; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02X"')
-    mac2=$(echo -n 52:54:00; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02X"')
-}
-
-function gen_xml {
-    cp template.xml $tmpfile
-    sed -i "s/###MAC1###/$mac1/" $tmpfile
-    sed -i "s/###MAC2###/$mac2/" $tmpfile
-    sed -i "s/###MEM###/$memory/" $tmpfile
-    sed -i "s/###UUID###/$uuid/" $tmpfile
-    sed -i "s/###TYPE-INC###/$type-$inc/" $tmpfile
-    sed -i "s/###DISK###/$type-$inc/" $tmpfile
-    sed -i "s|###PATH###|$tpath|" $tmpfile
-}
 function gen_disks {
     sudo qemu-img create -f qcow2 $tpath/$type-$inc.qcow2 40G
 }
-function create_domain {
-    sudo virsh define $tmpfile
- 
-}
-
 function update_instackenv {
   if [ ! -z "$rootpassword" ]; then
     if [ ! -e instackenv.json ]; then
@@ -75,20 +56,9 @@ function send_images {
   cd ..
 }
 
-function validate_env {
-  rc=255
-  sudo dmidecode |grep -iq QEMU
-  if [ $? -ne 0 ]; then
-    rc=0;
-  fi
-  return $rc
-}
 function send_instackenv {
   scp instackenv.json stack@$undercloudip:
 
-}
-function cleanup {
-    rm -rf $tmpfile
 }
 rm -rf instackenv.json
 validate_env
