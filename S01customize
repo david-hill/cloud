@@ -1,0 +1,38 @@
+#!/bin/bash
+cat<<EOF>/etc/sysconfig/network-scripts/ifcfg-eth0
+DEVICE="eth0"
+BOOTPROTO="static"
+BOOTPROTOv6="dhcp"
+ONBOOT="yes"
+TYPE="Ethernet"
+USERCTL="yes"
+PEERDNS="yes"
+IPV6INIT="yes"
+PERSISTENT_DHCLIENT="1"
+IPADDR="192.168.122.2"
+GATEWAY="192.168.122.1"
+DNS1="8.8.8.8"
+DNS1="8.8.4.4"
+EOF
+/sbin/ifdown eth0
+/sbin/ifup eth0
+hostnamectl set-hostname ###TYPE###-###INC###
+/sbin/subscription-manager register --username ###USERNAME### --password ###PASSWORD### 
+/sbin/subscription-manager attach
+/sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-director-rpms
+/sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-rpms
+yum install -y python-rdomanager-oscplugin git
+yum update -y
+useradd stack
+mkdir /home/stack
+echo "stack ALL=(root) NOPASSWD:ALL" | tee -a /etc/sudoers.d/stack
+chmod 0440 /etc/sudoers.d/stack
+mkdir /home/stack/.ssh
+chown -R stack /home/stack/.ssh
+echo "###KNOWNKEY###" > /home/stack/.ssh/authorized_keys
+chmod 600 /home/stack/.ssh/authorized_keys
+cd /home/stack
+git clone http://github.com/david-hill/cloud
+git clone http://github.com/david-hill/rhosp7
+sed -i 's/localhost4.localdomain4/localhost4.localdomain4 ###TYPE###-###INC###/' /etc/hosts
+rm -rf /etc/rc3.d/S01customize
