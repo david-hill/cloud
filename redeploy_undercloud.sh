@@ -45,11 +45,12 @@ function create_flavors {
     swap=0
     bram=4095
   fi
-  for profile in control compute ceph-storage; do
+  for profile in swift-storage block-storage control ceph-storage compute; do
+    openstack flavor delete $profile
     openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile
     openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile
   done
-
+  openstack flavor delete baremetal
   openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal
 }
 
