@@ -22,6 +22,8 @@ if [ $? -eq 0 ]; then
   else    
     cp S01customize tmp/S01customize
   fi
+  vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/32##')
+  sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
   sudo cp /home/dhill/VMs/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 /home/dhill/VMs/${vmname}.qcow2
   sudo qemu-img resize /home/dhill/VMs/${vmname}.qcow2 30G
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/ 
