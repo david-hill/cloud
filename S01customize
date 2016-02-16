@@ -14,29 +14,39 @@ GATEWAY="192.168.122.1"
 DNS1="8.8.8.8"
 DNS1="8.8.4.4"
 EOF
+dd if=/dev/zero of=/swapfile1 bs=1024 count=2097152
+chown root:root /swapfile1
+chmod 0600 /swapfile1
+mkswap /swapfile1
+swapon /swapfile1
+echo "/swapfile1 none swap sw 0 0" >> /etc/fstab
 /sbin/ifdown eth0
 /sbin/ifup eth0
+/sbin/setenforce 0
 hostnamectl set-hostname ###TYPE###-###INC###
-systemctl start sshd-keygen
-systemctl start sshd
+/sbin/sshd-keygen
+/sbin/sshd
 /sbin/subscription-manager register --username ###USERNAME### --password ###PASSWORD### 
 /sbin/subscription-manager attach
 /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-director-rpms
 /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-rpms
-yum install -y python-rdomanager-oscplugin git
+yum install -y python-rdomanager-oscplugin git deltarpm sysstat
 yum update -y
 useradd stack
-mkdir /home/stack
 echo "stack ALL=(root) NOPASSWD:ALL" | tee -a /etc/sudoers.d/stack
 chmod 0440 /etc/sudoers.d/stack
-mkdir /home/stack/.ssh
-chown -R stack /home/stack/.ssh
+mkdir -p /home/stack/.ssh
 echo "###KNOWNKEY###" > /home/stack/.ssh/authorized_keys
 chmod 600 /home/stack/.ssh/authorized_keys
+chown -R stack /home/stack/.ssh
 cd /home/stack
 git clone http://github.com/david-hill/cloud
 git clone http://github.com/david-hill/rhosp7
-sed -i 's/localhost4.localdomain4/localhost4.localdomain4 ###TYPE###-###INC###/' /etc/hosts
+sed -i 's/localhost4.localdomain4/localhost4.localdomain4 ###TYPE###-###INC### ###TYPE###-###INC###.localdomain/' /etc/hosts
 sed -i 's/Defaults.*requiretty//' /etc/sudoers
+cd /home/stack/cloud
 su - stack -c "cd /home/stack/cloud; bash redeploy_undercloud.sh"
+cp /root/stackrc /home/stack
+cp /root/tripleo-undercloud-passwords /home/stack
+chown stack -R /home/stack
 rm -rf /etc/rc3.d/S01customize
