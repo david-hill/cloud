@@ -45,8 +45,8 @@ function create_vm {
 
 function send_images {
   ssh stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi'
-  cd images
-  for file in *; do
+  cd images/$releasever
+  for file in *.tar; do
     rc=$(ssh stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
       scp $file stack@$undercloudip:images/
