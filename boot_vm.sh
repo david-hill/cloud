@@ -44,6 +44,7 @@ if [ $? -eq 0 ]; then
                 if [ $? -eq 0 ]; then
                   nova flavor-delete m1.micro
                   if [ $? -eq 0 ]; then
+                    echo "Everything was a success! :D"
                     rc=0
                   fi
                 fi
