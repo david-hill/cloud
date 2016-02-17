@@ -45,6 +45,18 @@ git clone http://github.com/david-hill/rhosp7
 sed -i 's/localhost4.localdomain4/localhost4.localdomain4 ###TYPE###-###INC### ###TYPE###-###INC###.localdomain/' /etc/hosts
 sed -i 's/Defaults.*requiretty//' /etc/sudoers
 cd /home/stack/cloud
+dd if=/dev/zero of=/swapfile2 bs=1024 count=2097152
+chown root:root /swapfile2
+chmod 0600 /swapfile2
+mkswap /swapfile2
+swapon /swapfile2
+echo "/swapfile2 none swap sw 0 0" >> /etc/fstab
+dd if=/dev/zero of=/swapfile3 bs=1024 count=2097152
+chown root:root /swapfile3
+chmod 0600 /swapfile3
+mkswap /swapfile3
+swapon /swapfile3
+echo "/swapfile3 none swap sw 0 0" >> /etc/fstab
 su - stack -c "cd /home/stack/cloud; bash redeploy_undercloud.sh"
 cp /root/stackrc /home/stack
 cp /root/tripleo-undercloud-passwords /home/stack
