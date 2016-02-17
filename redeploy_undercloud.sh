@@ -33,11 +33,19 @@ function conformance {
 function create_flavors {
   echo "Creating flavors..."
   if [ -z "$kvmhost" ]; then
-    ram=1024
-    disk=10
-    vcpus=1
-    swap=2048
-    bram=1024
+    if [[ $releasever =~ rhosp8 ]]; then
+      ram=1024
+      disk=10
+      vcpus=1
+      swap=4096
+      bram=1024
+    else
+      ram=1024
+      disk=10
+      vcpus=1
+      swap=2048
+      bram=1024
+    fi
   else
     ram=6144
     disk=40
