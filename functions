@@ -1,7 +1,9 @@
 function source_rc {
   file=$1
   rc=255
-  if [ -e $file ]; then
+  if [ -e ${file}.local ]; then
+    source ${file}.local
+  elif [ -e $file ]; then
     source $file
     rc=0
   fi
