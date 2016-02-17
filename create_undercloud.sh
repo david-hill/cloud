@@ -1,11 +1,7 @@
 #!/bin/bash
 
 source functions
-source setup.cfg
-source creds.cfg
-if [ -e "creds.cfg.local" ]; then
-  source creds.cfg.local
-fi
+source_rc setup.cfg
 
 validate_env
 if [ ! -d tmp ]; then
