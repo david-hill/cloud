@@ -4,7 +4,7 @@ source functions
 source setup.cfg
 
 function gen_disks {
-    sudo qemu-img create -f qcow2 $tpath/$type-$inc.qcow2 40G
+    sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever 40G
 }
 function update_instackenv {
   if [ ! -z "$rootpassword" ]; then
@@ -45,7 +45,7 @@ function create_vm {
 
 function send_images {
   ssh stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi'
-  cd images/$releasever
+  cd images/$releasever/$minorver
   for file in *.tar; do
     rc=$(ssh stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
