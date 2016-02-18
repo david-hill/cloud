@@ -121,7 +121,7 @@ function install_undercloud {
 function validate_network_environment {
   echo "Validating network environment..."
   git clone https://github.com/rthallisey/clapper
-  python clapper/network-environment-validator.py -n ../rhosp7/network-environment.yaml
+  python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml
   rc=$?
   return $rc
 }
