@@ -1,0 +1,10 @@
+[Unit]
+Description=Customize
+
+[Service]
+ExecStart=/etc/rc3.d/S01customize
+Type=idle
+RemainAfterExit=yes
+
+[Install]
+WantedBy=multi-user.target
