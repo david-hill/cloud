@@ -1,6 +1,7 @@
 #!/bin/bash
 
-source setup.cfg
+source functions
+source_rc setup.cfg
 
 function delete_vms {
   type=$1
@@ -13,15 +14,15 @@ function delete_vms {
     max=$computescale
   fi
   while [ $inc -lt $max ]; do
-    output=$(sudo virsh list --all | grep "$type-$inc")
+    output=$(sudo virsh list --all | grep "$type-$inc-$releasever")
     if [[ "$output" =~ $type-$inc ]]; then 
-      sudo virsh undefine $type-$inc
+      sudo virsh undefine $type-$inc-$releasever
     else
       ip=$(ip addr)
       if [[ ! "$ip" =~ $kvmhost ]]; then
-        output=$(ssh root@$kvmhost "sudo virsh list --all | grep $type-$inc")
-        if [[ "$output" =~ $type-$inc ]]; then
-          ssh root@$kvmhost "sudo virsh undefine $type-$inc"
+        output=$(ssh root@$kvmhost "sudo virsh list --all | grep $type-$inc-$releasever")
+        if [[ "$output" =~ $type-$inc-$releaserver ]]; then
+          ssh root@$kvmhost "sudo virsh undefine $type-$inc-$releasever"
         fi
       fi
     fi

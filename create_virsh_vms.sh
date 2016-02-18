@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source functions
-source setup.cfg
+source_rc setup.cfg
 
 function gen_disks {
     sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever 40G
