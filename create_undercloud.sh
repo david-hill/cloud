@@ -35,6 +35,19 @@ if [ $? -eq 0 ]; then
   create_domain
   start_domain
   cleanup
+
+  down=1
+  while [ $down -eq 1 ]; do
+    ping -c 1 192.168.122.2
+    up=$?
+  done
+  sshrc=1
+  while [ $ssh -ne 0 ]; do
+    ssh stack@192.168.122.2 'uptime'
+    sshrc=$?
+  done
+  bash create_virsh_vms.sh
+
 else
   echo "Please run this on baremetal..."
 fi
