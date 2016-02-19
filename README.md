@@ -4,6 +4,7 @@ analyze_failure.sh : Analyze failed overcloud deployment<BR>
 cinder_database_cleanup.sh : Delete old volume  entries from cinder database<BR>
 create_undercloud.sh : Create the undercloud VM<BR> 
 delete_overcloud.sh : Delete overcloud<BR>
+delete_undercloud.sh : Delete undercloud VM<BR>
 watch.sh : Watch an overcloud deployment status<BR>
 redeploy_undercloud.sh : Redeploy undercloud<BR>
 setup_image.sh : Download cirros and send it to glance<BR>
