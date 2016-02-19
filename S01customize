@@ -14,12 +14,6 @@ GATEWAY="192.168.122.1"
 DNS1="8.8.8.8"
 DNS1="8.8.4.4"
 EOF
-dd if=/dev/zero of=/swapfile1 bs=1024 count=2097152
-chown root:root /swapfile1
-chmod 0600 /swapfile1
-mkswap /swapfile1
-swapon /swapfile1
-echo "/swapfile1 none swap sw 0 0" >> /etc/fstab
 /sbin/ifdown eth0
 /sbin/ifup eth0
 /sbin/setenforce 0
@@ -45,6 +39,12 @@ git clone http://github.com/david-hill/rhosp7
 sed -i 's/localhost4.localdomain4/localhost4.localdomain4 ###TYPE###-###INC### ###TYPE###-###INC###.localdomain/' /etc/hosts
 sed -i 's/Defaults.*requiretty//' /etc/sudoers
 cd /home/stack/cloud
+dd if=/dev/zero of=/swapfile1 bs=1024 count=2097152
+chown root:root /swapfile1
+chmod 0600 /swapfile1
+mkswap /swapfile1
+swapon /swapfile1
+echo "/swapfile1 none swap sw 0 0" >> /etc/fstab
 dd if=/dev/zero of=/swapfile2 bs=1024 count=2097152
 chown root:root /swapfile2
 chmod 0600 /swapfile2
