@@ -4,7 +4,7 @@ source functions
 source_rc setup.cfg
 
 function gen_disks {
-    sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever 40G
+    sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G
 }
 function update_instackenv {
   if [ ! -z "$rootpassword" ]; then
