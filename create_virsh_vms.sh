@@ -4,7 +4,9 @@ source functions
 source_rc setup.cfg
 
 function gen_disks {
-    sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G
+    startlog "Creating $tpath/$type-$inc-$releasever.qcow2"
+    sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
+    endlog "done"
 }
 function update_instackenv {
   if [ ! -z "$rootpassword" ]; then
@@ -44,21 +46,22 @@ function create_vm {
 }
 
 function send_images {
-  ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi'
+  ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
   cd images/$releasever/$minorver
   for file in *.tar; do
-    rc=$(scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
-      scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/
-      ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file"
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/ > /dev/null
+      ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
     fi
   done
   cd ..
 }
 
 function send_instackenv {
-  scp instackenv.json stack@$undercloudip:
-
+  startlog "Copying instackenv to $undercloudip"
+  scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no instackenv.json stack@$undercloudip: > /dev/null
+  endlog "done"
 }
 rm -rf instackenv.json
 validate_env

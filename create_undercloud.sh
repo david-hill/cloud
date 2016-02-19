@@ -21,16 +21,21 @@ if [ $? -eq 0 ]; then
   sed -i "s/rhosp8/$releasever/g" tmp/S01customize
   vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/32##')
   sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
-  echo "Copying base image..."
+  startlog "Copying base image"
   sudo cp /home/dhill/VMs/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 /home/dhill/VMs/${vmname}.qcow2
-  echo "Resizing base disk..."
+  endlog "done"
+  startlog "Resizing base disk"
   sudo qemu-img resize /home/dhill/VMs/${vmname}.qcow2 30G > /dev/null
-  echo "Copying customize.service into image..."
+  endlog "done"
+  startlog "Copying customize.service into image"
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/  > /dev/null
-  echo "Creating root password and copying S01customize..."
+  endlog "done"
+  startlog "Creating root password and copying S01customize"
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd > /dev/null
-  echo "Enabling customize.service into systemd..."
+  endlog "done"
+  startlog "Enabling customize.service into systemd..."
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service > /dev/null
+  endlog "done"
 
   tmpfile=$(mktemp)
   uuid=$(uuidgen)
@@ -41,7 +46,7 @@ if [ $? -eq 0 ]; then
   start_domain
   cleanup
 
-  echo -n "Waiting for VM to come up..."
+  startlog "Waiting for VM to come up"
   down=1
   while [ $down -eq 1 ]; do
     echo -n "."
@@ -49,17 +54,25 @@ if [ $? -eq 0 ]; then
     down=$?
     sleep 1
   done
-  echo -n "Waiting for SSH to come up..."
+  endlog "done"
+  startlog "Waiting for SSH to come up"
   sshrc=1
   ssh-keygen -R $undercloudip
   while [ $sshrc -ne 0 ]; do
     echo -n "."
-    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
+    ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
     sshrc=$?
     sleep 1
   done
+  endlog "done"
   bash create_virsh_vms.sh
-
+  startlog "Waiting for undercloud deployment to complete"
+  while [[ ! "$rc" =~ completed ]]; do
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e completed ]; then echo completed; fi')
+    echo -n "."
+    sleep 1
+  done
+  endlog "done"
 else
   echo "Please run this on baremetal..."
 fi
