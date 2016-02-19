@@ -47,7 +47,7 @@ function send_images {
   ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi'
   cd images/$releasever/$minorver
   for file in *.tar; do
-    rc=$(ssh stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
+    rc=$(scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
       scp -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/
       ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file"

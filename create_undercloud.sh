@@ -52,7 +52,7 @@ if [ $? -eq 0 ]; then
   echo -n "Waiting for SSH to come up..."
   sshrc=1
   ssh-keygen -R $undercloudip
-  while [ $ssh -ne 0 ]; do
+  while [ $sshrc -ne 0 ]; do
     echo -n "."
     ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
     sshrc=$?
