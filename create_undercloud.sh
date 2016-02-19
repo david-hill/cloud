@@ -39,7 +39,7 @@ if [ $? -eq 0 ]; then
   down=1
   while [ $down -eq 1 ]; do
     ping -c 1 192.168.122.2
-    up=$?
+    down=$?
   done
   sshrc=1
   while [ $ssh -ne 0 ]; do
