@@ -107,11 +107,11 @@ function gen_xml {
 }
 
 function create_domain {
-    sudo virsh define $tmpfile
+    sudo virsh define $tmpfile > /dev/null
 }
 
 function start_domain {
-    sudo virsh start $vmname
+    sudo virsh start $vmname > /dev/null
 }
 
 function cleanup {

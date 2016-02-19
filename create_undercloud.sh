@@ -54,7 +54,7 @@ if [ $? -eq 0 ]; then
   ssh-keygen -R $undercloudip
   while [ $ssh -ne 0 ]; do
     echo -n "."
-    ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
+    ssh -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
     sshrc=$?
     sleep 1
   done
