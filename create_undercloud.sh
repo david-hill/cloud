@@ -45,16 +45,16 @@ if [ $? -eq 0 ]; then
   down=1
   while [ $down -eq 1 ]; do
     echo -n "."
-    ping -c 1 192.168.122.2 > /dev/null
+    ping -c 1 $undercloudip > /dev/null
     down=$?
     sleep 1
   done
   echo -n "Waiting for SSH to come up..."
   sshrc=1
-  ssh-keygen -R 192.168.122.2
+  ssh-keygen -R $undercloudip
   while [ $ssh -ne 0 ]; do
     echo -n "."
-    ssh stack@192.168.122.2 'uptime' > /dev/null
+    ssh -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
     sshrc=$?
     sleep 1
   done
