@@ -33,7 +33,7 @@ if [ $? -eq 0 ]; then
   startlog "Creating root password and copying S01customize"
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd > /dev/null
   endlog "done"
-  startlog "Enabling customize.service into systemd..."
+  startlog "Enabling customize.service into systemd"
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service > /dev/null
   endlog "done"
 
@@ -57,7 +57,7 @@ if [ $? -eq 0 ]; then
   endlog "done"
   startlog "Waiting for SSH to come up"
   sshrc=1
-  ssh-keygen -R $undercloudip
+  ssh-keygen -R $undercloudip > /dev/null
   while [ $sshrc -ne 0 ]; do
     echo -n "."
     ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
