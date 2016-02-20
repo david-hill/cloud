@@ -16,12 +16,14 @@ function delete_vms {
   while [ $inc -lt $max ]; do
     output=$(sudo virsh list --all | grep "$type-$inc-$releasever")
     if [[ "$output" =~ $type-$inc ]]; then 
+      sudo virsh destroy $type-$inc-$releasever > /dev/null
       sudo virsh undefine $type-$inc-$releasever > /dev/null
     else
       ip=$(ip addr)
       if [[ ! "$ip" =~ $kvmhost ]]; then
         output=$(ssh root@$kvmhost "sudo virsh list --all | grep $type-$inc-$releasever")
         if [[ "$output" =~ $type-$inc-$releaserver ]]; then
+          ssh root@$kvmhost "sudo virsh destroy $type-$inc-$releasever" > /dev/null
           ssh root@$kvmhost "sudo virsh undefine $type-$inc-$releasever" > /dev/null
         fi
       fi
