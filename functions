@@ -118,6 +118,15 @@ function cleanup {
     rm -rf $tmpfile
 }
 
+function run_in_qemu {
+  rc=255
+  sudo dmidecode |grep -iq QEMU
+  if [ $? -eq 0 ]; then
+    rc=0
+  fi
+  return $rc
+}
+
 function validate_env {
   rc=255
   sudo dmidecode |grep -iq QEMU

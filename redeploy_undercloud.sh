@@ -32,7 +32,9 @@ function conformance {
 
 function create_flavors {
   echo "Creating flavors..."
-  if [ -z "$kvmhost" ]; then
+  run_in_qemu
+  rc_qemu=$?
+  if [ $rc_qemu -eq 0 ]; then
     if [[ $releasever =~ rhosp8 ]]; then
       ram=1024
       disk=10
