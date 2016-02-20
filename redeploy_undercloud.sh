@@ -24,9 +24,6 @@ function cleanup_undercloud {
   sudo rm -rf /var/lib/mysql
   sudo rm -rf /var/lib/ironic-discoverd/discoverd.sqlite
   endlog "done"
-  startlog "Installing undercloud packages"
-  sudo yum install -y python-rdomanager-oscplugin > /dev/null
-  endlog "done"
   startlog "Whiping various log files"
   cleanup_logs
   endlog "done"
@@ -126,8 +123,10 @@ function deploy_overcloud {
 }
 
 function install_undercloud {
-  echo "Installing undercloud ..."
+  startlog "Installing undercloud"
+  sudo yum install -y python-rdomanager-oscplugin > /dev/null
   openstack undercloud install > /dev/null
+  endlog "done"
 }
 
 function validate_network_environment {
@@ -185,9 +184,11 @@ function create_overcloud_route {
   sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
 }
 
-delete_overcloud
-delete_nodes
-cleanup_undercloud
+if [ -e "/home/stack/stackrc" ]; then
+  delete_overcloud
+  delete_nodes
+  cleanup_undercloud
+fi
 conformance
 install_undercloud
 source_rc /home/stack/stackrc
