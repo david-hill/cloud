@@ -31,6 +31,8 @@ if [ $? -eq 0 ]; then
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/  > /dev/null
   endlog "done"
   startlog "Creating root password and copying S01customize"
+  sed -i "s/###MINORVER###/$minorver/g" tmp/S01customize
+  sed -i "s/###RELEASEVER###/$releasever/g" tmp/S01customize
   sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd > /dev/null
   endlog "done"
   startlog "Enabling customize.service into systemd"
