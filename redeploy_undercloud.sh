@@ -14,12 +14,22 @@ function cleanup_logs {
 function cleanup_undercloud {
   echo "Uninstalling undercloud..."
   rm overcloudrc
+  startlog "Uninstalling openstac"
   sudo yum remove -y openstack-* python-oslo-* > /dev/null
+  endlog "done"
+  startlog "Uninstalling mariadb"
   sudo yum remove -y mariadb > /dev/null
+  endlog "done"
+  startlog "Whiping database files"
   sudo rm -rf /var/lib/mysql
   sudo rm -rf /var/lib/ironic-discoverd/discoverd.sqlite
+  endlog "done"
+  startlog "Installing undercloud packages"
   sudo yum install -y python-rdomanager-oscplugin > /dev/null
+  endlog "done"
+  startlog "Whiping various log files"
   cleanup_logs
+  endlog "done"
 }
 
 function conformance {
