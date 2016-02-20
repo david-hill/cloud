@@ -36,6 +36,9 @@ chown -R stack /home/stack/.ssh
 cd /home/stack
 git clone http://github.com/david-hill/cloud
 git clone http://github.com/david-hill/rhosp7
+cd rhosp7
+git checkout 7.3
+cd ../
 sed -i 's/localhost4.localdomain4/localhost4.localdomain4 ###TYPE###-###INC### ###TYPE###-###INC###.localdomain/' /etc/hosts
 sed -i 's/Defaults.*requiretty//' /etc/sudoers
 cd /home/stack/cloud
