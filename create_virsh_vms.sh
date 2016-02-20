@@ -46,6 +46,7 @@ function create_vm {
 }
 
 function send_images {
+  startlog "Sending overcloud images to undercloud"
   ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
   cd images/$releasever/$minorver
   for file in *.tar; do
@@ -56,6 +57,7 @@ function send_images {
     fi
   done
   cd ..
+  endlog "done"
 }
 
 function send_instackenv {
