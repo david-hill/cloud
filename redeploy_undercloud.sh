@@ -178,6 +178,7 @@ delete_nodes
 cleanup_undercloud
 conformance
 install_undercloud
+source_rc /home/stack/stackrc
 validate_network_environment
 if [ $? -eq 0 ]; then
   create_overcloud_route
