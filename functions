@@ -101,6 +101,7 @@ function gen_xml {
     sed -i "s/###MAC2###/$mac2/" $tmpfile
     sed -i "s/###MEM###/$memory/" $tmpfile
     sed -i "s/###UUID###/$uuid/" $tmpfile
+    sed -i "s/###VCPUS###/$vcpus/" $tmpfile
     sed -i "s/###TYPE-INC###/$type-$inc-$releasever/" $tmpfile
     sed -i "s/###DISK###/$type-$inc-$releasever/" $tmpfile
     sed -i "s|###PATH###|$tpath|" $tmpfile

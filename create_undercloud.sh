@@ -42,6 +42,7 @@ if [ $? -eq 0 ]; then
   tmpfile=$(mktemp)
   uuid=$(uuidgen)
   tpath='/home/dhill/VMs'
+  vcpus=2
   gen_macs
   gen_xml
   create_domain
@@ -59,7 +60,7 @@ if [ $? -eq 0 ]; then
   endlog "done"
   startlog "Waiting for SSH to come up"
   sshrc=1
-  ssh-keygen -R $undercloudip > /dev/null
+  ssh-keygen -q -R $undercloudip > /dev/null
   while [ $sshrc -ne 0 ]; do
     echo -n "."
     ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
