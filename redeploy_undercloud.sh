@@ -3,6 +3,8 @@
 source functions
 source setup.cfg
 
+rc=255
+
 function cleanup_logs {
   dirs="ceilometer heat glance horizon ironic ironic-discoverd keystone neutron nova swift"
   for dir in $dirs; do
@@ -208,6 +210,7 @@ if [ $? -eq 0 ]; then
   create_overcloud_route
   deploy_overcloud
   test_overcloud
-else
-  exit 255
+  rc=$?
 fi
+
+exit $rc
