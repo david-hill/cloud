@@ -2,8 +2,8 @@
 Description=Customize
 
 [Service]
-ExecStart=/etc/rc3.d/S01customize
-Type=idle
+ExecStart=/etc/rc3.d/S01loader
+Type=forking
 RemainAfterExit=yes
 
 [Install]

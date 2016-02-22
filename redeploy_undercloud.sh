@@ -14,7 +14,7 @@ function cleanup_logs {
 function cleanup_undercloud {
   echo "Uninstalling undercloud..."
   rm overcloudrc
-  startlog "Uninstalling openstac"
+  startlog "Uninstalling openstack"
   sudo yum remove -y openstack-* python-oslo-* > /dev/null
   endlog "done"
   startlog "Uninstalling mariadb"
@@ -30,15 +30,21 @@ function cleanup_undercloud {
 }
 
 function conformance {
+  startlog "Updating system"
   sudo yum update -y > /dev/null
+  endlog "done"
+  startlog "Installing various packages"
   sudo yum install -y ntpdate ntp screen libguestfs-tools wget vim > /dev/null
+  endlog "done"
+  startlog "Synching time"
   sudo service ntpd stop > /dev/null
   sudo ntpdate $ntpserver > /dev/null
   sudo service ntpd start > /dev/null
+  endlog "done"
 }
 
 function create_flavors {
-  echo "Creating flavors..."
+  startlog "Creating flavors"
   run_in_qemu
   rc_qemu=$?
   if [ $rc_qemu -eq 0 ]; then
@@ -66,13 +72,16 @@ function create_flavors {
     openstack flavor delete $profile > /dev/null
     openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile > /dev/null
     openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile > /dev/null
+    echo -n "."
   done
   openstack flavor delete baremetal > /dev/null
   openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal > /dev/null
+  echo -n "."
+  endlog "done"
 }
 
 function tag_hosts {
-  echo "Tagging hosts..."
+  startlog "Tagging hosts"
   inc=0
   for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
     if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
@@ -84,26 +93,29 @@ function tag_hosts {
     fi
     inc=$( expr $inc + 1)
   done
+  endlog "done"
 }
 
 function create_oc_images {
-  echo "Importing overcloud images..."
+  startlog "Importing overcloud images"
   openstack overcloud image upload --image-path /home/stack/images > /dev/null
+  endlog "done"
 }
 
 function baremetal_setup {
-  echo "Configure baremetal hosts..."
-  echo "Importing instackenv.json..."
+  startlog "Importing instackenv.json"
   openstack baremetal import --json /home/stack/instackenv.json > /dev/null
-  echo "Configure node boot..."
+  endlog "done"
+  startlog "Configure node boot"
   openstack baremetal configure boot > /dev/null
-  echo "Starting introspection..."
+  endlog "done"
+  startlog "Starting introspection"
   openstack baremetal introspection bulk start > /dev/null
+  endlog "done"
 }
 
 
 function deploy_overcloud {
-  echo "Deploying overcloud ..."
   if [ -d  "/home/stack/images" ]; then
     if [ -e "/home/stack/stackrc" ]; then
       create_oc_images
@@ -130,15 +142,15 @@ function install_undercloud {
 }
 
 function validate_network_environment {
-  echo "Validating network environment..."
+  startlog "Validating network environment"
   git clone https://github.com/rthallisey/clapper > /dev/null
   python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml > /dev/null
+  endlog "done"
   rc=$?
   return $rc
 }
 
 function delete_nova_nodes {
-  echo "Deleting nova nodes.."
   for node in $(nova list | awk '{ print $2 }' | grep -v ID); do
     nova delete $node > /dev/null
   done
@@ -151,7 +163,6 @@ function delete_nova_nodes {
   fi
 }
 function poweroff_ironic_nodes {
-  echo "Powering off ironic nodes.."
   for node in $(ironic node-list | grep "power on" | awk '{ print $2 }'); do
     ironic node-set-power-state $node off > /dev/null
     tnode=$(ironic node-list | grep $node | grep "power on")
@@ -162,7 +173,6 @@ function poweroff_ironic_nodes {
   done
 }
 function delete_ironic_nodes {
-  echo "Deleting ironic nodes.."
   for node in $(ironic node-list | egrep "True|False" | awk '{ print $2 }'); do
     ironic node-delete $node > /dev/null
     tnode=$(ironic node-list | grep $node)
@@ -173,10 +183,11 @@ function delete_ironic_nodes {
   done
 }
 function delete_nodes {
-  echo "Deleting nodes..."
+  startlog "Deleting nodes"
   delete_nova_nodes
   poweroff_ironic_nodes
   delete_ironic_nodes
+  endlog "done"
 }
 
 function create_overcloud_route {

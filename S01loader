@@ -1,0 +1,4 @@
+#!/bin/bash -x
+
+mkdir /home/stack/
+/bin/bash /etc/rc3.d/S01customize 2>&1 > /home/stack/bootstrap.log &
