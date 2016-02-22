@@ -67,3 +67,4 @@ cp /root/tripleo-undercloud-passwords /home/stack
 chown stack -R /home/stack
 touch /home/stack/completed
 rm -rf /etc/rc3.d/S01customize
+rm -rf /etc/rc3.d/S01loader
