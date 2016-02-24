@@ -12,7 +12,7 @@ function source_rc {
 
 function test_overcloud {
   rc=255
-  echo "Testing overcloud ..."
+  startlog "Testing overcloud ..."
   if [ -e /home/stack/cloud/overcloudrc ]; then
     source /home/stack/cloud/overcloudrc
     bash setup_image.sh
@@ -26,11 +26,12 @@ function test_overcloud {
         if [ $rc -eq 0 ]; then
           bash delete_network.sh
           rc=$?
+          if [ $rc -eq 0 ]; then
+            endlog "done"
+          fi
         fi
       fi
     fi
-  else
-    echo "Something weird happened"
   fi
   return $rc
 }
