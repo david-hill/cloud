@@ -12,7 +12,7 @@ delete_overcloud
 rc=$?
 if [ $rc -eq 0 ]; then
   startlog "Restaring all openstack services..."
-  sudo bash -c "openstack-service restart > /dev/null"
+  sudo bash -c "openstack-service restart 2>&1 > /dev/null"
   rc=$?
   if [ $? -eq 0 ]; then
     endlog "done"
