@@ -55,10 +55,10 @@ if [ $? -eq 0 ]; then
   endlog "done"
   startlog "Waiting for SSH to come up"
   sshrc=1
-  ssh-keygen -q -R $undercloudip 2>&1 > /dev/null
+  ssh-keygen -q -R $undercloudip > /dev/null 2>&1
   while [ $sshrc -ne 0 ]; do
     echo -n "."
-    ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' 2>&1 > /dev/null
+    ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
     sshrc=$?
     sleep 1
   done
