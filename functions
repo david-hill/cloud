@@ -52,12 +52,16 @@ function openstack_oc_deploy {
     else
       libvirttype=qemu
     fi
-    openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype
+    startlog "Deploying overcloud"
+    openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype > /dev/null
     rc=$?
     if [ $rc -eq 0 ]; then
+      endlog "done"
       for ip in $(nova list | grep ACTIVE | awk -F= '{ print $2 }' | awk '{ print $1 }'); do
         ssh-keygen -R $ip
       done
+    else
+      endlog "error"
     fi
   fi
   return $rc
