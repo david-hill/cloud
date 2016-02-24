@@ -25,6 +25,7 @@ EOF
 /sbin/ifdown eth0
 /sbin/ifup eth0
 /sbin/setenforce 0
+sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
 hostnamectl set-hostname undercloud-###RELEASEVER###
 /sbin/sshd-keygen
 /sbin/sshd
