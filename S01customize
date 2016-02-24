@@ -31,7 +31,7 @@ hostnamectl set-hostname undercloud-###RELEASEVER###
 /sbin/sshd
 /sbin/subscription-manager register --username ###USERNAME### --password ###PASSWORD### 
 if [ $? -eq 0 ]; then
-  /sbin/subscription-manager attach
+  /sbin/subscription-manager attach --pool=###POOLDID###
   /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-director-rpms
   /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-rpms
   yum install -y python-rdomanager-oscplugin git deltarpm sysstat
