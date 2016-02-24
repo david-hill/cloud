@@ -51,17 +51,17 @@ function create_flavors {
   rc_qemu=$?
   if [ $rc_qemu -eq 0 ]; then
     if [[ $releasever =~ rhosp8 ]]; then
-      ram=1024
+      ram=256
       disk=10
       vcpus=1
       swap=4096
-      bram=1024
+      bram=256
     else
-      ram=1024
+      ram=256
       disk=10
       vcpus=1
       swap=2048
-      bram=1024
+      bram=256
     fi
   else
     ram=6144
