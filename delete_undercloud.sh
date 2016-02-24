@@ -7,6 +7,7 @@ function delete_vms {
   type=$1
   inc=0
   output=$(sudo virsh list --all | grep "$type-$inc-$releasever")
+  ssh stack@$undercloudip 'sudo subscription-manager unregister'
   sudo virsh destroy $type-$inc-$releasever
   sudo virsh undefine $type-$inc-$releasever
 }
