@@ -67,7 +67,7 @@ function openstack_oc_deploy {
 function delete_overcloud {
   inc=0
   rc=0
-  startlog "Deleting overcloud
+  startlog "Deleting overcloud"
   heat=$( heat stack-list | grep overcloud )
   if [ ! -z "$heat" ]; then
     heat stack-delete overcloud > /dev/null
