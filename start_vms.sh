@@ -1,3 +1,3 @@
-for p in $(sudo virsh list | grep running | awk '{ print $1 }'); do 
+for p in $(sudo virsh list --all | grep shut | awk '{ print $2 }'); do 
   sudo virsh start $p
 done
