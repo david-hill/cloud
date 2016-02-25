@@ -67,10 +67,10 @@ function openstack_oc_deploy {
 function delete_overcloud {
   inc=0
   rc=0
-  startlog "Deleting overcloud...."
+  startlog "Deleting overcloud
   heat=$( heat stack-list | grep overcloud )
   if [ ! -z "$heat" ]; then
-    heat stack-delete overcloud
+    heat stack-delete overcloud > /dev/null
     while [ ! -z "$heat" ]; do
       heat=$( heat stack-list | grep overcloud )
       echo -n "."
@@ -79,7 +79,7 @@ function delete_overcloud {
         if [ $inc -le $maxfailedcount ]; then
           endlog "failed"
           startlog "Stack deletion failed! retrying"
-          heat stack-delete overcloud
+          heat stack-delete overcloud > /dev/null
           sleep 1
         else
           endlog "failed"
@@ -91,7 +91,9 @@ function delete_overcloud {
     done
   fi
   if [ $rc -eq 0 ]; then
-    startlog "done"
+    endlog "done"
+  else
+    endlog "error"
   fi
   return $rc
 }
