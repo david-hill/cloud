@@ -1,11 +1,27 @@
-#!/bin/bash
-echo "stack ALL=(root) NOPASSWD:ALL" | tee -a /etc/sudoers.d/stack
+#!/bin/bash -x
+rc=255
+
+function startlog {
+  initial=$(date "+%s")
+  echo -n "$1..."
+}
+
+function endlog {
+  final=$(date "+%s")
+  elapsed=$(( $final - $initial ))
+  echo " $1. (${elapsed}s)"
+}
+
+startlog "Adding stack user"
+sed -i 's/Defaults.*requiretty//' /etc/sudoers
+echo "stack ALL=(root) NOPASSWD:ALL" | tee -a /etc/sudoers.d/stack > /dev/null
 chmod 0440 /etc/sudoers.d/stack
-mkdir -p /home/stack
 mkdir -p /home/stack/.ssh
 echo "###KNOWNKEY###" > /home/stack/.ssh/authorized_keys
 chmod 600 /home/stack/.ssh/authorized_keys
-chown -R stack /home/stack/.ssh
+chown -R stack:stack /home/stack
+endlog "done"
+startlog "Configuring network"
 cat<<EOF>/etc/sysconfig/network-scripts/ifcfg-eth0
 DEVICE="eth0"
 BOOTPROTO="static"
@@ -23,56 +39,112 @@ DNS1="8.8.4.4"
 EOF
 /sbin/ifdown eth0
 /sbin/ifup eth0
-/sbin/setenforce 0
+endlog "done"
+startlog "Disabling selinux"
+/sbin/setenforce 0 > /dev/null
 sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
-hostnamectl set-hostname undercloud-###RELEASEVER###
-/sbin/sshd-keygen
-/sbin/sshd
-/sbin/subscription-manager register --username ###USERNAME### --password ###PASSWORD### 
+endlog "done"
+startlog "Setting hostname"
+hostnamectl set-hostname undercloud-0-###RELEASEVER### > /dev/null
+endlog "done"
+startlog "Start SSHD"
+/sbin/sshd-keygen > /dev/null
+/sbin/sshd > /dev/null
+endlog "done"
+startlog "Registering the server with RH"
+/sbin/subscription-manager register --username ###USERNAME### --password ###PASSWORD###  > /dev/null
 if [ $? -eq 0 ]; then
-  /sbin/subscription-manager attach --pool=###POOLDID###
-  /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-director-rpms
-  /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-rpms
-  yum install -y python-rdomanager-oscplugin git deltarpm sysstat
-  yum update -y
+  endlog "done"
+  startlog "Attaching a pool"
+  /sbin/subscription-manager attach --pool=###POOLDID### > /dev/null
+  if [ $? -eq 0 ]; then
+    endlog "done"
+    if [[ "###RELEASEVER###" =~ rhosp7 ]]; then
+      startlog "Enabling rhel-7-server-openstack-7.0-director-rpms"
+      /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-director-rpms > /dev/null
+      if [ $? -eq 0 ]; then
+        endlog "done"
+        startlog "Enabling rhel-7-server-openstack-7.0-rpms"
+        /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-rpms > /dev/null
+        if [ $? -eq 0 ]; then
+          endlog "done"
+          rc=0
+        else
+          endlog "error"
+        fi
+      else
+        endlog "error"
+      fi
+    else
+      exit 254
+    fi
+  else
+    endlog "error"
+  fi
+else 
+  endlog "error"
+fi
+if [ $rc -eq 0 ]; then
+  startlog "Installing some packages"
+  yum install -y python-rdomanager-oscplugin git deltarpm sysstat > /dev/null
+  endlog "done"
+  startlog "Updating system"
+  yum update -y > /dev/null
+  endlog "done"
   cd /home/stack
-  git clone http://github.com/david-hill/cloud
-  git clone http://github.com/david-hill/###RELEASEVER###
+  startlog "Cloning cloud repository"
+  git clone http://github.com/david-hill/cloud > /dev/null
+  endlog "done"
+  startlog "Cloning ###RELEASEVER### repository"
+  git clone http://github.com/david-hill/###RELEASEVER### > /dev/null
+  endlog "done"
+  startlog "Checkout ###MINORVER### branch"
+  cd cloud
+  git checkout ###MINORVER### > /dev/null
+  cd ..
   cd ###RELEASEVER###
-  git checkout ###MINORVER###
-  cd ../
-  sed -i 's/localhost4.localdomain4/localhost4.localdomain4 undercloud-###RELEASEVER### unsercloud-###RELEASEVER###.localdomain/' /etc/hosts
+  git checkout ###MINORVER### > /dev/null
+  cd ..
+  endlog "done"
+  startlog "Creating swap files"
+  sed -i 's/localhost4.localdomain4/localhost4.localdomain4 undercloud-0-###RELEASEVER### unsercloud-0-###RELEASEVER###.localdomain/' /etc/hosts
   sed -i 's/Defaults.*requiretty//' /etc/sudoers
   cd /home/stack/cloud
-  dd if=/dev/zero of=/swapfile1 bs=1024 count=2097152
-  chown root:root /swapfile1
-  chmod 0600 /swapfile1
-  mkswap /swapfile1
-  swapon /swapfile1
+  dd if=/dev/zero of=/swapfile1 bs=1024 count=2097152 > /dev/null
+  chown root:root /swapfile1 > /dev/null
+  chmod 0600 /swapfile1 > /dev/null
+  mkswap /swapfile1 > /dev/null
+  swapon /swapfile1 > /dev/null
   echo "/swapfile1 none swap sw 0 0" >> /etc/fstab
-  dd if=/dev/zero of=/swapfile2 bs=1024 count=2097152
-  chown root:root /swapfile2
-  chmod 0600 /swapfile2
-  mkswap /swapfile2
-  swapon /swapfile2
+  dd if=/dev/zero of=/swapfile2 bs=1024 count=2097152 > /dev/null
+  chown root:root /swapfile2 > /dev/null
+  chmod 0600 /swapfile2 > /dev/null
+  mkswap /swapfile2 > /dev/null
+  swapon /swapfile2 > /dev/null
   echo "/swapfile2 none swap sw 0 0" >> /etc/fstab
-  dd if=/dev/zero of=/swapfile3 bs=1024 count=2097152
-  chown root:root /swapfile3
-  chmod 0600 /swapfile3
-  mkswap /swapfile3
-  swapon /swapfile3
+  dd if=/dev/zero of=/swapfile3 bs=1024 count=2097152 > /dev/null
+  chown root:root /swapfile3 > /dev/null
+  chmod 0600 /swapfile3 > /dev/null
+  mkswap /swapfile3 > /dev/null
+  swapon /swapfile3 > /dev/null
   echo "/swapfile3 none swap sw 0 0" >> /etc/fstab
-  su - stack -c "cd /home/stack/cloud; bash redeploy_undercloud.sh"
-  rc=$?
+  endlog "done"
   cp /root/stackrc /home/stack
   cp /root/tripleo-undercloud-passwords /home/stack
-  chown stack -R /home/stack
-  touch /.autorelabel
+  chown stack:stack -R /home/stack
+  cd /home/stack/cloud
+  su - stack -c "cd /home/stack/cloud; source ../stackrc; bash redeploy_undercloud.sh"
+  rc=$?
   if [ $rc -eq 0 ]; then
     touch /home/stack/completed
   fi
 else
   touch /home/stack/failed
 fi
+
+chown stack:stack -R /home/stack
+
+touch /.autorelabel
 rm -rf /etc/rc3.d/S01customize
 rm -rf /etc/rc3.d/S01loader
+
