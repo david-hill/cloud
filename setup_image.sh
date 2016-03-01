@@ -22,8 +22,6 @@ if [ $rc -eq 0 ]; then
   startlog "Creating glance image"
   glance image-create --name "cirros-0.3.4-x86_64" --file images/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public True --progress > /dev/null
   rc=$?
-else
-  endlog "error"
 fi
 
 if [ $rc -ne 0 ]; then
