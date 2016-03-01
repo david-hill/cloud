@@ -1,9 +1,17 @@
 #!/bin/bash
 
+source functions
+source overcloudrc
+
 rc=255
 
+startlog "Getting image list"
 image=$( glance image-list | grep cirros | head -1 | awk '{ print $2 }')
+endlog "done"
+
+startlog "Getting network list"
 neutron=$( neutron net-list | grep test | awk '{ print $2 }')
+endlog "done"
 
 startlog "Creating m1.micro VM"
 nova flavor-create m1.micro auto 256 1 1 > /dev/null
