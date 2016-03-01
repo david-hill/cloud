@@ -35,9 +35,7 @@ function create_vm {
     tpath=$(df | sort -k4,4n | tail -1 | awk '{ print $6 }')
     gen_macs
     gen_xml
-    startlog "Generating base disks"
     gen_disks
-    endlog "done"
     create_domain
     cleanup
     update_instackenv
@@ -68,9 +66,15 @@ function send_instackenv {
 rm -rf instackenv.json
 validate_env
 if [ $? -eq 0 ]; then
+  startlog "Creating VMs for control"
   create_vm control
+  endlog "done"
+  startlog "Creating VMs for compute"
   create_vm compute
+  endlog "done"
+  startlog "Creating VMs for ceph"
   create_vm ceph
+  endlog "done"
   send_instackenv
   send_images
 else

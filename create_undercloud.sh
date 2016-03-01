@@ -66,17 +66,23 @@ if [ $? -eq 0 ]; then
   bash create_virsh_vms.sh
   startlog "Waiting for undercloud deployment"
   while [[ ! "$rc" =~ completed ]]; do
+    echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
-    echo -n "."
+    printf "\b"
+    echo -n "s"
     sleep 1
+    printf "\b"
   done
   endlog "done"
   startlog "Waiting for overcloud deployment"
   rc=in_progress
   while [[ ! "$rc" =~ completed ]]; do
+    echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
-    echo -n "."
+    printf "\b"
+    echo -n "s"
     sleep 1
+    printf "\b"
   done
   endlog "done"
 else
