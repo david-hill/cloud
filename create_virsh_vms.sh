@@ -4,9 +4,7 @@ source functions
 source_rc setup.cfg
 
 function gen_disks {
-    startlog "Creating $tpath/$type-$inc-$releasever.qcow2"
     sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
-    endlog "done"
 }
 function update_instackenv {
   if [ ! -z "$rootpassword" ]; then
@@ -37,7 +35,9 @@ function create_vm {
     tpath=$(df | sort -k4,4n | tail -1 | awk '{ print $6 }')
     gen_macs
     gen_xml
+    startlog "Generating base disks"
     gen_disks
+    endlog "done"
     create_domain
     cleanup
     update_instackenv
