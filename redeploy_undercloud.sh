@@ -74,11 +74,9 @@ function create_flavors {
     openstack flavor delete $profile > /dev/null
     openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile > /dev/null
     openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile > /dev/null
-    echo -n "."
   done
   openstack flavor delete baremetal > /dev/null
   openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal > /dev/null
-  echo -n "."
   endlog "done"
 }
 
@@ -105,18 +103,27 @@ function create_oc_images {
 }
 
 function baremetal_setup {
-  rc=255
   startlog "Importing instackenv.json"
   openstack baremetal import --json /home/stack/instackenv.json > /dev/null
-  endlog "done"
-  startlog "Configure node boot"
-  openstack baremetal configure boot > /dev/null
-  endlog "done"
-  startlog "Starting introspection"
-  openstack baremetal introspection bulk start > /dev/null
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
+    startlog "Configure node boot"
+    openstack baremetal configure boot > /dev/null
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+      startlog "Starting introspection"
+      openstack baremetal introspection bulk start > /dev/null
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+      else
+        endlog "error"
+      fi
+    else
+      endlog "error"
+    fi
   else
     endlog "error"
   fi
