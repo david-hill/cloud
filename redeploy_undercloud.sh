@@ -105,6 +105,7 @@ function create_oc_images {
 }
 
 function baremetal_setup {
+  rc=255
   startlog "Importing instackenv.json"
   openstack baremetal import --json /home/stack/instackenv.json > /dev/null
   endlog "done"
@@ -113,20 +114,30 @@ function baremetal_setup {
   endlog "done"
   startlog "Starting introspection"
   openstack baremetal introspection bulk start > /dev/null
-  endlog "done"
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
 }
 
 
 function deploy_overcloud {
+  rc=255
   if [ -d  "/home/stack/images" ]; then
     if [ -e "/home/stack/stackrc" ]; then
       create_oc_images
       baremetal_setup
-      create_flavors
-      tag_hosts
-      bash deploy_overcloud.sh
-      if [ $? -ne 0 ]; then
-        exit 255
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        create_flavors
+        tag_hosts
+        bash deploy_overcloud.sh
+        if [ $? -ne 0 ]; then
+          exit 255
+        fi
       fi
     else 
       echo "Undercloud wasn't successfully deployed!"
@@ -134,6 +145,7 @@ function deploy_overcloud {
   else
     echo "Please download the overcloud-* images and put them in /home/stack/images"
   fi
+  return $rc
 }
 
 function install_undercloud {
@@ -209,8 +221,11 @@ validate_network_environment
 if [ $? -eq 0 ]; then
   create_overcloud_route
   deploy_overcloud
-  test_overcloud
   rc=$?
+  if [ $rc -eq 0 ]; then 
+    test_overcloud
+    rc=$?
+  fi
 fi
 
 exit $rc
