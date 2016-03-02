@@ -55,7 +55,7 @@ function openstack_oc_deploy {
     if [ $rc -eq 0 ]; then
       endlog "done"
       for ip in $(nova list | grep ACTIVE | awk -F= '{ print $2 }' | awk '{ print $1 }'); do
-        ssh-keygen -R $ip
+        ssh-keygen -R $ip > /dev/null
       done
     else
       endlog "error"
