@@ -15,13 +15,24 @@ if [ ! -e images/cirros-0.3.4-x86_64-disk.img ]; then
   wget -q http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img > /dev/null
   rc=$?
   cd ..
+  if [ $rc -eq 0 ]; then
+    endlog "done":
+  else
+    endlog "error":
+  fi
 fi
 
 if [ $rc -eq 0 ]; then
-  endlog "done":
-  startlog "Creating glance image"
-  glance image-create --name "cirros-0.3.4-x86_64" --file images/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public True --progress > /dev/null
-  rc=$?
+  startlog "Listing glance image"
+  glance image-list | grep -q cirros-0.3.4-x86_64
+  if [ $? -eq 0 ]; then
+    endlog "done"
+    rc=0
+  else
+    startlog "Creating glance image"
+    glance image-create --name "cirros-0.3.4-x86_64" --file images/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public True --progress > /dev/null
+    rc=$?
+  fi
 fi
 
 if [ $rc -ne 0 ]; then
