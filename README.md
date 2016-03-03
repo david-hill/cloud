@@ -22,6 +22,8 @@ undercloud_database_cleanup.sh : Cleans up mysql database<BR>
 update_overcloud.sh : Updates the overcloud<BR>
 test_overcloud.sh : Tests the overcloud<BR>
 resume_vms.sh : Resume suspended VMs<BR>
+start_vms.sh : Start VMs<BR>
+stop_vms.sh : Start VMs<BR>
 suspend_vms.sh : Suspend VMs<BR>
 
 # Requirements
