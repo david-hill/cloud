@@ -11,7 +11,7 @@ function create_overcloud {
 delete_overcloud
 rc=$?
 if [ $rc -eq 0 ]; then
-  startlog "Restaring all openstack services"
+  startlog "Restarting all openstack services"
   sudo bash -c "openstack-service restart 2>&1 > /dev/null"
   rc=$?
   if [ $? -eq 0 ]; then
@@ -22,6 +22,8 @@ if [ $rc -eq 0 ]; then
       test_overcloud
       rc=$?
     fi
+  else
+    endlog "error"
   fi
 fi
 exit $rc
