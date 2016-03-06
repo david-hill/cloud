@@ -3,11 +3,14 @@
 source setup.cfg
 source functions
 
+source_rc /home/stack/stackrc
+
 function create_overcloud {
   openstack_oc_deploy
   rc=$?
   return $rc
 }
+
 delete_overcloud
 rc=$?
 if [ $rc -eq 0 ]; then
