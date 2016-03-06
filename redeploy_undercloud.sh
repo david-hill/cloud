@@ -217,6 +217,7 @@ function create_overcloud_route {
 }
 
 if [ -e "/home/stack/stackrc" ]; then
+  source_rc /home/stack/stackrc
   delete_overcloud
   delete_nodes
   cleanup_undercloud
