@@ -25,15 +25,14 @@ if [ $? -eq 0 ]; then
   state=$(nova list | grep test-vm | awk '{ print $6 }')
   while [[ ! "$state" =~ ACTIVE ]] && [[ ! "$state" =~ ERROR ]]; do
     state=$(nova list | grep test-vm | awk '{ print $6 }')
-    echo -n .
   done
 
   if [[ "$state" =~ ACTIVE ]]; then
-    startlog "done"
+    endlog "done"
     startlog "Adding rule to default security group"
     nova secgroup-add-rule default icmp -1 -1 0/0 > /dev/null
     if [ $? -eq 0 ]; then
-      startlog "done"
+      endlog "done"
       startlog "Creating a floating IP"
       nova floating-ip-create ext-net > /dev/null
       if [ $? -eq 0 ]; then
