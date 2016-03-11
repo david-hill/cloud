@@ -31,7 +31,7 @@ if [ $? -eq 0 ]; then
   startlog "Customizing image"
   sed -i "s/###MINORVER###/$minorver/g" tmp/S01customize
   sed -i "s/###RELEASEVER###/$releasever/g" tmp/S01customize
-  sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/ --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --copy-in S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service > /dev/null
+  sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/ --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --copy-in S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service --copy-in cloud.cfg:/etc/cloud > /dev/null
   endlog "done"
 
   tmpfile=$(mktemp)
