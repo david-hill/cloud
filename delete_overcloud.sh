@@ -32,7 +32,7 @@ function poweroff_ironic_nodes {
 function delete_ironic_nodes {
   startlog "Deleting ironic nodes.."
   for node in $(ironic node-list | egrep "True|False" | awk '{ print $2 }'); do
-    ironic node-delete $node
+    ironic node-delete $node > /dev/null
     tnode=$(ironic node-list | grep $node)
     while [[ "$tnode" =~ $node ]]; do
       tnode=$(ironic node-list | grep $node)
