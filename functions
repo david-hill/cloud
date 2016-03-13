@@ -147,12 +147,12 @@ function validate_env {
 
 function startlog {
   initial=$(date "+%s")
-  echo -n "$1..."
+  printf "%-60s" "$1"
 }
 
 function endlog {
   final=$(date "+%s")
   elapsed=$(( $final - $initial ))
-  echo " $1. (${elapsed}s)"
+  printf "%-15s\n" "$1 (${elapsed}s)"
 }
 
