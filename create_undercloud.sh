@@ -47,20 +47,28 @@ if [ $? -eq 0 ]; then
   startlog "Waiting for VM to come up"
   down=1
   while [ $down -eq 1 ]; do
-    echo -n "."
+    echo -n "c"
     ping -c 1 $undercloudip > /dev/null
     down=$?
     sleep 1
+    printf "\b"
+    echo -n "s"
+    sleep 1
+    printf "\b"
   done
   endlog "done"
   startlog "Waiting for SSH to come up"
   sshrc=1
   ssh-keygen -q -R $undercloudip > /dev/null 2>&1
   while [ $sshrc -ne 0 ]; do
-    echo -n "."
+    echo -n "c"
     ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' > /dev/null
     sshrc=$?
     sleep 1
+    printf "\b"
+    echo -n "s"
+    sleep 1
+    printf "\b"
   done
   endlog "done"
   bash create_virsh_vms.sh
@@ -68,6 +76,7 @@ if [ $? -eq 0 ]; then
   while [[ ! "$rc" =~ completed ]]; do
     echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
+    sleep 1
     printf "\b"
     echo -n "s"
     sleep 1
@@ -79,6 +88,7 @@ if [ $? -eq 0 ]; then
   while [[ ! "$rc" =~ completed ]]; do
     echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/introspected ]; then echo completed; fi')
+    sleep 1
     printf "\b"
     echo -n "s"
     sleep 1
@@ -90,6 +100,7 @@ if [ $? -eq 0 ]; then
   while [[ ! "$rc" =~ completed ]]; do
     echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
+    sleep 1
     printf "\b"
     echo -n "s"
     sleep 1
