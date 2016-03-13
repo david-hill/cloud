@@ -17,6 +17,7 @@ sed -i 's/Defaults.*requiretty//' /etc/sudoers
 echo "stack ALL=(root) NOPASSWD:ALL" | tee -a /etc/sudoers.d/stack > /dev/null
 chmod 0440 /etc/sudoers.d/stack
 mkdir -p /home/stack/.ssh
+mkdir -p /home/stack/deployment_state
 echo "###KNOWNKEY###" > /home/stack/.ssh/authorized_keys
 chmod 600 /home/stack/.ssh/authorized_keys
 chown -R stack:stack /home/stack

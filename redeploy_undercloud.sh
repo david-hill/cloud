@@ -118,6 +118,7 @@ function baremetal_setup {
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
+        touch /home/stack/deployment_state/introspected
       else
         endlog "error"
       fi
