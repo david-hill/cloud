@@ -74,6 +74,17 @@ if [ $? -eq 0 ]; then
     printf "\b"
   done
   endlog "done"
+  startlog "Waiting for introspection"
+  rc=in_progress
+  while [[ ! "$rc" =~ completed ]]; do
+    echo -n "c"
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/introspected ]; then echo completed; fi')
+    printf "\b"
+    echo -n "s"
+    sleep 1
+    printf "\b"
+  done
+  endlog "done"
   startlog "Waiting for overcloud deployment"
   rc=in_progress
   while [[ ! "$rc" =~ completed ]]; do
