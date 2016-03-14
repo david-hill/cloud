@@ -13,7 +13,7 @@ startlog "Getting network list"
 neutron=$( neutron net-list | grep test | awk '{ print $2 }')
 endlog "done"
 
-startlog "Creating m1.micro VM"
+startlog "Creating m1.micro flavor"
 nova flavor-create m1.micro auto 256 1 1 > /dev/null
 if [ $? -eq 0 ]; then
   endlog "done"
