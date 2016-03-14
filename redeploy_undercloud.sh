@@ -85,11 +85,11 @@ function create_flavors {
   done
   openstack flavor delete baremetal > /dev/null
   if [ $? -ne 0 ]; then
-    nova flavor-delete baremetal
+    nova flavor-delete baremetal > /dev/null
   fi
   openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal > /dev/null
   if [ $? -ne 0 ]; then
-    nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus
+    nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus > /dev/null
   fi
   endlog "done"
 }
