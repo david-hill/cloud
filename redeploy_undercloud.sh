@@ -9,7 +9,7 @@ function cleanup_logs {
   dirs="ceilometer heat glance horizon ironic ironic-discoverd keystone neutron nova swift"
   for dir in $dirs; do
     if [ -d "/var/log/$dir" ]; then
-      sudo bash -c rm -rf "/var/log/$dir/*"
+      sudo bash -c "rm -rf /var/log/$dir/*"
     fi
   done
 }
