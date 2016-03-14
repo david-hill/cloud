@@ -72,11 +72,26 @@ function create_flavors {
   fi
   for profile in swift-storage block-storage control ceph-storage compute; do
     openstack flavor delete $profile > /dev/null
+    if [ $? -ne 0 ]; then
+      nova flavor-delete $profile > /dev/null
+    fi
     openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile > /dev/null
+    if [ $? -ne 0 ]; then
+      nova flavor-create --swap $swap $profile auto $ram $disk $vcpus
+    fi
     openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile > /dev/null
+    if [ $? -ne 0 ]; then
+      nova flavor-key $profile set "cpu_arch"="x86_64" "capabilities:boot_option"="local" "capabilities:profile"="$profile" > /dev/null
+    fi
   done
   openstack flavor delete baremetal > /dev/null
+  if [ $? -ne 0 ]; then
+    nova flavor-delete baremetal
+  fi
   openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal > /dev/null
+  if [ $? -ne 0 ]; then
+    nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus
+  fi
   endlog "done"
 }
 
