@@ -1,6 +1,6 @@
 source functions
-source setup.cfg
 
+source_rc setup.cfg
 source_rc /home/stack/stackrc
 
 for stack in $(heat stack-list | grep -i failed | awk '{ print $2 }'); do 

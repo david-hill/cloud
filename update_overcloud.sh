@@ -1,7 +1,8 @@
 #!/bin/bash
 
-source setup.cfg
 source functions 
+
+source_rc setup.cfg
 
 openstack_oc_deploy
 rc=$?

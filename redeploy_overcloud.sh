@@ -1,8 +1,8 @@
 #!/bin/bash
 
-source setup.cfg
 source functions
 
+source_rc setup.cfg
 source_rc /home/stack/stackrc
 
 function create_overcloud {
