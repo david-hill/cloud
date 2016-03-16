@@ -1,7 +1,8 @@
 #!/bin/bash
 
 source functions
-source setup.cfg
+
+source_rc setup.cfg
 
 rc=255
 
