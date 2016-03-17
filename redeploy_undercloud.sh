@@ -133,6 +133,9 @@ function baremetal_setup {
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
+        if [ ! -d "/home/stack/deployment_state" ]; then
+          mkdir -p /home/stack/deployment_state
+        fi
         touch /home/stack/deployment_state/introspected
       else
         endlog "error"
