@@ -113,7 +113,7 @@ function tag_hosts {
 
 function create_oc_images {
   startlog "Importing overcloud images"
-  openstack overcloud image upload --image-path /home/stack/images > /dev/null
+  openstack overcloud image upload --image-path /home/stack/images 2>$stderr 1>$stdout
   endlog "done"
 }
 
