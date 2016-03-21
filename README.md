@@ -6,6 +6,7 @@ create_undercloud.sh : Create the undercloud VM<BR>
 delete_overcloud.sh : Delete overcloud<BR>
 delete_undercloud.sh : Delete undercloud VM<BR>
 generate_image.sh : Generate a Linux image<BR>
+glance_database_cleanup.sh : Delete queued image entries from glance database<BR>
 watch.sh : Watch an overcloud deployment status<BR>
 redeploy_undercloud.sh : Redeploy undercloud<BR>
 setup_image.sh : Download cirros and send it to glance<BR>
