@@ -79,9 +79,9 @@ function create_flavors {
     if [ $? -ne 0 ]; then
       nova flavor-create --swap $swap $profile auto $ram $disk $vcpus
     fi
-    openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" $profile > /dev/null
+    openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" --property "capabilities:boot_mode"="$boot_mode" $profile > /dev/null
     if [ $? -ne 0 ]; then
-      nova flavor-key $profile set "cpu_arch"="x86_64" "capabilities:boot_option"="local" "capabilities:profile"="$profile" > /dev/null
+      nova flavor-key $profile set "cpu_arch"="x86_64" "capabilities:boot_option"="local" "capabilities:profile"="$profile" "capabilities:boot_mode"="$boot_mode"> /dev/null
     fi
   done
   openstack flavor delete baremetal > /dev/null
@@ -100,11 +100,11 @@ function tag_hosts {
   inc=0
   for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
     if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
-      ironic node-update $p add properties/capabilities='profile:control,boot_option:local' > /dev/null
+      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode=${boot_mode}" > /dev/null
     elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
-      ironic node-update $p add properties/capabilities='profile:ceph-storage,boot_option:local' > /dev/null
+      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode=${boot_mode}" > /dev/null
     else
-      ironic node-update $p add properties/capabilities='profile:compute,boot_option:local' > /dev/null
+      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode=${boot_mode}" > /dev/null
     fi
     inc=$( expr $inc + 1)
   done
