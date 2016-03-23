@@ -100,11 +100,11 @@ function tag_hosts {
   inc=0
   for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
     if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
-      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode=${boot_mode}" > /dev/null
+      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" > /dev/null
     elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
-      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode=${boot_mode}" > /dev/null
+      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" > /dev/null
     else
-      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode=${boot_mode}" > /dev/null
+      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" > /dev/null
     fi
     inc=$( expr $inc + 1)
   done
