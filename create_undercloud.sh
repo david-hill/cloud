@@ -8,6 +8,12 @@ if [ ! -d tmp ]; then
   mkdir tmp
 fi
 
+if [ -e images/rhosp8/8.0/update_images.sh ]; then
+  cd images/rhosp8/8.0/
+  bash update_images.sh
+  cd ../../../  
+fi
+
 if [ $? -eq 0 ]; then
   memory=$undercloudmemory
   type=undercloud
