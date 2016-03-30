@@ -3,13 +3,15 @@
 source functions
 source_rc setup.cfg
 
-function create_snapshosts {
+function create_snapshots {
   type=$1
   inc=0
   if [[ $type =~ control ]]; then
     max=$controlscale
   elif [[ $type =~ ceph ]]; then
     max=$cephscale
+  elif [[ $type =~ undercloud ]]; then
+    max=0
   else
     max=$computescale
   fi
@@ -33,3 +35,4 @@ function create_snapshosts {
 create_snapshots control
 create_snapshots ceph
 create_snapshots compute
+create_snapshots undercloud
