@@ -4,7 +4,7 @@ source functions
 
 source_rc setup.cfg
 
-openstack_oc_deploy
+openstack_oc_update
 rc=$?
 
 exit $rc
