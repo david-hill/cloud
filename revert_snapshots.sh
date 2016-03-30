@@ -11,14 +11,14 @@ function revert_snapshots {
   elif [[ $type =~ ceph ]]; then
     max=$cephscale
   elif [[ $type =~ undercloud ]]; then
-    max=0
+    max=1
   else
     max=$computescale
   fi
   while [ $inc -lt $max ]; do
     output=$(sudo virsh list --all | grep "$type-$inc-$releasever")
     if [[ "$output" =~ $type-$inc ]]; then
-      for snap in $( sudo virsh snapshot-list $type-$inc-$releasever | grep poweroff | awk '{ print $1 }' ); do
+      for snap in $( sudo virsh snapshot-list $type-$inc-$releasever | egrep "running|shut off" | awk '{ print $1 }' ); do
         sudo virsh snapshot-revert $type-$inc-$releasever $snap > /dev/null
       done
     else

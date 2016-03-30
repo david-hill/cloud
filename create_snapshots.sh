@@ -11,7 +11,7 @@ function create_snapshots {
   elif [[ $type =~ ceph ]]; then
     max=$cephscale
   elif [[ $type =~ undercloud ]]; then
-    max=0
+    max=1
   else
     max=$computescale
   fi
