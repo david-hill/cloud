@@ -30,7 +30,7 @@ if [ $? -eq 0 ]; then
   vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/32##')
   sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
   startlog "Copying base image"
-  sudo cp /home/dhill/VMs/rhel-guest-image-7.2-20151102.0.x86_64.qcow2 /home/dhill/VMs/${vmname}.qcow2
+  sudo cp /home/dhill/VMs/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 /home/dhill/VMs/${vmname}.qcow2
   endlog "done"
   startlog "Resizing base disk"
   sudo qemu-img resize /home/dhill/VMs/${vmname}.qcow2 30G 2>$stderr 1>$stdout
