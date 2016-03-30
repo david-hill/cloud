@@ -33,13 +33,13 @@ function test_overcloud {
 }
 
 function openstack_oc_update {
-  openstack overcloud deploy stack $updateargs_step1 -i overcloud
+  openstack overcloud deploy $updateargs_step1
   rc=$?
   if [ $rc -eq 0 ]; then
-    openstack overcloud deploy stack $updateargs_step2 -i overcloud
+    openstack overcloud deploy $updateargs_step2 
     rc=$?
     if [ $rc -eq 0 ]; then
-      openstack overcloud deploy stack $updateargs_step3 -i overcloud
+      openstack overcloud deploy $updateargs_step3
       rc=$?
     fi
   fi
