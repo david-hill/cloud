@@ -8,8 +8,8 @@ if [ ! -d tmp ]; then
   mkdir tmp
 fi
 
-if [ -e images/rhosp8/8.0/update_images.sh ]; then
-  cd images/rhosp8/8.0/
+if [ -e images/$releasever/${minorver}/update_images.sh ]; then
+  cd images/$releasever/${minorver}/
   bash update_images.sh
   rc=$?
   cd ../../../  
