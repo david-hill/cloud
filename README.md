@@ -2,6 +2,7 @@
 
 analyze_failure.sh : Analyze failed overcloud deployment<BR>
 cinder_database_cleanup.sh : Delete old volume  entries from cinder database<BR>
+create_snapshots.sh : Create snapshots for VMs<BR> 
 create_undercloud.sh : Create the undercloud VM<BR> 
 delete_overcloud.sh : Delete overcloud<BR>
 delete_undercloud.sh : Delete undercloud VM<BR>
