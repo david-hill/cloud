@@ -34,7 +34,7 @@ function test_overcloud {
 
 function read_input {
   input="no"
-  while [[ ! "$input" =~ ^yes$ ]]; then
+  while [[ ! "$input" =~ ^yes$ ]]; do
     echo 'Did you run your part? Type "yes" to continue : '
     read input
   done
