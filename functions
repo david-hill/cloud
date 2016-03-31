@@ -32,13 +32,22 @@ function test_overcloud {
   return $rc
 }
 
+function read_input {
+  input="no"
+  while [[ ! "$input" =~ ^yes$ ]]; then
+    echo 'Did you run your part? Type "yes" to continue : '
+    read input
+  done
+}
 function openstack_oc_update {
   openstack overcloud deploy $updateargs_step1
   rc=$?
   if [ $rc -eq 0 ]; then
+    read_input
     openstack overcloud deploy $updateargs_step2 
     rc=$?
     if [ $rc -eq 0 ]; then
+      read_input
       openstack overcloud deploy $updateargs_step3
       rc=$?
     fi
