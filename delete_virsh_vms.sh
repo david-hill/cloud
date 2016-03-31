@@ -16,7 +16,7 @@ function delete_vms {
   while [ $inc -lt $max ]; do
     output=$(sudo virsh list --all | grep "$type-$inc-$releasever")
     if [[ "$output" =~ $type-$inc ]]; then 
-      for snap in $(sudo virsh snapshot-list $type-$inc-$releasever | grep shutoff | awk '{ print $1 }'); do
+      for snap in $(sudo virsh snapshot-list $type-$inc-$releasever | egrep "running|shut off" | awk '{ print $1 }'); do
         sudo virsh snapshot-delete $type-$inc-$releasever $snap > /dev/null
       done
       sudo virsh destroy $type-$inc-$releasever > /dev/null
