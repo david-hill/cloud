@@ -30,6 +30,7 @@ revert_snapshots : Revert VM snapshots<BR>
 start_vms.sh : Start VMs<BR>
 stop_vms.sh : Stop VMs<BR>
 suspend_vms.sh : Suspend VMs<BR>
+update_to_rhosp8.sh : Update from 7.X to RHOSP 8.X<BR>
 
 # Requirements
 - 9GB of RAM ( 1 undercloud, 3 controllers, 1 compute)<BR>
