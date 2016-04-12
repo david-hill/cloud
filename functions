@@ -39,6 +39,46 @@ function read_input {
     read input
   done
 }
+
+function patch_openstack {
+  rc=255
+  this_patch=$1
+  url=$2
+  diff=$3
+  pushd /usr/share/openstack-tripleo-heat-templates
+  sudo curl -o $this_patch $url
+  if [ $? -eq 0 ]; then
+    sudo unzip $this_patch
+    if [ $? -eq 0 ]; then
+      sudo patch -p1 < $diff
+      if [ $? -eq 0 ]; then
+        rc=0
+      fi
+    fi
+  fi
+  popd
+  return $rc
+}
+
+function patch_code {
+  rc=255
+  sudo cp -r /usr/share/openstack-tripleo-heat-templates /usr/share/openstack-tripleo-heat-templates.BACKUP
+  if [ $? -eq 0 ]; then
+    patch_openstack "patch3.diff.zip" "https://review.openstack.org/changes/299303/revisions/537aaab152125498f550a48c76c8d2984bc70df8/patch?zip" "537aaab1.diff"
+    rc=$?
+  fi
+  return $rc
+}
+
+function update_nodes {
+  for node in $(nova list | grep "compute" | awk '{ print $2 }'); do
+    upgrade-non-controller.sh $node
+  done
+  for node in $(nova list | grep "ceph" | awk '{ print $2 }'); do
+    upgrade-non-controller.sh $node
+  done
+}
+
 function openstack_oc_update {
   openstack overcloud deploy $updateargs_step1
   rc=$?
@@ -48,8 +88,11 @@ function openstack_oc_update {
     rc=$?
     if [ $rc -eq 0 ]; then
       read_input
-      openstack overcloud deploy $updateargs_step3
-      rc=$?
+      update_nodes
+      if [ $? -eq 0 ]; then
+        openstack overcloud deploy $updateargs_step3
+        rc=$?
+      fi
     fi
   fi
   return $rc
