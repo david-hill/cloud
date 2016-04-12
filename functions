@@ -51,14 +51,13 @@ function patch_openstack {
     sudo unzip $this_patch
     if [ $? -eq 0 ]; then
       sudo patch -p1 < $diff
-      if [ $? -eq 0 ]; then
-        rc=0
-      fi
+      rc=$?
     fi
   fi
   popd
   return $rc
 }
+
 function patch_code {
   rc=255
   sudo cp -r /usr/share/openstack-tripleo-heat-templates /usr/share/openstack-tripleo-heat-templates.BACKUP
