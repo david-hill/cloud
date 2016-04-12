@@ -86,9 +86,12 @@ function openstack_oc_update {
     openstack overcloud deploy $updateargs_step2 
     rc=$?
     if [ $rc -eq 0 ]; then
-    read_input
-      openstack overcloud deploy $updateargs_step3
-      rc=$?
+      read_input
+      update_nodes
+      if [ $? -eq 0 ]; then
+        openstack overcloud deploy $updateargs_step3
+        rc=$?
+      fi
     fi
   fi
   return $rc
