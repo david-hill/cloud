@@ -18,10 +18,7 @@ if [ $? -eq 0 ]; then
         openstack undercloud upgrade
         if [ $? -eq 0 ]; then
           sudo yum install unzip -y
-          if [ $? -eq 0 ]; then
-            patch_code
-            rc=$?
-          fi
+          rc=$?
         fi
       fi
     fi
