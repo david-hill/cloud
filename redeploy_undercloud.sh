@@ -113,7 +113,7 @@ function tag_hosts {
 
 function create_oc_images {
   startlog "Importing overcloud images"
-  openstack overcloud image upload --image-path /home/stack/images 2>$stderr 1>$stdout
+  openstack overcloud image upload --image-path /home/stack/images 2>>$stderr 1>>$stdout
   endlog "done"
 }
 
@@ -177,7 +177,7 @@ function deploy_overcloud {
 function install_undercloud {
   startlog "Installing undercloud"
   sudo yum install -y python-rdomanager-oscplugin > /dev/null
-  openstack undercloud install 2>$stderr 1>$stdout
+  openstack undercloud install 2>>$stderr 1>>$stdout
   endlog "done"
 }
 
