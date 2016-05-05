@@ -27,7 +27,7 @@ if [ $? -eq 0 ]; then
   fi
   sudo pkill dnsmasq
   sed -i "s/rhosp8/$releasever/g" tmp/S01customize
-  vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/32##')
+  vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/32##' | sed -e 's#/24##')
   sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
   startlog "Copying base image"
   sudo cp /home/dhill/VMs/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 /home/dhill/VMs/${vmname}.qcow2
