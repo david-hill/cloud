@@ -19,7 +19,7 @@ function delete_nova_nodes {
 }
 
 function poweroff_ironic_nodes {
-  starlog "Powering off ironic nodes"
+  startlog "Powering off ironic nodes"
   for node in $(ironic node-list | grep "power on" | awk '{ print $2 }'); do
     ironic node-set-power-state $node off
     tnode=$(ironic node-list | grep $node | grep "power on")
