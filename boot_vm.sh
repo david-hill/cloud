@@ -56,7 +56,6 @@ if [ $? -eq 0 ]; then
                   state=$(nova list | grep test-vm  )
                   while [ "$state" != "" ]; do
                     state=$(nova list | grep test-vm )
-                    echo -n .
                   done
                   endlog "done"
                   startlog "Deleting floating IP"
