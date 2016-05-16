@@ -27,7 +27,7 @@ if [ $? -eq 0 ]; then
   fi
   sudo pkill dnsmasq
   sed -i "s/rhosp8/$releasever/g" tmp/S01customize
-  vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/32##' | sed -e 's#/24##')
+  vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/.*##')
   sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
   startlog "Copying base image"
   sudo cp /home/dhill/VMs/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 /home/dhill/VMs/${vmname}.qcow2
@@ -54,76 +54,46 @@ if [ $? -eq 0 ]; then
   startlog "Waiting for VM to come up"
   down=1
   while [ $down -eq 1 ]; do
-    echo -n "c"
     ping -q -c 1 $undercloudip 2>$stderr 1>$stdout
     down=$?
     sleep 1
-    printf "\b"
-    echo -n "s"
-    sleep 1
-    printf "\b"
   done
   endlog "done"
   startlog "Waiting for SSH to come up"
   sshrc=1
   ssh-keygen -q -R $undercloudip 2>$stderr 1>$stdout
   while [ $sshrc -ne 0 ]; do
-    echo -n "c"
     ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' 2>$stderr 1>$stdout
     sshrc=$?
     sleep 1
-    printf "\b"
-    echo -n "s"
-    sleep 1
-    printf "\b"
   done
   endlog "done"
   bash create_virsh_vms.sh
   startlog "Waiting for undercloud deployment"
   while [[ ! "$rc" =~ completed ]]; do
-    echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
     sleep 1
-    printf "\b"
-    echo -n "s"
-    sleep 1
-    printf "\b"
   done
   endlog "done"
   startlog "Waiting for introspection"
   rc=in_progress
   while [[ ! "$rc" =~ completed ]]; do
-    echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/introspected ]; then echo completed; fi')
     sleep 1
-    printf "\b"
-    echo -n "s"
-    sleep 1
-    printf "\b"
   done
   endlog "done"
   startlog "Waiting for overcloud deployment"
   rc=in_progress
   while [[ ! "$rc" =~ completed ]]; do
-    echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
     sleep 1
-    printf "\b"
-    echo -n "s"
-    sleep 1
-    printf "\b"
   done
   endlog "done"
   startlog "Waiting for overcloud test"
   rc=in_progress
   while [[ ! "$rc" =~ completed ]]; do
-    echo -n "c"
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/tested ]; then echo completed; fi')
     sleep 1
-    printf "\b"
-    echo -n "s"
-    sleep 1
-    printf "\b"
   done
   endlog "done"
 else
