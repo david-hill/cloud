@@ -3,6 +3,10 @@
 source functions
 source_rc setup.cfg
 
+if [ ! -z $1 ]; then
+  installtype=$1
+fi
+
 validate_env
 if [ ! -d tmp ]; then
   mkdir tmp
