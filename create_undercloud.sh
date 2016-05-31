@@ -30,7 +30,7 @@ if [ $? -eq 0 ]; then
     cp S01customize tmp/S01customize
   fi
   sudo pkill dnsmasq
-  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
+#  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
   vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/.*##')
   sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
   startlog "Copying base image"
