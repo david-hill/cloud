@@ -31,24 +31,25 @@ if [ $? -eq 0 ]; then
   fi
   sudo pkill dnsmasq
 #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
+  mkdir /home/jenkins/VMs
   vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/.*##')
   sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
   startlog "Copying base image"
-  sudo cp /home/dhill/VMs/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 /home/dhill/VMs/${vmname}.qcow2
+  sudo cp /home/jenkins/cloud/images/rhel/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 /home/jenkins/VMs/${vmname}.qcow2
   endlog "done"
   startlog "Resizing base disk"
-  sudo qemu-img resize /home/dhill/VMs/${vmname}.qcow2 30G 2>$stderr 1>$stdout
+  sudo qemu-img resize /home/jenkins/VMs/${vmname}.qcow2 30G 2>$stderr 1>$stdout
   endlog "done"
   startlog "Customizing image"
   sed -i "s/###MINORVER###/$minorver/g" tmp/S01customize
   sed -i "s/###RELEASEVER###/$releasever/g" tmp/S01customize
   sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
-  sudo virt-customize -a /home/dhill/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/ --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --copy-in S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service --copy-in cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
+  sudo virt-customize -a /home/jenkins/VMs${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/ --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --copy-in S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service --copy-in cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
   endlog "done"
 
   tmpfile=$(mktemp)
   uuid=$(uuidgen)
-  tpath='/home/dhill/VMs'
+  tpath='/home/jenkins/VMs'
   vcpus=2
   gen_macs
   gen_xml
