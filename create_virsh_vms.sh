@@ -3,6 +3,11 @@
 source functions
 source_rc setup.cfg
 
+if [ -d images/$releasever/$minorver ]; then
+  echo "Please put the overcloud images (compressed) in images/$releasever/$minorver and retry..."
+  exit 255
+fi
+
 function gen_disks {
     sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
 }
@@ -54,7 +59,7 @@ function send_images {
       ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
     fi
   done
-  cd ..
+  cd ../../../
   endlog "done"
 }
 
@@ -63,7 +68,11 @@ function send_instackenv {
   scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no instackenv.json stack@$undercloudip: > /dev/null
   endlog "done"
 }
-rm -rf instackenv.json
+
+if [ -e instackenv.json ]; then
+  rm -rf instackenv.json
+fi
+
 validate_env
 if [ $? -eq 0 ]; then
   startlog "Creating VMs for control"
