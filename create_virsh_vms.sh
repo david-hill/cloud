@@ -3,7 +3,7 @@
 source functions
 source_rc setup.cfg
 
-if [ -d images/$releasever/$minorver ]; then
+if [ ! -d images/$releasever/$minorver ]; then
   echo "Please put the overcloud images (compressed) in images/$releasever/$minorver and retry..."
   exit 255
 fi
