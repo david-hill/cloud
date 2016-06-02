@@ -193,6 +193,19 @@ function run_in_qemu {
   return $rc
 }
 
+function validate_rpm {
+  rc=0
+  rpm -q libguestfs-tools
+  if [ $? -ne 0 ]; then
+    sudo yum install -y libguestfs-tools
+    rpm -q libguestfs-tools
+    if [ $? -ne 0 ]; then
+      rc=1
+    fi
+  fi
+  return $rc
+}
+
 function validate_env {
   rc=255
   sudo dmidecode |grep -iq QEMU

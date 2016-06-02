@@ -7,6 +7,8 @@ if [ ! -z $1 ]; then
   installtype=$1
 fi
 
+validate_rpm libguestfs-tools
+
 validate_env
 if [ ! -d tmp ]; then
   mkdir tmp
@@ -33,7 +35,11 @@ if [ $? -eq 0 ]; then
 #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
   mkdir /home/jenkins/VMs
   vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/.*##')
-  sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
+  if [ ! -z "${vpnip}" ]; then
+    sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
+  else
+    echo "WARNING: No VPN IP found..."
+  fi
   startlog "Copying base image"
   sudo cp /home/jenkins/cloud/images/rhel/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 /home/jenkins/VMs/${vmname}.qcow2
   endlog "done"
