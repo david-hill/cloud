@@ -9,6 +9,18 @@ fi
 
 validate_rpm libguestfs-tools
 
+if [ -e /etc/redhat-release ]; then
+  grep -i "Fedora" /etc/redhat-release
+  if [ $? -eq 0 ]; then
+    uploadcmd="--copy-in"
+  else
+    uploadcmd="--upload"
+  fi
+else
+  uploadcmd="--copy-in"
+fi
+
+
 validate_env
 if [ ! -d tmp ]; then
   mkdir tmp
@@ -60,7 +72,7 @@ if [ $? -eq 0 ]; then
   sed -i "s/###MINORVER###/$minorver/g" tmp/S01customize
   sed -i "s/###RELEASEVER###/$releasever/g" tmp/S01customize
   sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
-  sudo virt-customize -a /home/jenkins/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/ --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --copy-in S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service --copy-in cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
+  sudo virt-customize -a /home/jenkins/VMs/${vmname}.qcow2 $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
   if [ $? -eq 0 ]; then
     endlog "done"
   else
