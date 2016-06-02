@@ -42,16 +42,31 @@ if [ $? -eq 0 ]; then
   fi
   startlog "Copying base image"
   sudo cp /home/jenkins/cloud/images/rhel/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 /home/jenkins/VMs/${vmname}.qcow2
-  endlog "done"
+  if [ $? -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+    exit 2
+  fi
   startlog "Resizing base disk"
   sudo qemu-img resize /home/jenkins/VMs/${vmname}.qcow2 30G 2>$stderr 1>$stdout
-  endlog "done"
+  if [ $? -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+    exit 2
+  fi
   startlog "Customizing image"
   sed -i "s/###MINORVER###/$minorver/g" tmp/S01customize
   sed -i "s/###RELEASEVER###/$releasever/g" tmp/S01customize
   sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
   sudo virt-customize -a /home/jenkins/VMs/${vmname}.qcow2 --copy-in customize.service:/etc/systemd/system/ --copy-in tmp/S01customize:/etc/rc.d/rc3.d/ --copy-in S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service --copy-in cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
-  endlog "done"
+  if [ $? -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+    exit 2
+  fi
 
   tmpfile=$(mktemp)
   uuid=$(uuidgen)
