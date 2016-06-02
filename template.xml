@@ -12,7 +12,7 @@ or other application using the libvirt API.
   <currentMemory unit='KiB'>###MEM###</currentMemory>
   <vcpu placement='static'>###VCPUS###</vcpu>
   <os>
-    <type arch='x86_64' machine='pc-i440fx-2.4'>hvm</type>
+    <type arch='x86_64' machine='###MACHINE###'>hvm</type>
     <bootmenu enable='yes'/>
   </os>
   <features>
@@ -22,7 +22,7 @@ or other application using the libvirt API.
     <vmport state='off'/>
   </features>
   <cpu mode='custom' match='exact'>
-    <model fallback='allow'>Haswell-noTSX</model>
+    <model fallback='allow'>###MODEL###</model>
   </cpu>
   <clock offset='utc'>
     <timer name='rtc' tickpolicy='catchup'/>

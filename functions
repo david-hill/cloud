@@ -162,6 +162,13 @@ function gen_macs {
 
 function gen_xml {
     cp template.xml $tmpfile
+    machine=$(sudo virsh capabilities | grep -A3 "domain.*kvm." | grep machine | tail -1 | awk -F\' '{ print $2 }')
+    if [ -z "$machine" ]; then
+      machine=$(sudo virsh capabilities | grep x86_64 | -A4 | grep machine | head -1 | awk -F\> '{ print $1 }' | awk -F\< '{ print $1 }')
+    fi
+    model=$(virsh capabilities | grep '<model>'   | head -1 | awk -F\> '{ print $2 }' | awk -F\< '{ print $1 }')
+    sed -i "s/###MACHINE###/$machine/" $tmpfile
+    sed -i "s/###MODEL###/$model/" $tmpfile
     sed -i "s/###MAC1###/$mac1/" $tmpfile
     sed -i "s/###MAC2###/$mac2/" $tmpfile
     sed -i "s/###MEM###/$memory/" $tmpfile
