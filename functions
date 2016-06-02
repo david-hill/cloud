@@ -202,9 +202,9 @@ function run_in_qemu {
 
 function validate_rpm {
   rc=0
-  rpm -q libguestfs-tools
+  rpm -q libguestfs-tools 2>$stderr 1>$stdout
   if [ $? -ne 0 ]; then
-    sudo yum install -y libguestfs-tools
+    sudo yum install -y libguestfs-tools 2>$stderr 1>$stdout
     rpm -q libguestfs-tools
     if [ $? -ne 0 ]; then
       rc=1
