@@ -45,7 +45,9 @@ if [ $? -eq 0 ]; then
   fi
   sudo pkill dnsmasq
 #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
-  mkdir /home/jenkins/VMs
+  if [ ! -d /home/jenkins/VMs ]; then
+    mkdir -p /home/jenkins/VMs
+  fi
   vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/.*##')
   if [ ! -z "${vpnip}" ]; then
     sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
