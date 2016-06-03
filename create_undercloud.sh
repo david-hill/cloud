@@ -10,7 +10,7 @@ fi
 validate_rpm libguestfs-tools
 
 if [ -e /etc/redhat-release ]; then
-  grep -i "Fedora" /etc/redhat-release
+  grep -qi "Fedora" /etc/redhat-release
   if [ $? -eq 0 ]; then
     uploadcmd="--copy-in"
   else
