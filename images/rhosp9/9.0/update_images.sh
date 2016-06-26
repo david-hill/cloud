@@ -50,12 +50,12 @@ function getfiles {
         backupfiles
         rc=$?
         if [ $rc -eq 0 ]; then
-          wget $wpath$p
+          wget -q $wpath$p
           rc=$?
         fi
       fi
     else
-      wget $wpath$p
+      wget -q $wpath$p
       rc=$?
     fi
     if [ $rc -ne 0 ]; then
