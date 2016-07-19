@@ -119,7 +119,7 @@ function create_oc_images {
 
 function baremetal_setup {
   startlog "Importing instackenv.json"
-  openstack baremetal import --json /home/stack/instackenv.json > /dev/null
+  openstack baremetal import --json /home/stack/instackenv.json 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
