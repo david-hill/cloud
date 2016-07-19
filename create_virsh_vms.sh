@@ -3,6 +3,8 @@
 source functions
 source_rc setup.cfg
 
+imagereleasever=$releasever
+
 if [ ! -z $1 ]; then
   installtype=$1
   if [ ! -z $2 ]; then
@@ -11,8 +13,8 @@ if [ ! -z $1 ]; then
 fi
 
 
-if [ ! -d images/$releasever/$minorver ]; then
-  echo "Please put the overcloud images (compressed) in images/$releasever/$minorver and retry..."
+if [ ! -d images/$imagereleasever/$minorver ]; then
+  echo "Please put the overcloud images (compressed) in images/$imagereleasever/$minorver and retry..."
   exit 255
 fi
 
@@ -59,7 +61,7 @@ function create_vm {
 function send_images {
   startlog "Sending overcloud images to undercloud"
   ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-  cd images/$releasever/$minorver
+  cd images/$imagereleasever/$minorver
   for file in *.tar; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
