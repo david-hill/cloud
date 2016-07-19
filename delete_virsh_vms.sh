@@ -3,6 +3,13 @@
 source functions
 source_rc setup.cfg
 
+if [ ! -z $1 ]; then
+  installtype=$1
+  if [ ! -z $2 ]; then
+    releasever=$2
+  fi
+fi
+
 function delete_vms {
   type=$1
   inc=0
@@ -13,6 +20,7 @@ function delete_vms {
   else
     max=$computescale
   fi
+  
   while [ $inc -lt $max ]; do
     output=$(sudo virsh list --all | grep "$type-$inc-$releasever")
     if [[ "$output" =~ $type-$inc ]]; then 
