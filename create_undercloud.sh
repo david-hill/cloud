@@ -126,7 +126,7 @@ if [ $rc -eq 0 ]; then
       sleep 1
     done
     endlog "done"
-    bash create_virsh_vms.sh
+    bash create_virsh_vms.sh $installtype $rdorelease
     startlog "Waiting for undercloud deployment"
     while [[ ! "$rc" =~ completed ]]; do
       rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')

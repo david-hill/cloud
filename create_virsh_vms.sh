@@ -3,6 +3,14 @@
 source functions
 source_rc setup.cfg
 
+if [ ! -z $1 ]; then
+  installtype=$1
+  if [ ! -z $2 ]; then
+    releasever=$2
+  fi
+fi
+
+
 if [ ! -d images/$releasever/$minorver ]; then
   echo "Please put the overcloud images (compressed) in images/$releasever/$minorver and retry..."
   exit 255
