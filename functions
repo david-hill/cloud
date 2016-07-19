@@ -166,6 +166,11 @@ function gen_xml {
     if [ -z "$machine" ]; then
       machine=$(sudo virsh capabilities | grep x86_64 | -A4 | grep machine | head -1 | awk -F\> '{ print $1 }' | awk -F\< '{ print $1 }')
     fi
+    if [[ $installtype =~ rdo ]]; then
+      localtype=$rdorelease
+    else
+      localtype=$releasever
+    fi
     model=$(virsh capabilities | grep '<model>'   | head -1 | awk -F\> '{ print $2 }' | awk -F\< '{ print $1 }')
     sed -i "s/###MACHINE###/$machine/" $tmpfile
     sed -i "s/###MODEL###/$model/" $tmpfile
