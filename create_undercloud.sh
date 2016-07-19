@@ -49,7 +49,11 @@ if [ $rc -eq 0 ]; then
     memory=$undercloudmemory
     type=undercloud
     inc=0
-    vmname="${type}-${inc}-${releasever}"
+    if [[ $installtype =~ rdo ]]; then
+      vmname="${type}-${inc}-${releasever}"
+    else
+      vmname="${type}-${inc}-${rdorelease}"
+    fi
     if [ -e "S01customize.local" ]; then
       cp S01customize.local tmp/S01customize
     else    
