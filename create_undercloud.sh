@@ -50,9 +50,9 @@ if [ $rc -eq 0 ]; then
     type=undercloud
     inc=0
     if [[ $installtype =~ rdo ]]; then
-      vmname="${type}-${inc}-${releasever}"
-    else
       vmname="${type}-${inc}-${rdorelease}"
+    else
+      vmname="${type}-${inc}-${releasever}"
     fi
     if [ -e "S01customize.local" ]; then
       cp S01customize.local tmp/S01customize
