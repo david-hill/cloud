@@ -9,6 +9,7 @@ if [ ! -z $1 ]; then
   installtype=$1
   if [ ! -z $2 ]; then
     releasever=$2
+    rdorelease=$releasever
   fi
 fi
 
