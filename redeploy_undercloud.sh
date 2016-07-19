@@ -124,12 +124,12 @@ function baremetal_setup {
   if [ $rc -eq 0 ]; then
     endlog "done"
     startlog "Configure node boot"
-    openstack baremetal configure boot > /dev/null
+    openstack baremetal configure boot 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
       startlog "Starting introspection"
-      openstack baremetal introspection bulk start > /dev/null
+      openstack baremetal introspection bulk start 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
