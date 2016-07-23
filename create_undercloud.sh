@@ -64,7 +64,7 @@ if [ $rc -eq 0 ]; then
     if [ ! -d /home/jenkins/VMs ]; then
       mkdir -p /home/jenkins/VMs
     fi
-    vpnip=$(ip addr | grep inet | grep 10 | awk ' { print $2 }' | sed -e 's#/.*##')
+    vpnip=$(ip addr | grep inet | grep "10\." | awk ' { print $2 }' | sed -e 's#/.*##')
     if [ ! -z "${vpnip}" ]; then
       sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
     else
