@@ -157,4 +157,6 @@ if [ $rc -eq 0 ]; then
   fi
 else
   echo "Please run this on baremetal..."
+  rc=1
 fi
+exit $rc
