@@ -13,13 +13,15 @@ fi
 function delete_vms {
   type=$1
   inc=0
-  output=$(sudo virsh list --all | grep "$type-$inc-$releasever")
-  ssh stack@$undercloudip 'sudo subscription-manager unregister' 2>$stderr 1>$stdout
-  for snap in $(sudo virsh snapshot-list $type-$inc-$releasever | egrep "shut off|running" | awk '{ print $1 }'); do
-    sudo virsh snapshot-delete $type-$inc-$releasever $snap 2>$stderr 1>$stdout
-  done
-  sudo virsh destroy $type-$inc-$releasever 2>$stderr 1>$stdout
-  sudo virsh undefine $type-$inc-$releasever 2>$stderr 1>$stdout
+  sudo virsh list --all | grep -q "$type-$inc-$releasever"
+  if [ $? -eq 0 ]; then
+    ssh stack@$undercloudip 'sudo subscription-manager unregister' 2>$stderr 1>$stdout
+    for snap in $(sudo virsh snapshot-list $type-$inc-$releasever | egrep "shut off|running" | awk '{ print $1 }'); do
+      sudo virsh snapshot-delete $type-$inc-$releasever $snap 2>$stderr 1>$stdout
+    done
+    sudo virsh destroy $type-$inc-$releasever 2>$stderr 1>$stdout
+    sudo virsh undefine $type-$inc-$releasever 2>$stderr 1>$stdout
+  fi
 }
 
 function cleanup {
