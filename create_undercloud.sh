@@ -153,6 +153,10 @@ if [ $rc -eq 0 ]; then
       rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/tested ]; then echo completed; fi')
       sleep 1
     done
+    if [[ $rc =~ completed ]]; then
+      rc=0
+    else
+      rc=255
     endlog "done"
   fi
 else
