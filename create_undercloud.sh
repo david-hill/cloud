@@ -154,10 +154,12 @@ if [ $rc -eq 0 ]; then
       sleep 1
     done
     if [[ $rc =~ completed ]]; then
+      endlog "done"
       rc=0
     else
       rc=255
-    endlog "done"
+      endlog "error"
+    fi
   fi
 else
   echo "Please run this on baremetal..."
