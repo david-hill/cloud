@@ -128,31 +128,51 @@ if [ $rc -eq 0 ]; then
     endlog "done"
     bash create_virsh_vms.sh $installtype $rdorelease
     startlog "Waiting for undercloud deployment"
-    while [[ ! "$rc" =~ completed ]]; do
+    rc=0
+    while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
       rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
+      rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
       sleep 1
     done
-    endlog "done"
-    startlog "Waiting for introspection"
-    rc=in_progress
-    while [[ ! "$rc" =~ completed ]]; do
-      rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/introspected ]; then echo completed; fi')
-      sleep 1
-    done
-    endlog "done"
-    startlog "Waiting for overcloud deployment"
-    rc=in_progress
-    while [[ ! "$rc" =~ completed ]]; do
-      rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
-      sleep 1
-    done
-    endlog "done"
-    startlog "Waiting for overcloud test"
-    rc=in_progress
-    while [[ ! "$rc" =~ completed ]]; do
-      rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/tested ]; then echo completed; fi')
-      sleep 1
-    done
+    if [[ ! "$rcf" =~ failed ]]; then
+      endlog "done"
+      startlog "Waiting for introspection"
+      rc=in_progress
+      while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+        rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/introspected ]; then echo completed; fi')
+        rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+        sleep 1
+      done
+      if [[ ! "$rcf" =~ failed ]]; then
+        endlog "done"
+        startlog "Waiting for overcloud deployment"
+        rc=in_progress
+        while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+          rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
+          rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+          sleep 1
+        done
+        if [[ ! "$rcf" =~ failed ]]; then
+          endlog "done"
+          startlog "Waiting for overcloud test"
+          rc=in_progress
+          while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+            rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/tested ]; then echo completed; fi')
+            rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+            sleep 1
+          done
+          if [[ ! "$rcf" =~ failed ]]; then
+            endlog "done"
+          fi
+        else
+          endlog "error"
+        fi
+      else
+        endlog "error"
+      fi
+    else
+      endlog "error"
+    fi
     if [[ $rc =~ completed ]]; then
       endlog "done"
       rc=0
