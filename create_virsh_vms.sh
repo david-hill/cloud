@@ -13,10 +13,16 @@ if [ ! -z $1 ]; then
   fi
 fi
 
-
-if [ ! -d images/$imagereleasever/$minorver ]; then
-  echo "Please put the overcloud images (compressed) in images/$imagereleasever/$minorver and retry..."
-  exit 255
+if [ -z $rdorelease ]; then
+  if [ ! -d images/$imagereleasever/$minorver ]; then
+    echo "Please put the overcloud images (compressed) in images/$imagereleasever/$minorver and retry..."
+    exit 255
+  fi
+else
+  if [ ! -d images/rdo-$rdorelease ]; then
+    echo "Please put the overcloud images (compressed) in images/rdo-$rdorelease and retry..."
+    exit 255
+  fi
 fi
 
 function gen_disks {
@@ -62,7 +68,11 @@ function create_vm {
 function send_images {
   startlog "Sending overcloud images to undercloud"
   ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-  cd images/$imagereleasever/$minorver
+  if [ -z $rdorelease ]; then
+    cd images/$imagereleasever/$minorver
+  else
+    cd images/rdo-$rdorelease
+  fi
   for file in *.tar; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
@@ -70,7 +80,11 @@ function send_images {
       ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
     fi
   done
-  cd ../../../
+  if [ -z $rdorelease ]; then
+    cd ../../../
+  else
+    cd ../../
+  fi
   if [[ "$installtype" =~ rdo ]]; then
     rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
     scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
