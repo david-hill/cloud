@@ -178,7 +178,9 @@ function install_undercloud {
   startlog "Installing undercloud"
   sudo yum install -y python-rdomanager-oscplugin > /dev/null
   openstack undercloud install 2>>$stderr 1>>$stdout
+  rc=$?
   endlog "done"
+  return $rc
 }
 
 function validate_network_environment {
@@ -243,17 +245,21 @@ if [ -e "/home/stack/stackrc" ]; then
 fi
 conformance
 install_undercloud
-source_rc /home/stack/stackrc
-validate_network_environment
-if [ $? -eq 0 ]; then
-  create_overcloud_route
-  deploy_overcloud
+rc=$?
+if [ $rc -eq 0 ]; then
+  source_rc /home/stack/stackrc
+  validate_network_environment
   rc=$?
-  if [ $rc -eq 0 ]; then 
-    test_overcloud
+  if [ $rc -eq 0 ]; then
+    create_overcloud_route
+    deploy_overcloud
     rc=$?
-    if [ $? -eq 0 ]; then
-      touch /home/stack/deployment_state/tested
+    if [ $rc -eq 0 ]; then 
+      test_overcloud
+      rc=$?
+      if [ $? -eq 0 ]; then
+        touch /home/stack/deployment_state/tested
+      fi
     fi
   fi
 fi
