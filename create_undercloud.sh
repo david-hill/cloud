@@ -131,7 +131,6 @@ if [ $rc -eq 0 ]; then
       bash verify_repo.sh $rdorelease
       if [ $? -eq 0 ]; then
         rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'touch gen_images')
-        echo "Generating new images..."
       fi
       cd ..
     fi
