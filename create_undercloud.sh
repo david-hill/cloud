@@ -126,6 +126,15 @@ if [ $rc -eq 0 ]; then
       sleep 1
     done
     endlog "done"
+    if [ ! -z $rdorelease ]; then
+      cd images
+      bash verify_repo.sh $rdorelease
+      if [ $? -eq 0 ]; then
+        rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'touch gen_images')
+        echo "Generating new images..."
+      fi
+      cd ..
+    fi
     bash create_virsh_vms.sh $installtype $rdorelease
     startlog "Waiting for undercloud deployment"
     rc=0
