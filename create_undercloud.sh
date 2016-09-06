@@ -131,29 +131,29 @@ if [ $rc -eq 0 ]; then
       bash verify_repo.sh $rdorelease
       if [ $? -eq 0 ]; then
         rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'touch gen_images')
-      fi
-      cd ..
-      startlog "Waiting for image generation"
-      rc=0
-      while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-        rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e gen_images_completed ]; then echo completed; fi')
-        rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
-        sleep 1
-      done
-      if [[ ! "$rcf" =~ failed ]]; then
-        endlog "done"
-        cd images/rdo-$rdorelease
-        startlog "Fetch images"
-        scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@192.168.122.2:images/*.tar .
-        if [ $? -eq 0 ]; then
+        cd ..
+        startlog "Waiting for image generation"
+        rc=0
+        while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+          rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e gen_images_completed ]; then echo completed; fi')
+          rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+          sleep 1
+        done
+        if [[ ! "$rcf" =~ failed ]]; then
           endlog "done"
+          cd images/rdo-$rdorelease
+          startlog "Fetch images"
+          scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@192.168.122.2:images/*.tar .
+          if [ $? -eq 0 ]; then
+            endlog "done"
+          else
+            rcf=failed
+            endlog "error"
+          fi
+          cd ../../
         else
-          rcf=failed
           endlog "error"
         fi
-        cd ../../
-      else
-        endlog "error"
       fi
     fi
     if [[ ! "$rcf" =~ failed ]]; then
