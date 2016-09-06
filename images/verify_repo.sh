@@ -11,6 +11,7 @@ for r in `echo ${repos}`; do
     that_date=$(cat ${r}.last)
     if [ "$this_date" != "$that_date" ]; then
       rc=0
+      echo "$this_date" > ${r}.last
     fi
   fi
 done
