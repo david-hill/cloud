@@ -173,8 +173,8 @@ function install_undercloud {
 
 function disable_selinux {
   startlog "Disabling selinux"
-  /sbin/setenforce 0 > /dev/null
-  sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
+  sudo /sbin/setenforce 0 > /dev/null
+  sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
   endlog "done"
 }
 
