@@ -148,6 +148,7 @@ if [ $rc -eq 0 ]; then
         if [ $? -eq 0 ]; then
           endlog "done"
         else
+          rcf=failed
           endlog "error"
         fi
         cd ../../
