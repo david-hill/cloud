@@ -130,6 +130,7 @@ if [ $rc -eq 0 ]; then
 
     if [ ! -z $rdorelease ]; then
       startlog "Uploading RHEL image"
+      ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
       rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
       scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
       endlog "done"
