@@ -187,6 +187,13 @@ function install_undercloud {
   return $rc
 }
 
+function disable_selinux {
+  startlog "Disabling selinux"
+  sudo /sbin/setenforce 0 > /dev/null
+  sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
+  endlog "done"
+}
+
 function validate_network_environment {
   startlog "Validating network environment"
   git clone https://github.com/rthallisey/clapper > /dev/null
@@ -251,6 +258,7 @@ conformance
 install_undercloud
 rc=$?
 if [ $rc -eq 0 ]; then
+  disable_selinux
   source_rc /home/stack/stackrc
   validate_network_environment
   rc=$?
