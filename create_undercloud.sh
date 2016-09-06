@@ -154,6 +154,8 @@ if [ $rc -eq 0 ]; then
         else
           endlog "error"
         fi
+      else
+        cd ..
       fi
     fi
     if [[ ! "$rcf" =~ failed ]]; then
