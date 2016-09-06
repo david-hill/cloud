@@ -77,7 +77,7 @@ function create_flavors {
     fi
     openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile > /dev/null
     if [ $? -ne 0 ]; then
-      nova flavor-create --swap $swap $profile auto $ram $disk $vcpus
+      nova flavor-create --swap $swap $profile auto $ram $disk $vcpus > /dev/null
     fi
     openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" --property "capabilities:boot_mode"="$boot_mode" $profile > /dev/null
     if [ $? -ne 0 ]; then
