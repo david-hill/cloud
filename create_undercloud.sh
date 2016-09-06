@@ -126,7 +126,13 @@ if [ $rc -eq 0 ]; then
       sleep 1
     done
     endlog "done"
+
+
     if [ ! -z $rdorelease ]; then
+      startlog "Uploading RHEL image"
+      rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+      endlog "done"
       cd images
       bash verify_repo.sh $rdorelease
       if [ $? -eq 0 ]; then
