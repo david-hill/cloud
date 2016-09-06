@@ -87,7 +87,10 @@ function send_images {
   fi
   if [[ "$installtype" =~ rdo ]]; then
     rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
-    scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$rhelimage ]; then echo present; fi")
+    if [[ ! "$rc" =~ present ]] ; then
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+    fi
   fi
   endlog "done"
 }
