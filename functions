@@ -108,13 +108,15 @@ function openstack_oc_deploy {
       libvirttype=qemu
     fi
     startlog "Deploying overcloud"
-    openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>$stderr 1>$stdout
+    openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
+      startlog "Cleaning up ssh-keys"
       for ip in $(nova list | grep ACTIVE | awk -F= '{ print $2 }' | awk '{ print $1 }'); do
-        ssh-keygen -R $ip > /dev/null
+        ssh-keygen -R $ip 2>>$stderr 1>>$stdout
       done
+      endlog "done"
     else
       endlog "error"
     fi
