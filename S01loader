@@ -2,4 +2,4 @@
 set -x
 
 useradd -m stack
-/bin/bash -x /etc/rc3.d/S01customize 2>&1 > /home/stack/bootstrap.log &
+/bin/bash -x /etc/rc3.d/S01customize 2>&1 >> /home/stack/bootstrap.log &
