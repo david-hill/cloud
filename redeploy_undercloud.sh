@@ -17,7 +17,7 @@ function cleanup_logs {
 function cleanup_undercloud {
   startlog "Uninstalling openstack"
   rm -rf overcloudrc
-  sudo yum remove -y openstack-* python-oslo-* > /dev/null
+  sudo yum remove -y openstack-* python-oslo-* openvswitch* > /dev/null
   endlog "done"
   startlog "Uninstalling mariadb"
   sudo yum remove -y mariadb > /dev/null
