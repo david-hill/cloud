@@ -246,8 +246,11 @@ if [ $rc -eq 0 ]; then
       rc=255
       endlog "error"
     fi
+  else
+    endlog "error"
+  fi
 else
-  echo "Please run this on baremetal..."
+  endlog "error"
   rc=1
 fi
 exit $rc
