@@ -70,8 +70,8 @@ if [ $rc -eq 0 ]; then
     fi
     sudo pkill dnsmasq
   #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
-    if [ ! -d /home/jenkins/VMs ]; then
-      mkdir -p /home/jenkins/VMs
+    if [ ! -d $jenkinspath/VMs ]; then
+      mkdir -p $jenkinspath/VMs
     fi
     vpnip=$(ip addr | grep inet | grep "10\." | awk ' { print $2 }' | sed -e 's#/.*##')
     if [ ! -z "${vpnip}" ]; then
@@ -80,9 +80,7 @@ if [ $rc -eq 0 ]; then
       echo "WARNING: No VPN IP found..."
     fi
     startlog "Copying base image"
-    if [ ! -d VMs ]; then
-      sudo cp images/rhel/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 VMs/${vmname}.qcow2
-    fi
+    sudo cp images/rhel/rhel-guest-image-7.2-20160302.0.x86_64.qcow2 $jenkinspath/VMs/${vmname}.qcow2
     if [ $? -eq 0 ]; then
       endlog "done"
     else
@@ -90,7 +88,7 @@ if [ $rc -eq 0 ]; then
       exit 2
     fi
     startlog "Resizing base disk"
-    sudo qemu-img resize VMs/${vmname}.qcow2 30G 2>$stderr 1>$stdout
+    sudo qemu-img resize $jenkinspath/VMs/${vmname}.qcow2 30G 2>$stderr 1>$stdout
     if [ $? -eq 0 ]; then
       endlog "done"
     else
@@ -102,7 +100,7 @@ if [ $rc -eq 0 ]; then
     sed -i "s/###RELEASEVER###/$releasever/g" tmp/S01customize
     sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
     sed -i "s/###RDORELEASE###/$rdorelease/g" tmp/S01customize
-    sudo virt-customize -a VMs/${vmname}.qcow2 $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
+    sudo virt-customize -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
     if [ $? -eq 0 ]; then
       endlog "done"
     else
@@ -112,7 +110,7 @@ if [ $rc -eq 0 ]; then
 
     tmpfile=$(mktemp)
     uuid=$(uuidgen)
-    tpath='/home/jenkins/VMs'
+    tpath=$jenkinspath/VMs
     vcpus=2
     gen_macs
     gen_xml
