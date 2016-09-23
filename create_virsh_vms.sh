@@ -101,6 +101,12 @@ function send_instackenv {
   endlog "done"
 }
 
+function wait_for_reboot {
+  rc='error'
+  while [[ ! "$rc" =~ present ]]; do 
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi")
+  done
+}
 if [ -e instackenv.json ]; then
   rm -rf instackenv.json
 fi
@@ -116,6 +122,7 @@ if [ $? -eq 0 ]; then
   startlog "Creating VMs for ceph"
   create_vm ceph
   endlog "done"
+  wait_for_reboot
   send_instackenv
   send_images
 else
