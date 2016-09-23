@@ -43,7 +43,6 @@ else
 fi 
 
 if [ $rc -eq 0 ]; then
-  
   if [[ ! "$installtype" =~ official ]]; then
     if [ -e images/rhel/get_image.sh ]; then
       cd images/rhel
@@ -107,7 +106,6 @@ if [ $rc -eq 0 ]; then
       endlog "error"
       exit 2
     fi
-
     tmpfile=$(mktemp)
     uuid=$(uuidgen)
     tpath=$jenkinspath/VMs
@@ -117,120 +115,134 @@ if [ $rc -eq 0 ]; then
     create_domain
     start_domain
     cleanup
-
+    tinitial=$(date "+%s")
+    telapsed=0
     startlog "Waiting for VM to come up"
     down=1
-    while [ $down -eq 1 ]; do
+    while [ $down -eq 1 ] && [ $telapsed -lt $timeout ]; do
       ping -q -c 1 $undercloudip 2>$stderr 1>$stdout
+      tcurrent=$(date "+%s")
+      telapsed=$(( $tcurrent - $initial ))
       down=$?
       sleep 1
     done
-    endlog "done"
-    startlog "Waiting for SSH to come up"
-    sshrc=1
-    ssh-keygen -q -R $undercloudip 2>$stderr 1>$stdout
-    while [ $sshrc -ne 0 ]; do
-      ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' 2>$stderr 1>$stdout
-      sshrc=$?
-      sleep 1
-    done
-    endlog "done"
-
-
-    if [ ! -z $rdorelease ]; then
-      startlog "Uploading RHEL image"
-      ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-      rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
-      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+    if [ $telapsed -lt $timeout ]; then
       endlog "done"
-      cd images
-      bash verify_repo.sh $rdorelease
-      if [ $? -eq 0 ]; then
-        rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'touch gen_images')
-        cd ..
-        startlog "Waiting for image generation"
-        rc=0
-        while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-          rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e gen_images_completed ]; then echo completed; fi')
-          rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
-          sleep 1
-        done
-        if [[ ! "$rcf" =~ failed ]]; then
-          endlog "done"
-          cd images/rdo-$rdorelease
-          startlog "Fetch images"
-          scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@192.168.122.2:images/*.tar .
-          if [ $? -eq 0 ]; then
-            endlog "done"
-          else
-            rcf=failed
-            endlog "error"
-          fi
-          cd ../../
-        else
-          endlog "error"
-        fi
-      else
-        cd ..
-      fi
-    fi
-    if [[ ! "$rcf" =~ failed ]]; then
-      bash create_virsh_vms.sh $installtype $rdorelease
-      startlog "Waiting for undercloud deployment"
-      rc=0
-      while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-        rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
-        rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+      startlog "Waiting for SSH to come up"
+      sshrc=1
+      tinitial=$(date "+%s")
+      telapsed=0
+      ssh-keygen -q -R $undercloudip 2>$stderr 1>$stdout
+      while [ $sshrc -ne 0 ] && [ $telapsed -lt $timeout ]; do
+        ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' 2>$stderr 1>$stdout
+        tcurrent=$(date "+%s")
+        telapsed=$(( $tcurrent - $initial ))
+        sshrc=$?
         sleep 1
       done
-    fi
-    if [[ ! "$rcf" =~ failed ]]; then
-      endlog "done"
-      startlog "Waiting for introspection"
-      rc=in_progress
-      while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-        rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/introspected ]; then echo completed; fi')
-        rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
-        sleep 1
-      done
-      if [[ ! "$rcf" =~ failed ]]; then
+      if [ $telapsed -lt $timeout ]; then
         endlog "done"
-        startlog "Waiting for overcloud deployment"
-        rc=in_progress
-        while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-          rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
-          rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
-          sleep 1
-        done
+        if [ ! -z $rdorelease ]; then
+          startlog "Uploading RHEL image"
+          ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
+          rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
+          scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+          endlog "done"
+          cd images
+          bash verify_repo.sh $rdorelease
+          if [ $? -eq 0 ]; then
+            rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'touch gen_images')
+            cd ..
+            startlog "Waiting for image generation"
+            rc=0
+            while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+              rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e gen_images_completed ]; then echo completed; fi')
+              rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+              sleep 1
+            done
+            if [[ ! "$rcf" =~ failed ]]; then
+              endlog "done"
+              cd images/rdo-$rdorelease
+              startlog "Fetch images"
+              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@192.168.122.2:images/*.tar .
+              if [ $? -eq 0 ]; then
+                endlog "done"
+              else
+                rcf=failed
+                endlog "error"
+              fi
+              cd ../../
+            else
+              endlog "error"
+            fi
+          else
+            cd ..
+          fi
+        fi
+        if [[ ! "$rcf" =~ failed ]]; then
+          bash create_virsh_vms.sh $installtype $rdorelease
+          startlog "Waiting for undercloud deployment"
+          rc=0
+          while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+            rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
+            rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+            sleep 1
+          done
+        fi
         if [[ ! "$rcf" =~ failed ]]; then
           endlog "done"
-          startlog "Waiting for overcloud test"
+          startlog "Waiting for introspection"
           rc=in_progress
           while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-            rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/tested ]; then echo completed; fi')
+            rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/introspected ]; then echo completed; fi')
             rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
             sleep 1
           done
           if [[ ! "$rcf" =~ failed ]]; then
             endlog "done"
+            startlog "Waiting for overcloud deployment"
+            rc=in_progress
+            while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+              rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
+              rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+              sleep 1
+            done
+            if [[ ! "$rcf" =~ failed ]]; then
+              endlog "done"
+              startlog "Waiting for overcloud test"
+              rc=in_progress
+              while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+                rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e deployment_state/tested ]; then echo completed; fi')
+                rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+                sleep 1
+              done
+              if [[ ! "$rcf" =~ failed ]]; then
+                endlog "done"
+              fi
+            else
+              endlog "error"
+            fi
+          else
+            endlog "error"
           fi
         else
           endlog "error"
         fi
+        if [[ $rc =~ completed ]]; then
+          endlog "done"
+          rc=0
+        else
+          rc=255
+          endlog "error"
+        fi
       else
+        rc=255
         endlog "error"
       fi
-    else
-      endlog "error"
-    fi
-    if [[ $rc =~ completed ]]; then
-      endlog "done"
-      rc=0
     else
       rc=255
       endlog "error"
     fi
-  fi
 else
   echo "Please run this on baremetal..."
   rc=1
