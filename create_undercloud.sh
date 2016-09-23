@@ -43,11 +43,16 @@ else
 fi 
 
 if [ $rc -eq 0 ]; then
-  if [ -e images/rhel/get_image.sh ]; then
-    cd images/rhel
-    bash get_image.sh
-    rc=$?
-    cd ../../
+  
+  if [[ ! "$installtype" =~ official ]]; then
+    if [ -e images/rhel/get_image.sh ]; then
+      cd images/rhel
+      bash get_image.sh
+      rc=$?
+      cd ../../
+    fi
+  else
+    rc=0
   fi
   if [ $rc -eq 0 ]; then
     memory=$undercloudmemory
