@@ -221,12 +221,15 @@ if [ $rc -eq 0 ]; then
               fi
             else
               endlog "error"
+              rc=255
             fi
           else
             endlog "error"
+            rc=255
           fi
         else
           endlog "error"
+          rc=255
         fi
         if [[ $rc =~ completed ]]; then
           endlog "done"
