@@ -80,7 +80,7 @@ if [ $rc -eq 0 ]; then
     fi
     startlog "Copying base image"
     image=$(ls -1 images/rhel | tail -1)
-    sudo cp $(image) $jenkinspath/VMs/${vmname}.qcow2
+    sudo cp ${image} $jenkinspath/VMs/${vmname}.qcow2
     if [ $? -eq 0 ]; then
       endlog "done"
     else
