@@ -103,9 +103,17 @@ function send_instackenv {
 
 function wait_for_reboot {
   rc='error'
-  while [[ ! "$rc" =~ present ]]; do 
+  while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]]; do 
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi")
+    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi")
+    sleep 1
   done
+  if [[ "$rcf" =~ present ]]; then
+   rc=255
+  else
+   rc=0
+  fi
+  return $rc
 }
 if [ -e instackenv.json ]; then
   rm -rf instackenv.json
@@ -123,8 +131,13 @@ if [ $? -eq 0 ]; then
   create_vm ceph
   endlog "done"
   wait_for_reboot
-  send_instackenv
-  send_images
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    send_instackenv
+    send_images
+  fi
 else
   echo "Please run this from the KVM host..."
 fi
+
+exit $rc
