@@ -188,6 +188,7 @@ function gen_xml {
 
 function create_domain {
     sudo virsh define $tmpfile > /dev/null
+    return $?
 }
 
 function start_domain {
