@@ -14,22 +14,6 @@ function cleanup_logs {
     fi
   done
 }
-function cleanup_undercloud {
-  startlog "Uninstalling openstack"
-  rm -rf overcloudrc
-  sudo yum remove -y openstack-* python-oslo-* openvswitch* > /dev/null
-  endlog "done"
-  startlog "Uninstalling mariadb"
-  sudo yum remove -y mariadb > /dev/null
-  endlog "done"
-  startlog "Whiping database files"
-  sudo rm -rf /var/lib/mysql
-  sudo rm -rf /var/lib/ironic-discoverd/discoverd.sqlite
-  endlog "done"
-  startlog "Whiping various log files"
-  cleanup_logs
-  endlog "done"
-}
 
 function conformance {
   startlog "Updating system"
@@ -161,9 +145,7 @@ function deploy_overcloud {
         create_flavors
         tag_hosts
         bash deploy_overcloud.sh
-        if [ $? -ne 0 ]; then
-          exit 255
-        fi
+        rc=$?
       fi
     else 
       echo "Undercloud wasn't successfully deployed!"
@@ -250,9 +232,6 @@ function create_overcloud_route {
 
 if [ -e "/home/stack/stackrc" ]; then
   source_rc /home/stack/stackrc
-  delete_overcloud
-  delete_nodes
-  cleanup_undercloud
 fi
 conformance
 install_undercloud

@@ -82,7 +82,7 @@ function openstack_oc_update {
   rc=$?
   if [ $rc -eq 0 ]; then
     read_input
-    openstack overcloud deploy $updateargs_step2 
+    openstack overcloud deploy $updateargs_step2
     rc=$?
     if [ $rc -eq 0 ]; then
       read_input
@@ -108,13 +108,15 @@ function openstack_oc_deploy {
       libvirttype=qemu
     fi
     startlog "Deploying overcloud"
-    openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype > /dev/null
+    openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
+      startlog "Cleaning up ssh-keys"
       for ip in $(nova list | grep ACTIVE | awk -F= '{ print $2 }' | awk '{ print $1 }'); do
-        ssh-keygen -R $ip > /dev/null
+        ssh-keygen -R $ip 2>>$stderr 1>>$stdout
       done
+      endlog "done"
     else
       endlog "error"
     fi
@@ -166,6 +168,11 @@ function gen_xml {
     if [ -z "$machine" ]; then
       machine=$(sudo virsh capabilities | grep x86_64 | -A4 | grep machine | head -1 | awk -F\> '{ print $1 }' | awk -F\< '{ print $1 }')
     fi
+    if [[ $installtype =~ rdo ]]; then
+      localtype=$rdorelease
+    else
+      localtype=$releasever
+    fi
     model=$(virsh capabilities | grep '<model>'   | head -1 | awk -F\> '{ print $2 }' | awk -F\< '{ print $1 }')
     sed -i "s/###MACHINE###/$machine/" $tmpfile
     sed -i "s/###MODEL###/$model/" $tmpfile
@@ -174,13 +181,14 @@ function gen_xml {
     sed -i "s/###MEM###/$memory/" $tmpfile
     sed -i "s/###UUID###/$uuid/" $tmpfile
     sed -i "s/###VCPUS###/$vcpus/" $tmpfile
-    sed -i "s/###TYPE-INC###/$type-$inc-$releasever/" $tmpfile
-    sed -i "s/###DISK###/$type-$inc-$releasever/" $tmpfile
+    sed -i "s/###TYPE-INC###/$type-$inc-$localtype/" $tmpfile
+    sed -i "s/###DISK###/$type-$inc-$localtype/" $tmpfile
     sed -i "s|###PATH###|$tpath|" $tmpfile
 }
 
 function create_domain {
     sudo virsh define $tmpfile > /dev/null
+    return $?
 }
 
 function start_domain {
@@ -202,10 +210,10 @@ function run_in_qemu {
 
 function validate_rpm {
   rc=0
-  rpm -q libguestfs-tools 2>$stderr 1>$stdout
+  rpm -q libguestfs-tools 2>>$stderr 1>>$stdout
   if [ $? -ne 0 ]; then
-    sudo yum install -y libguestfs-tools 2>$stderr 1>$stdout
-    rpm -q libguestfs-tools
+    sudo yum install -y libguestfs-tools 2>>$stderr 1>>$stdout
+    rpm -q libguestfs-tools >>$stderr 1>>$stdout
     if [ $? -ne 0 ]; then
       rc=1
     fi

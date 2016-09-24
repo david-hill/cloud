@@ -3,9 +3,26 @@
 source functions
 source_rc setup.cfg
 
-if [ ! -d images/$releasever/$minorver ]; then
-  echo "Please put the overcloud images (compressed) in images/$releasever/$minorver and retry..."
-  exit 255
+imagereleasever=$releasever
+
+if [ ! -z $1 ]; then
+  installtype=$1
+  if [ ! -z $2 ]; then
+    releasever=$2
+    rdorelease=$releasever
+  fi
+fi
+
+if [ -z $rdorelease ]; then
+  if [ ! -d images/$imagereleasever/$minorver ]; then
+    echo "Please put the overcloud images (compressed) in images/$imagereleasever/$minorver and retry..."
+    exit 255
+  fi
+else
+  if [ ! -d images/rdo-$rdorelease ]; then
+    echo "Please put the overcloud images (compressed) in images/rdo-$rdorelease and retry..."
+    exit 255
+  fi
 fi
 
 function gen_disks {
@@ -42,16 +59,25 @@ function create_vm {
     gen_xml
     gen_disks
     create_domain
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      break
+    fi
     cleanup
     update_instackenv
     inc=$(expr $inc + 1)
   done
+  return $rc
 }
 
 function send_images {
   startlog "Sending overcloud images to undercloud"
   ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-  cd images/$releasever/$minorver
+  if [ -z $rdorelease ]; then
+    cd images/$imagereleasever/$minorver
+  else
+    cd images/rdo-$rdorelease
+  fi
   for file in *.tar; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
@@ -59,7 +85,18 @@ function send_images {
       ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
     fi
   done
-  cd ../../../
+  if [ -z $rdorelease ]; then
+    cd ../../../
+  else
+    cd ../../
+  fi
+  if [[ "$installtype" =~ rdo ]]; then
+    rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$rhelimage ]; then echo present; fi")
+    if [[ ! "$rc" =~ present ]] ; then
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+    fi
+  fi
   endlog "done"
 }
 
@@ -69,6 +106,20 @@ function send_instackenv {
   endlog "done"
 }
 
+function wait_for_reboot {
+  rc='error'
+  while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]]; do 
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi")
+    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi")
+    sleep 1
+  done
+  if [[ "$rcf" =~ present ]]; then
+   rc=255
+  else
+   rc=0
+  fi
+  return $rc
+}
 if [ -e instackenv.json ]; then
   rm -rf instackenv.json
 fi
@@ -77,15 +128,36 @@ validate_env
 if [ $? -eq 0 ]; then
   startlog "Creating VMs for control"
   create_vm control
-  endlog "done"
-  startlog "Creating VMs for compute"
-  create_vm compute
-  endlog "done"
-  startlog "Creating VMs for ceph"
-  create_vm ceph
-  endlog "done"
-  send_instackenv
-  send_images
+  if [ $? -eq 0 ]; then
+    endlog "done"
+    startlog "Creating VMs for compute"
+    create_vm compute
+    if [ $? -eq 0 ]; then
+      endlog "done"
+      startlog "Creating VMs for ceph"
+      create_vm ceph
+      if [ $? -eq 0 ]; then
+        endlog "done"
+        wait_for_reboot
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          send_instackenv
+          send_images
+        fi
+      else
+        endlog "error"
+        rc=255
+      fi
+    else
+      endlog "error"
+      rc=255
+    fi
+  else  
+    endlog "error"
+    rc=255
+  fi
 else
   echo "Please run this from the KVM host..."
 fi
+
+exit $rc
