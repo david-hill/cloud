@@ -183,13 +183,17 @@ if [ $rc -eq 0 ]; then
         fi
         if [[ ! "$rcf" =~ failed ]]; then
           bash create_virsh_vms.sh $installtype $rdorelease
-          startlog "Waiting for undercloud deployment"
-          rc=0
-          while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-            rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
-            rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
-            sleep 1
-          done
+          if [ $? -eq 0 ]; then
+            startlog "Waiting for undercloud deployment"
+            rc=0
+            while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+              rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
+              rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+              sleep 1
+            done
+          else
+            rcf='failed'
+          fi
         fi
         if [[ ! "$rcf" =~ failed ]]; then
           endlog "done"
