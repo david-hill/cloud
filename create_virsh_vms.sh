@@ -59,10 +59,15 @@ function create_vm {
     gen_xml
     gen_disks
     create_domain
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      break
+    fi
     cleanup
     update_instackenv
     inc=$(expr $inc + 1)
   done
+  return $rc
 }
 
 function send_images {
@@ -123,18 +128,33 @@ validate_env
 if [ $? -eq 0 ]; then
   startlog "Creating VMs for control"
   create_vm control
-  endlog "done"
-  startlog "Creating VMs for compute"
-  create_vm compute
-  endlog "done"
-  startlog "Creating VMs for ceph"
-  create_vm ceph
-  endlog "done"
-  wait_for_reboot
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    send_instackenv
-    send_images
+  if [ $? -eq 0 ]; then
+    endlog "done"
+    startlog "Creating VMs for compute"
+    create_vm compute
+    if [ $? -eq 0 ]; then
+      endlog "done"
+      startlog "Creating VMs for ceph"
+      create_vm ceph
+      if [ $? -eq 0 ]; then
+        endlog "done"
+        wait_for_reboot
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          send_instackenv
+          send_images
+        fi
+      else
+        endlog "error"
+        rc=255
+      fi
+    else
+      endlog "error"
+      rc=255
+    fi
+  else  
+    endlog "error"
+    rc=255
   fi
 else
   echo "Please run this from the KVM host..."
