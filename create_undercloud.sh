@@ -111,7 +111,7 @@ if [ $rc -eq 0 ]; then
     tmpfile=$(mktemp)
     uuid=$(uuidgen)
     tpath=$jenkinspath/VMs
-    vcpus=2
+    vcpus=4
     gen_macs
     gen_xml
     create_domain
