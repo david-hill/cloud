@@ -59,10 +59,15 @@ function create_vm {
     gen_xml
     gen_disks
     create_domain
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      break
+    fi
     cleanup
     update_instackenv
     inc=$(expr $inc + 1)
   done
+  return $rc
 }
 
 function send_images {
@@ -101,6 +106,20 @@ function send_instackenv {
   endlog "done"
 }
 
+function wait_for_reboot {
+  rc='error'
+  while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]]; do 
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi")
+    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi")
+    sleep 1
+  done
+  if [[ "$rcf" =~ present ]]; then
+   rc=255
+  else
+   rc=0
+  fi
+  return $rc
+}
 if [ -e instackenv.json ]; then
   rm -rf instackenv.json
 fi
@@ -109,15 +128,36 @@ validate_env
 if [ $? -eq 0 ]; then
   startlog "Creating VMs for control"
   create_vm control
-  endlog "done"
-  startlog "Creating VMs for compute"
-  create_vm compute
-  endlog "done"
-  startlog "Creating VMs for ceph"
-  create_vm ceph
-  endlog "done"
-  send_instackenv
-  send_images
+  if [ $? -eq 0 ]; then
+    endlog "done"
+    startlog "Creating VMs for compute"
+    create_vm compute
+    if [ $? -eq 0 ]; then
+      endlog "done"
+      startlog "Creating VMs for ceph"
+      create_vm ceph
+      if [ $? -eq 0 ]; then
+        endlog "done"
+        wait_for_reboot
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          send_instackenv
+          send_images
+        fi
+      else
+        endlog "error"
+        rc=255
+      fi
+    else
+      endlog "error"
+      rc=255
+    fi
+  else  
+    endlog "error"
+    rc=255
+  fi
 else
   echo "Please run this from the KVM host..."
 fi
+
+exit $rc
