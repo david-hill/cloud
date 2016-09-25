@@ -31,7 +31,7 @@ if [ ! -d tmp ]; then
 fi
 
 rc=0
-if [[ ! "$installtype" =~ official ]]; then
+if [[ "$installtype" =~ internal ]]; then
   if [ -e images/$releasever/${minorver}/update_images.sh ]; then
     cd images/$releasever/${minorver}/
     bash update_images.sh
@@ -43,7 +43,7 @@ else
 fi 
 
 if [ $rc -eq 0 ]; then
-  if [[ ! "$installtype" =~ official ]]; then
+  if [[ "$installtype" =~ internal ]]; then
     if [ -e images/rhel/get_image.sh ]; then
       cd images/rhel
       bash get_image.sh
