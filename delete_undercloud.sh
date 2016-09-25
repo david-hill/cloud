@@ -10,17 +10,21 @@ if [ ! -z $1 ]; then
   fi
 fi
 
+if [[ "$installtype" =~ all ]]; then
+  releasever='*'
+fi
+
 function delete_vms {
   type=$1
   inc=0
-  sudo virsh list --all | grep -q "$type-$inc-$releasever"
+  output=$(sudo virsh list --all | grep -q "$type-$inc-$releasever" | awk '{ print $2 }')
   if [ $? -eq 0 ]; then
     ssh stack@$undercloudip 'sudo subscription-manager unregister' 2>$stderr 1>$stdout
-    for snap in $(sudo virsh snapshot-list $type-$inc-$releasever | egrep "shut off|running" | awk '{ print $1 }'); do
-      sudo virsh snapshot-delete $type-$inc-$releasever $snap 2>$stderr 1>$stdout
+    for snap in $(sudo virsh snapshot-list $output | egrep "shut off|running" | awk '{ print $1 }'); do
+      sudo virsh snapshot-delete $output $snap 2>$stderr 1>$stdout
     done
-    sudo virsh destroy $type-$inc-$releasever 2>$stderr 1>$stdout
-    sudo virsh undefine $type-$inc-$releasever 2>$stderr 1>$stdout
+    sudo virsh destroy $output 2>$stderr 1>$stdout
+    sudo virsh undefine $output 2>$stderr 1>$stdout
   fi
 }
 
