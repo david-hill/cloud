@@ -100,7 +100,7 @@ if [ $rc -eq 0 ]; then
     sed -i "s/###RELEASEVER###/$releasever/g" tmp/S01customize
     sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
     sed -i "s/###RDORELEASE###/$rdorelease/g" tmp/S01customize
-    sed -i "s/###NFSENABLE###/$nfsenable/g" tmp/S01customize
+    sed -i "s/###ENABLENFS###/$enablenfs/g" tmp/S01customize
     sudo virt-customize -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>$stderr 1>$stdout
     if [ $? -eq 0 ]; then
       endlog "done"
@@ -147,7 +147,7 @@ if [ $rc -eq 0 ]; then
         if [ ! -z $rdorelease ]; then
           startlog "Uploading RHEL image"
           ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-          rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
+          rhelimage=$(ls -atr images/rhel/ | grep qcow2 | tail -1)
           scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
           endlog "done"
           cd images
