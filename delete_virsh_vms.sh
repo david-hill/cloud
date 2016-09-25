@@ -46,8 +46,8 @@ function delete_vms {
           done
         fi
       fi
-      inc=$(expr $inc + 1)
     done
+    inc=$(expr $inc + 1)
   done
 }
 
