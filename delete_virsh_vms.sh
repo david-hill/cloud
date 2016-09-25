@@ -10,6 +10,10 @@ if [ ! -z $1 ]; then
   fi
 fi
 
+if [[ "$installtype" =~ all ]]; then
+  releasever='*'
+fi
+
 function delete_vms {
   type=$1
   inc=0
