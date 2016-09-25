@@ -187,12 +187,13 @@ function gen_xml {
 }
 
 function create_domain {
-    sudo virsh define $tmpfile > /dev/null
+    sudo virsh define $tmpfile 2>>$stderr 1>>$stdout
     return $?
 }
 
 function start_domain {
-    sudo virsh start $vmname > /dev/null
+    sudo virsh start $vmname 2>>$stderr 1>>$stdout
+    return $?
 }
 
 function cleanup {
