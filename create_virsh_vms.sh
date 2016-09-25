@@ -84,6 +84,8 @@ function send_images {
       scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/ > /dev/null
       ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
       rc=$?
+    else
+      rc=0
     fi
   done
   if [ -z $rdorelease ]; then
@@ -97,6 +99,8 @@ function send_images {
     if [[ ! "$rc" =~ present ]] ; then
       scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
       rc=$?
+    else
+      rc=0
     fi
   fi
   endlog "done"
