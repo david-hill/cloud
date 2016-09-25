@@ -19,12 +19,14 @@ function delete_vms {
   inc=0
   output=$(sudo virsh list --all | grep "$type-$inc-$releasever" | awk '{ print $2 }')
   if [ ! -z "${output}" ]; then
-    ssh stack@$undercloudip 'sudo subscription-manager unregister' 2>$stderr 1>$stdout
-    for snap in $(sudo virsh snapshot-list $output | egrep "shut off|running" | awk '{ print $1 }'); do
-      sudo virsh snapshot-delete $output $snap 2>$stderr 1>$stdout
+    for server in $output; do
+      ssh stack@$undercloudip 'sudo subscription-manager unregister' 2>>$stderr 1>>$stdout
+      for snap in $(sudo virsh snapshot-list $server | egrep "shut off|running" | awk '{ print $1 }'); do
+        sudo virsh snapshot-delete $server $snap 2>>$stderr 1>>$stdout
+      done
+      sudo virsh destroy $server 2>>$stderr 1>>$stdout
+      sudo virsh undefine $server 2>>$stderr 1>>$stdout
     done
-    sudo virsh destroy $output 2>$stderr 1>$stdout
-    sudo virsh undefine $output 2>$stderr 1>$stdout
   fi
 }
 
