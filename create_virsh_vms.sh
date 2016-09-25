@@ -54,7 +54,7 @@ function create_vm {
   while [ $inc -lt $max ]; do
     tmpfile=$(mktemp)
     uuid=$(uuidgen)
-    tpath=$(df | sort -k4,4n | tail -1 | awk '{ print $6 }')
+    tpath=$jenkinspath/VMs
     gen_macs
     gen_xml
     gen_disks
