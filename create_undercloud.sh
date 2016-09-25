@@ -145,40 +145,45 @@ if [ $rc -eq 0 ]; then
       if [ $telapsed -lt $timeout ]; then
         endlog "done"
         if [ ! -z $rdorelease ]; then
-          startlog "Uploading RHEL image"
-          ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-          rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
-          scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
-          endlog "done"
-          cd images
-          bash verify_repo.sh $rdorelease
+          wait_for_reboot
           if [ $? -eq 0 ]; then
-            rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'touch gen_images')
-            cd ..
-            startlog "Waiting for image generation"
-            rc=0
-            while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
-              rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e gen_images_completed ]; then echo completed; fi')
-              rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
-              sleep 1
-            done
-            if [[ ! "$rcf" =~ failed ]]; then
-              endlog "done"
-              cd images/rdo-$rdorelease
-              startlog "Fetch images"
-              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@192.168.122.2:images/*.tar .
-              if [ $? -eq 0 ]; then
+            startlog "Uploading RHEL image"
+            ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
+            rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
+            scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+            endlog "done"
+            cd images
+            bash verify_repo.sh $rdorelease
+            if [ $? -eq 0 ]; then
+              rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'touch gen_images')
+              cd ..
+              startlog "Waiting for image generation"
+              rc=0
+              while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+                rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e gen_images_completed ]; then echo completed; fi')
+                rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+                sleep 1
+              done
+              if [[ ! "$rcf" =~ failed ]]; then
                 endlog "done"
+                cd images/rdo-$rdorelease
+                startlog "Fetch images"
+                scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@192.168.122.2:images/*.tar .
+                if [ $? -eq 0 ]; then
+                  endlog "done"
+                else
+                  rcf=failed
+                  endlog "error"
+                fi
+                cd ../../
               else
-                rcf=failed
                 endlog "error"
               fi
-              cd ../../
             else
-              endlog "error"
+              cd ..
             fi
           else
-            cd ..
+            endlog "error"
           fi
         fi
         if [[ ! "$rcf" =~ failed ]]; then
