@@ -40,8 +40,8 @@ function delete_vms {
           rserver=$(ssh root@$kvmhost "sudo virsh list --all | grep $type-$inc-$releasever | awk '{ print \$2 }'")
           for tserver in $rserver; do
             if [[ "$tserver" =~ $type-$inc ]]; then
-              ssh root@$kvmhost "sudo virsh destroy $tserver 2>>$stderr 1>>$stdout
-              ssh root@$kvmhost "sudo virsh undefine $tserver 2>>$stderr 1>>$stdout
+              ssh root@$kvmhost "sudo virsh destroy $tserver" 2>>$stderr 1>>$stdout
+              ssh root@$kvmhost "sudo virsh undefine $tserver" 2>>$stderr 1>>$stdout
             fi
           done
         fi
