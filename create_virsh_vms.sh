@@ -106,20 +106,6 @@ function send_instackenv {
   endlog "done"
 }
 
-function wait_for_reboot {
-  rc='error'
-  while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]]; do 
-    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi")
-    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi")
-    sleep 1
-  done
-  if [[ "$rcf" =~ present ]]; then
-   rc=255
-  else
-   rc=0
-  fi
-  return $rc
-}
 if [ -e instackenv.json ]; then
   rm -rf instackenv.json
 fi
