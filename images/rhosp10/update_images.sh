@@ -41,7 +41,7 @@ function get_images {
         fi
       else
         mv $file.md5 ../
-        wget -q ${wpath}/$file -O $file
+        wget -q ${wpath}/$file -O ../$file
       fi
     done
     cd ..
