@@ -42,23 +42,25 @@ function getindex {
 function get_images {
   rc=255
   wpath=$1
-  cleanup
   rc=$?
   if [ $rc -eq 0 ]; then
-    wget -q $wpath 
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      getversion
-      getindex "$wpath/$version/images/"
+    for release in $releases; do
+      cleanup
+      wget -q $wpath${release}/
       rc=$?
       if [ $rc -eq 0 ]; then
-        getfiles "$wpath/$version/images/"
+        getversion
+        getindex "$wpath$release/$version/images/"
         rc=$?
+        if [ $rc -eq 0 ]; then
+          getfiles "$wpath$release/$version/images/"
+          rc=$?
+        fi
       fi
-    fi
+    done
   fi
   return $rc
 }
-
-get_images http://download.eng.bos.redhat.com/brewroot/packages/rhel-guest-image/7.2/
+releases="7.2 7.3"
+get_images http://download.eng.bos.redhat.com/brewroot/packages/rhel-guest-image/
 exit $?
