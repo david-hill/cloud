@@ -12,3 +12,5 @@ CHECKSUM
 *.md5
 *.rpm
 *.last
+tmp
+current.txt
