@@ -35,23 +35,18 @@ if [[ "$installtype" =~ internal ]]; then
   if [ -e images/$releasever/${minorver}/update_images.sh ]; then
     cd images/$releasever/${minorver}/
     bash update_images.sh
-    rc=$?
     cd ../../../  
   fi
-else 
-  rc=0
 fi 
 
 if [ $rc -eq 0 ]; then
+  rc=0
   if [[ "$installtype" =~ internal ]]; then
     if [ -e images/rhel/get_image.sh ]; then
       cd images/rhel
       bash get_image.sh
-      rc=$?
       cd ../../
     fi
-  else
-    rc=0
   fi
   if [ $rc -eq 0 ]; then
     memory=$undercloudmemory
