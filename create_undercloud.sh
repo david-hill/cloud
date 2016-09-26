@@ -74,7 +74,7 @@ if [ $rc -eq 0 ]; then
       echo "WARNING: No VPN IP found..."
     fi
     startlog "Copying base image"
-    image=$(ls -1 images/rhel | grep qcow | tail -1)
+    image=$(ls -1 images/rhel | grep qcow2 | grep $rhel | tail -1)
     sudo cp images/rhel/${image} $jenkinspath/VMs/${vmname}.qcow2
     if [ $? -eq 0 ]; then
       endlog "done"
