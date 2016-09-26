@@ -1,0 +1,16 @@
+*.tar
+*.qcow2
+*.iso
+*.html
+backup
+setup.cfg.local
+instackenv.json
+template.xml.orig
+S01customize.local
+version
+CHECKSUM
+*.md5
+*.rpm
+*.last
+tmp
+current.txt
