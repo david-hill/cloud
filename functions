@@ -10,6 +10,21 @@ function source_rc {
   return $?
 }
 
+function wait_for_reboot {
+  rc='error'
+  while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]]; do
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi")
+    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi")
+    sleep 1
+  done
+  if [[ "$rcf" =~ present ]]; then
+   rc=255
+  else
+   rc=0
+  fi
+  return $rc
+}
+
 function test_overcloud {
   rc=255
   if [ -e /home/stack/cloud/overcloudrc ]; then
@@ -187,12 +202,13 @@ function gen_xml {
 }
 
 function create_domain {
-    sudo virsh define $tmpfile > /dev/null
+    sudo virsh define $tmpfile 2>>$stderr 1>>$stdout
     return $?
 }
 
 function start_domain {
-    sudo virsh start $vmname > /dev/null
+    sudo virsh start $vmname 2>>$stderr 1>>$stdout
+    return $?
 }
 
 function cleanup {

@@ -54,7 +54,7 @@ function create_vm {
   while [ $inc -lt $max ]; do
     tmpfile=$(mktemp)
     uuid=$(uuidgen)
-    tpath=$(df | sort -k4,4n | tail -1 | awk '{ print $6 }')
+    tpath=$jenkinspath/VMs
     gen_macs
     gen_xml
     gen_disks
@@ -83,6 +83,9 @@ function send_images {
     if [[ ! "$rc" =~ present ]] ; then
       scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/ > /dev/null
       ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
+      rc=$?
+    else
+      rc=0
     fi
   done
   if [ -z $rdorelease ]; then
@@ -95,6 +98,9 @@ function send_images {
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$rhelimage ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
       scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+      rc=$?
+    else
+      rc=0
     fi
   fi
   endlog "done"
@@ -106,20 +112,6 @@ function send_instackenv {
   endlog "done"
 }
 
-function wait_for_reboot {
-  rc='error'
-  while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]]; do 
-    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi")
-    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi")
-    sleep 1
-  done
-  if [[ "$rcf" =~ present ]]; then
-   rc=255
-  else
-   rc=0
-  fi
-  return $rc
-}
 if [ -e instackenv.json ]; then
   rm -rf instackenv.json
 fi

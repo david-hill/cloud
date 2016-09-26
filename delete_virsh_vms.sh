@@ -27,22 +27,26 @@ function delete_vms {
   
   while [ $inc -lt $max ]; do
     output=$(sudo virsh list --all | grep "$type-$inc-$releasever" | awk '{ print $2 }')
-    if [[ "$output" =~ $type-$inc ]]; then 
-      for snap in $(sudo virsh snapshot-list $output | egrep "running|shut off" | awk '{ print $1 }'); do
-        sudo virsh snapshot-delete $output $snap 2>$stderr 1>$stdout
-      done
-      sudo virsh destroy $output 2>$stderr 1>$stdout
-      sudo virsh undefine $output 2>$stderr 1>$stdout
-    else
-      ip=$(ip addr)
-      if [[ ! "$ip" =~ $kvmhost ]]; then
-        output=$(ssh root@$kvmhost "sudo virsh list --all | grep $type-$inc-$releasever | awk '{ print \$2 }'")
-        if [[ "$output" =~ $type-$inc ]]; then
-          ssh root@$kvmhost "sudo virsh destroy $output 2>$stderr 1>$stdout
-          ssh root@$kvmhost "sudo virsh undefine $output 2>$stderr 1>$stdout
+    for server in $output; do
+      if [[ "$server" =~ $type-$inc ]]; then 
+        for snap in $(sudo virsh snapshot-list $server | egrep "running|shut off" | awk '{ print $1 }'); do
+          sudo virsh snapshot-delete $server $snap 2>>$stderr 1>>$stdout
+        done
+        sudo virsh destroy $server 2>>$stderr 1>>$stdout
+        sudo virsh undefine $server 2>>$stderr 1>>$stdout
+      else
+        ip=$(ip addr)
+        if [[ ! "$ip" =~ $kvmhost ]]; then
+          rserver=$(ssh root@$kvmhost "sudo virsh list --all | grep $type-$inc-$releasever | awk '{ print \$2 }'")
+          for tserver in $rserver; do
+            if [[ "$tserver" =~ $type-$inc ]]; then
+              ssh root@$kvmhost "sudo virsh destroy $tserver" 2>>$stderr 1>>$stdout
+              ssh root@$kvmhost "sudo virsh undefine $tserver" 2>>$stderr 1>>$stdout
+            fi
+          done
         fi
       fi
-    fi
+    done
     inc=$(expr $inc + 1)
   done
 }
