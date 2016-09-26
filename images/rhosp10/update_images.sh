@@ -36,11 +36,11 @@ function get_images {
         cver=$(cat $file.md5)
         if [ ! "$pver" == "$cver" ]; then
           backup_images $file
-          cp $file.md5 ../
+          mv $file.md5 ../
           wget -q ${wpath}/$file -O ../$file
         fi
       else
-        cp $file.md5 ../
+        mv $file.md5 ../
         wget -q ${wpath}/$file -O $file
       fi
     done
