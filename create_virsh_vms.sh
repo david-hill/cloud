@@ -94,7 +94,7 @@ function send_images {
     cd ../../
   fi
   if [[ "$installtype" =~ rdo ]]; then
-    rhelimage=$(ls -atr images/rhel/ | grep qcow | tail -1)
+    rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$rhelimage ]; then echo present; fi")
     if [[ ! "$rc" =~ present ]] ; then
       scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
