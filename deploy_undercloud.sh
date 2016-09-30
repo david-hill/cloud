@@ -17,15 +17,15 @@ function cleanup_logs {
 
 function conformance {
   startlog "Updating system"
-  sudo yum update -y > /dev/null
+  sudo yum update -y 2>>$stderr 1>>$stdout
   endlog "done"
   startlog "Installing various packages"
-  sudo yum install -y ntpdate ntp screen libguestfs-tools wget vim > /dev/null
+  sudo yum install -y ntpdate ntp screen libguestfs-tools wget vim 2>>$stderr 1>>$stdout
   endlog "done"
   startlog "Synching time"
-  sudo service ntpd stop > /dev/null
-  sudo ntpdate $ntpserver > /dev/null
-  sudo service ntpd start > /dev/null
+  sudo service ntpd stop 2>>$stderr 1>>$stdout
+  sudo ntpdate $ntpserver 2>>$stderr 1>>$stdout
+  sudo service ntpd start 2>>$stderr 1>>$stdout
   endlog "done"
 }
 
@@ -55,26 +55,26 @@ function create_flavors {
     bram=4095
   fi
   for profile in swift-storage block-storage control ceph-storage compute; do
-    openstack flavor delete $profile > /dev/null
+    openstack flavor delete $profile 2>>$stderr 1>>$stdout
     if [ $? -ne 0 ]; then
-      nova flavor-delete $profile > /dev/null
+      nova flavor-delete $profile 2>>$stderr 1>>$stdout
     fi
-    openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile > /dev/null
+    openstack flavor create --id auto --ram $ram --disk $disk --vcpus $vcpus --swap $swap $profile 2>>$stderr 1>>$stdout
     if [ $? -ne 0 ]; then
-      nova flavor-create --swap $swap $profile auto $ram $disk $vcpus > /dev/null
+      nova flavor-create --swap $swap $profile auto $ram $disk $vcpus 2>>$stderr 1>>$stdout
     fi
-    openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" --property "capabilities:boot_mode"="$boot_mode" $profile > /dev/null
+    openstack flavor set --property "cpu_arch"="x86_64" --property "capabilities:boot_option"="local" --property "capabilities:profile"="$profile" --property "capabilities:boot_mode"="$boot_mode" $profile 2>>$stderr 1>>$stdout
     if [ $? -ne 0 ]; then
-      nova flavor-key $profile set "cpu_arch"="x86_64" "capabilities:boot_option"="local" "capabilities:profile"="$profile" "capabilities:boot_mode"="$boot_mode"> /dev/null
+      nova flavor-key $profile set "cpu_arch"="x86_64" "capabilities:boot_option"="local" "capabilities:profile"="$profile" "capabilities:boot_mode"="$boot_mode"2>>$stderr 1>>$stdout
     fi
   done
-  openstack flavor delete baremetal > /dev/null
+  openstack flavor delete baremetal 2>>$stderr 1>>$stdout
   if [ $? -ne 0 ]; then
-    nova flavor-delete baremetal > /dev/null
+    nova flavor-delete baremetal 2>>$stderr 1>>$stdout
   fi
-  openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal > /dev/null
+  openstack flavor create --id auto --ram $bram --disk $disk --vcpus $vcpus --swap $swap baremetal 2>>$stderr 1>>$stdout
   if [ $? -ne 0 ]; then
-    nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus > /dev/null
+    nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus 2>>$stderr 1>>$stdout
   fi
   endlog "done"
 }
@@ -84,11 +84,11 @@ function tag_hosts {
   inc=0
   for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
     if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
-      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" > /dev/null
+      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
     elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
-      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" > /dev/null
+      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
     else
-      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" > /dev/null
+      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
     fi
     inc=$( expr $inc + 1)
   done
@@ -158,7 +158,7 @@ function deploy_overcloud {
 
 function install_undercloud {
   startlog "Installing undercloud"
-  sudo yum install -y python-rdomanager-oscplugin > /dev/null
+  sudo yum install -y python-rdomanager-oscplugin 2>>$stderr 1>>$stdout
   openstack undercloud install 2>>$stderr 1>>$stdout
   rc=$?
   if [ $? -eq 0 ]; then
@@ -171,15 +171,15 @@ function install_undercloud {
 
 function disable_selinux {
   startlog "Disabling selinux"
-  sudo /sbin/setenforce 0 > /dev/null
+  sudo /sbin/setenforce 0 2>>$stderr 1>>$stdout
   sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
   endlog "done"
 }
 
 function validate_network_environment {
   startlog "Validating network environment"
-  git clone https://github.com/rthallisey/clapper > /dev/null
-  python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml > /dev/null
+  git clone https://github.com/rthallisey/clapper 2>>$stderr 1>>$stdout
+  python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml 2>>$stderr 1>>$stdout
   endlog "done"
   rc=$?
   return $rc
@@ -187,7 +187,7 @@ function validate_network_environment {
 
 function delete_nova_nodes {
   for node in $(nova list | awk '{ print $2 }' | grep -v ID); do
-    nova delete $node > /dev/null
+    nova delete $node 2>>$stderr 1>>$stdout
   done
   if [ ! -z "$node" ]; then
     tnode=$(nova list | grep $node)
@@ -199,7 +199,7 @@ function delete_nova_nodes {
 }
 function poweroff_ironic_nodes {
   for node in $(ironic node-list | grep "power on" | awk '{ print $2 }'); do
-    ironic node-set-power-state $node off > /dev/null
+    ironic node-set-power-state $node off 2>>$stderr 1>>$stdout
     tnode=$(ironic node-list | grep $node | grep "power on")
     while [[ "$tnode" =~ $node ]]; do
       tnode=$(ironic node-list | grep $node | grep "power on")
@@ -209,7 +209,7 @@ function poweroff_ironic_nodes {
 }
 function delete_ironic_nodes {
   for node in $(ironic node-list | egrep "True|False" | awk '{ print $2 }'); do
-    ironic node-delete $node > /dev/null
+    ironic node-delete $node 2>>$stderr 1>>$stdout
     tnode=$(ironic node-list | grep $node)
     while [[ "$tnode" =~ $node ]]; do
       tnode=$(ironic node-list | grep $node)
