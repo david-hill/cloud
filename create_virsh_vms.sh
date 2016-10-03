@@ -130,11 +130,15 @@ if [ $? -eq 0 ]; then
       create_vm ceph
       if [ $? -eq 0 ]; then
         endlog "done"
+        startlog "Waiting for VM to reboot"
         wait_for_reboot
         rc=$?
         if [ $rc -eq 0 ]; then
+          endlog "done"
           send_instackenv
           send_images
+        else
+          endlog "error"
         fi
       else
         endlog "error"
