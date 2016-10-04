@@ -50,5 +50,10 @@ function get_images {
 }
 
 files="ironic-python-agent.tar overcloud-full.tar"
-get_images http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-10/current-passed-ci/
+if [ -e index.html ]; then
+  rm -rf index.html
+fi
+wget -q http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-10/
+version=$(cat index.html  | grep folder | tail -2 | head -1 | awk -F\" '{ print $8 }')
+get_images http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-10/$version
 exit $?
