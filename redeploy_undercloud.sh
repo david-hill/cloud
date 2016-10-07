@@ -258,6 +258,7 @@ conformance
 install_undercloud
 rc=$?
 if [ $rc -eq 0 ]; then
+  enable_nfs
   disable_selinux
   source_rc /home/stack/stackrc
   validate_network_environment
