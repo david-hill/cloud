@@ -177,6 +177,30 @@ function gen_macs {
     mac2=$(echo -n 52:54:00; dd bs=1 count=3 if=/dev/random 2>/dev/null |hexdump -v -e '/1 ":%02X"')
 }
 
+function enable_nfs {
+  if [ "$enablenfs" -eq 1 ]; then
+    startlog "Enabling NFS"
+    systemctl enable nfs-server
+    systemctl start nfs-server
+    iptables -I INPUT -p udp --dport 20048  -j ACCEPT
+    iptables -I INPUT -p tcp --dport 20048  -j ACCEPT
+    iptables -I INPUT -p udp --dport 2049  -j ACCEPT
+    iptables -I INPUT -p tcp --dport 2049 -j ACCEPT
+    iptables -I INPUT -p udp --dport 111  -j ACCEPT
+    iptables -I INPUT -p tcp --dport 111  -j ACCEPT
+    mkdir -p /exports/cinder
+    mkdir -p /exports/glance
+    cat<<EOF>/etc/exports
+/exports/cinder *(rw,sync)
+/exports/glance *(rw,sync)
+EOF
+    exportfs -r
+    chown glance:glance /exports/glance
+    chmod 777 /exports/cinder
+    endlog "done"
+  fi
+}
+
 function gen_xml {
     cp template.xml $tmpfile
     machine=$(sudo virsh capabilities | grep -A3 "domain.*kvm." | grep machine | tail -1 | awk -F\' '{ print $2 }')
