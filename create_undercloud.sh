@@ -37,6 +37,10 @@ function kill_dnsmasq {
     fi 
     return $rc
 }
+function restart_libvirtd {
+  sudo systemctl restart libvirtd
+  return $?
+}
 
 validate_env
 if [ ! -d tmp ]; then
@@ -75,6 +79,7 @@ if [ $rc -eq 0 ]; then
     else    
       cp S01customize tmp/S01customize
     fi
+    restart_libvirtd
     kill_dnsmasq
     if [ $? -eq 0 ]; then
     #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
