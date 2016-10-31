@@ -25,16 +25,21 @@ else
 fi
 
 function kill_dnsmasq {
+    rc=1
     pgrep dnsmasq 2>>$stderr 1>>$stdout
     if [ $? -eq 0 ]; then
       sudo pkill dnsmasq
+      rc=$?
     fi
-    pgrep dnsmasq 2>>$stderr 1>>$stdout
-    if [ $? -ne 0 ]; then
-      rc=0
-    else
-      rc=1
-    fi 
+    return $rc
+}
+function wait_for_dnsmasq {
+    rc=1
+    while [ $rc -eq 1 ]; do
+      pgrep dnsmasq 2>>$stderr 1>>$stdout
+      rc=$?
+      sleep 1
+    done
     return $rc
 }
 function restart_libvirtd {
@@ -80,6 +85,7 @@ if [ $rc -eq 0 ]; then
       cp S01customize tmp/S01customize
     fi
     restart_libvirtd
+    wait_for_dnsmasq
     kill_dnsmasq
     if [ $? -eq 0 ]; then
     #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
