@@ -14,6 +14,42 @@ if [[ "$installtype" =~ all ]]; then
   releasever='*'
 fi
 
+function delete_bmc {
+  type=$1
+  which vbmc 2>>$stderr 1>>$stdout
+  if [ $? -eq 0 ]; then
+    inc=0
+    if [[ $type =~ control ]]; then
+      max=$controlscale
+    elif [[ $type =~ ceph ]]; then
+      max=$cephscale
+    else
+      max=$computescale
+    fi
+    while [ $inc -lt $max ]; do
+      output=$(sudo vbmc list  | grep "$type-$inc-$releasever" | awk '{ print $2 }')
+      for server in $output; do
+        if [[ "$server" =~ $type-$inc ]]; then 
+          sudo vbmc stop $server 2>>$stderr 1>>$stdout
+          sudo vbmc delete $server  2>>$stderr 1>>$stdout
+        else
+          ip=$(ip addr)
+          if [[ ! "$ip" =~ $kvmhost ]]; then
+            rserver=$(ssh root@$kvmhost "sudo vbmc list | grep $type-$inc-$releasever | awk '{ print \$2 }'")
+            for tserver in $rserver; do
+              if [[ "$tserver" =~ $type-$inc ]]; then
+                ssh root@$kvmhost "sudo vbmc stop $tserver" 2>>$stderr 1>>$stdout
+                ssh root@$kvmhost "sudo vbmc delete $tserver" 2>>$stderr 1>>$stdout
+              fi
+            done
+          fi
+        fi
+      done
+      inc=$(expr $inc + 1)
+    done
+  fi
+}
+
 function delete_vms {
   type=$1
   inc=0
@@ -24,7 +60,6 @@ function delete_vms {
   else
     max=$computescale
   fi
-  
   while [ $inc -lt $max ]; do
     output=$(sudo virsh list --all | grep "$type-$inc-$releasever" | awk '{ print $2 }')
     for server in $output; do
@@ -56,6 +91,9 @@ function cleanup {
     sudo rm -rf /home/stack/instackenv.json
   fi
 }
+delete_bmc control
+delete_bmc ceph
+delete_bmc compute
 delete_vms control
 delete_vms ceph
 delete_vms compute
