@@ -29,14 +29,58 @@ function gen_disks {
     sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
 }
 function update_instackenv {
-  if [ ! -z "$rootpassword" ]; then
-    if [ ! -e instackenv.json ]; then
-       echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }" > instackenv.json
-    else
-       sed -i 's/\} \] \}$//' instackenv.json
-       echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }">> instackenv.json
+  which vbmc 2>>$stderr 1>>$stdout
+  if [ $? -eq 0 ]; then
+    if [ ! -z "$rootpassword" ]; then
+      if [ ! -e instackenv.json ]; then
+         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }" > instackenv.json
+      else
+         sed -i 's/\} \] \}$//' instackenv.json
+         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }">> instackenv.json
+      fi
+    fi
+  else
+    if [ ! -z "$rootpassword" ]; then
+      if [ ! -e instackenv.json ]; then
+         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }" > instackenv.json
+      else
+         sed -i 's/\} \] \}$//' instackenv.json
+         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"1\" } ] }">> instackenv.json
+      fi
     fi
   fi
+}
+
+function set_bmc_ip {
+  rc=255
+  if [[ $installtype =~ rdo ]]; then
+    localtype=$rdorelease
+  else
+    localtype=$releasever
+  fi
+  which vbmc 2>>$stderr 1>>$stdout
+  if [ $? -eq 0 ]; then
+    pm_ip=$(sudo vbmc list | grep $type-$inc-$localtype | awk '{ print $4}')
+    if [ -z "${pm_ip}" ]; then
+      pm_ip=$(sudo vbmc list| grep 623 | awk '{ print $6 }' | awk -F. '{ print $4 }' | sort -n | tail -1)
+      if [ ! -z "${pm_ip}" ]; then
+         pm_ip=$(( $pm_ip + 1 ))
+         pm_ip="192.168.122.$pm_ip"
+      else
+         pm_ip="192.168.122.10"
+      fi
+      sudo ip addr add $pm_ip dev virbr0 2>>$stderr 1>>$stdout
+      sudo vbmc add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
+      sudo vbmc list | grep -q $type-$inc-$localtype
+      if [ $? -eq 0 ]; then 
+        sudo vbmc start $type-$inc-$localtype 2>>$stderr 1>>$stdout
+        rc=$?
+      fi
+    fi
+  else
+    rc=0
+  fi
+  return $rc
 }
 function create_vm {
   type=$1
@@ -64,6 +108,7 @@ function create_vm {
       break
     fi
     cleanup
+    set_bmc_ip
     update_instackenv
     inc=$(expr $inc + 1)
   done
