@@ -31,7 +31,7 @@ function delete_bmc {
       for server in $output; do
         if [[ "$server" =~ $type-$inc ]]; then 
           pm_ip=$(sudo vbmc list | grep $server | awk '{ print $6 }')
-          sudo ip addr del $pm_ip virbr0
+          sudo ip addr del $pm_ip dev virbr0 2>>$stderr 1>>$stdout
           sudo vbmc stop $server 2>>$stderr 1>>$stdout
           sudo vbmc delete $server  2>>$stderr 1>>$stdout
         else
