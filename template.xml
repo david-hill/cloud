@@ -48,7 +48,7 @@ or other application using the libvirt API.
       <driver name='qemu' type='raw'/>
       <target dev='hdb' bus='ide'/>
       <readonly/>
-      <boot order='1'/>
+      <boot order='3'/>
       <address type='drive' controller='0' bus='0' target='0' unit='0'/>
     </disk>
     <controller type='usb' index='0' model='ich9-ehci1'>
@@ -77,6 +77,7 @@ or other application using the libvirt API.
       <mac address='###MAC1###'/>
       <source network='default'/>
       <model type='virtio'/>
+      <boot order='1'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x03' function='0x0'/>
     </interface>
     <interface type='network'>
