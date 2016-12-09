@@ -52,6 +52,11 @@ if [ ! -d tmp ]; then
   mkdir tmp
 fi
 
+ping -c1 192.168.122.2 2>>$stderr 1>>$stdout
+if [ $? -eq 0 ]; then
+  bash stop_vms.sh
+fi
+
 rc=0
 if [[ "$installtype" =~ internal ]]; then
   if [ -e images/$releasever/${minorver}/update_images.sh ]; then
