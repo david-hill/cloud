@@ -61,6 +61,6 @@ function get_images {
   fi
   return $rc
 }
-releases="7.2 7.3"
+releases="7.2 7.3 7.4"
 get_images http://download.eng.bos.redhat.com/brewroot/packages/rhel-guest-image/
 exit $?
