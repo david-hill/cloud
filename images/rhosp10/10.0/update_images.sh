@@ -53,7 +53,7 @@ files="ironic-python-agent.tar overcloud-full.tar"
 if [ -e index.html ]; then
   rm -rf index.html
 fi
-wget -q http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-10/
+wget -q "http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-10/?C=M;O=A" -O index.html
 version=$(cat index.html  | grep folder | tail -2 | head -1 | awk -F\" '{ print $8 }')
 get_images http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-10/$version
 exit $?
