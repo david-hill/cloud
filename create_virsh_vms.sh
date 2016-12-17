@@ -51,6 +51,21 @@ function update_instackenv {
   fi
 }
 
+function get_next_ip {
+  prefix="192.168.122."
+  suffix=10
+  found=0
+  while [ $found -eq 0 ]; do
+    sudo vbmc list | grep 623 | grep -q "$prefix${suffix}\ "
+    if [ $? -eq 1 ]; then
+      found=1
+    else
+      suffix=$(( $suffix + 1 ))
+    fi
+  done
+  pm_ip="192.168.122.$suffix"
+}
+
 function set_bmc_ip {
   rc=255
   if [[ $installtype =~ rdo ]]; then
@@ -62,13 +77,7 @@ function set_bmc_ip {
   if [ $? -eq 0 ]; then
     pm_ip=$(sudo vbmc list | grep $type-$inc-$localtype | awk '{ print $4}')
     if [ -z "${pm_ip}" ]; then
-      pm_ip=$(sudo vbmc list| grep 623 | awk '{ print $6 }' | awk -F. '{ print $4 }' | sort -n | tail -1)
-      if [ ! -z "${pm_ip}" ]; then
-         pm_ip=$(( $pm_ip + 1 ))
-         pm_ip="192.168.122.$pm_ip"
-      else
-         pm_ip="192.168.122.10"
-      fi
+      get_next_ip
       sudo ip addr add $pm_ip dev virbr0 2>>$stderr 1>>$stdout
       sudo vbmc add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
       sudo vbmc list | grep -q $type-$inc-$localtype
