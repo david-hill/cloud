@@ -22,6 +22,9 @@ function cleanup_undercloud {
   startlog "Uninstalling mariadb"
   sudo yum remove -y mariadb > /dev/null
   endlog "done"
+  startlog "Uninstalling rabbitmq"
+  sudo yum remove -y rabbitmq-server > /dev/null
+  endlog "done"
   startlog "Whiping database files"
   sudo rm -rf /var/lib/mysql
   sudo rm -rf /var/lib/ironic-discoverd/discoverd.sqlite
