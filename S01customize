@@ -87,7 +87,7 @@ else
 fi
 if [ $rc -eq 0 ]; then
   startlog "Installing some packages"
-  yum install -y python-rdomanager-oscplugin git deltarpm sysstat > /dev/null
+  yum install -y python-rdomanager-oscplugin git deltarpm sysstat gcc postgresql python-pip python-devel openssl-devel postgresql-devel selinux-policy-devel vim-enhanced > /dev/null
   endlog "done"
   startlog "Updating system"
   yum update -y > /dev/null
