@@ -54,6 +54,6 @@ if [ -e index.html ]; then
   rm -rf index.html
 fi
 wget -q "http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-11/?C=M;O=A" -O index.html
-version=$(cat index.html  | grep folder | tail -2 | head -1 | awk -F\" '{ print $8 }')
+version=$(cat index.html  | grep folder | tail -1 | awk -F\" '{ print $8 }')
 get_images http://rhos-release.virt.bos.redhat.com/poodle-images/rhos-11/$version
 exit $?
