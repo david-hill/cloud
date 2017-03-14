@@ -3,6 +3,8 @@
 source functions
 source_rc setup.cfg
 
+echo 2>$stderr 1>$stdout
+
 if [ ! -z $1 ]; then
   installtype=$1
 fi
@@ -113,7 +115,7 @@ if [ $rc -eq 0 ]; then
         exit 2
       fi
       startlog "Resizing base disk"
-      sudo qemu-img resize $jenkinspath/VMs/${vmname}.qcow2 30G 2>$stderr 1>$stdout
+      sudo qemu-img resize $jenkinspath/VMs/${vmname}.qcow2 30G 2>>$stderr 1>>$stdout
       if [ $? -eq 0 ]; then
         endlog "done"
       else
@@ -126,7 +128,7 @@ if [ $rc -eq 0 ]; then
       sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
       sed -i "s/###RDORELEASE###/$rdorelease/g" tmp/S01customize
       sed -i "s/###ENABLENFS###/$enablenfs/g" tmp/S01customize
-      sudo virt-customize -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>>$stderr 1>>$stdout
+      sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>>$stderr 1>>$stdout
       if [ $? -eq 0 ]; then
         endlog "done"
       else
@@ -147,7 +149,7 @@ if [ $rc -eq 0 ]; then
       startlog "Waiting for VM to come up"
       down=1
       while [ $down -eq 1 ] && [ $telapsed -lt $timeout ]; do
-        ping -q -c 1 $undercloudip 2>$stderr 1>$stdout
+        ping -q -c 1 $undercloudip 2>>$stderr 1>>$stdout
         tcurrent=$(date "+%s")
         telapsed=$(( $tcurrent - $initial ))
         down=$?
@@ -159,9 +161,9 @@ if [ $rc -eq 0 ]; then
         sshrc=1
         tinitial=$(date "+%s")
         telapsed=0
-        ssh-keygen -q -R $undercloudip 2>$stderr 1>$stdout
+        ssh-keygen -q -R $undercloudip 2>>$stderr 1>>$stdout
         while [ $sshrc -ne 0 ] && [ $telapsed -lt $timeout ]; do
-          ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' 2>$stderr 1>$stdout
+          ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' 2>>$stderr 1>>$stdout
           tcurrent=$(date "+%s")
           telapsed=$(( $tcurrent - $initial ))
           sshrc=$?
