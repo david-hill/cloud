@@ -212,7 +212,7 @@ function gen_xml {
       if [ -z "$machine" ]; then
         machine=$(sudo virsh capabilities | grep x86_64 -A4 | grep "machine.*canonical" | head -1 | awk -F\' '{ print $2 }')
       fi
-    f  i
+    fi
     if [[ $installtype =~ rdo ]]; then
       localtype=$rdorelease
     else
