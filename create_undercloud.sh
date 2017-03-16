@@ -178,6 +178,7 @@ if [ $rc -eq 0 ]; then
               startlog "Uploading RHEL image"
               ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
               rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
+              sudo chown qemu $rhelimage
               sudo virt-customize -v -a $rhelimage $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
               scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
               endlog "done"
