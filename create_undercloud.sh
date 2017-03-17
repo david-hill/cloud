@@ -178,7 +178,7 @@ if [ $rc -eq 0 ]; then
               startlog "Uploading RHEL image"
               ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
               rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
-              cp images/rhel/$rhelimage rhel-guest-image-local.qcow2
+              sudo cp images/rhel/$rhelimage rhel-guest-image-local.qcow2
               sudo chown qemu rhel-guest-image-local.qcow2
               sudo virt-customize -v -a rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
               scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhel-guest-image-local.qcow2 stack@$undercloudip:images/ > /dev/null
