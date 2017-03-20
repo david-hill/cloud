@@ -181,7 +181,7 @@ if [ $rc -eq 0 ]; then
               sudo cp images/rhel/$rhelimage rhel-guest-image-local.qcow2
               sudo chown qemu rhel-guest-image-local.qcow2
               sudo virt-customize -v -a rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
-              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhel-guest-image-local.qcow2 stack@$undercloudip:images/ > /dev/null
+              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhel-guest-image-local.qcow2 stack@$undercloudip:images/ 2>>$stderr 1>>$stdout
               endlog "done"
               cd images
               bash verify_repo.sh $rdorelease
