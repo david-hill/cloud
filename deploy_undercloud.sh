@@ -162,7 +162,7 @@ function deploy_overcloud {
 
 function install_undercloud {
   startlog "Installing undercloud"
-  sudo yum install -y python-rdomanager-oscplugin 2>>$stderr 1>>$stdout
+  sudo yum install -y python-rdomanager-oscplugin openstack-utils 2>>$stderr 1>>$stdout
   openstack undercloud install 2>>$stderr 1>>$stdout
   rc=$?
   if [ $? -eq 0 ]; then
