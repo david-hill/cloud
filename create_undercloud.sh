@@ -128,7 +128,8 @@ if [ $rc -eq 0 ]; then
       sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
       sed -i "s/###RDORELEASE###/$rdorelease/g" tmp/S01customize
       sed -i "s/###ENABLENFS###/$enablenfs/g" tmp/S01customize
-      sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>>$stderr 1>>$stdout
+      echo sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>>$stderr 1>>$stdout
+      sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud 2>>$stderr 1>>$stdout
       if [ $? -eq 0 ]; then
         endlog "done"
       else
@@ -174,10 +175,15 @@ if [ $rc -eq 0 ]; then
           if [ ! -z $rdorelease ]; then
             wait_for_reboot
             if [ $? -eq 0 ]; then
+              startlog "Customizing RHEL image"
+              rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
+              sudo cp images/rhel/$rhelimage rhel-guest-image-local.qcow2
+              sudo chown qemu rhel-guest-image-local.qcow2
+              sudo virt-customize -v -a rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
+              endlog "done"
               startlog "Uploading RHEL image"
               ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-              rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
-              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no images/rhel/$rhelimage stack@$undercloudip:images/ > /dev/null
+              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhel-guest-image-local.qcow2 stack@$undercloudip:images/ 2>>$stderr 1>>$stdout
               endlog "done"
               cd images
               bash verify_repo.sh $rdorelease

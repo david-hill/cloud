@@ -206,9 +206,12 @@ EOF
 
 function gen_xml {
     cp template.xml $tmpfile
-    machine=$(sudo virsh capabilities | grep -A3 "domain.*kvm." | grep machine | tail -1 | awk -F\' '{ print $2 }')
+    machine=$(sudo virsh capabilities | grep -A3 "domain.*kvm." | grep machine | tail -1 | awk -F\' '{ print $2 }' | sed -e 's/ //g')
     if [ -z "$machine" ]; then
-      machine=$(sudo virsh capabilities | grep x86_64 | -A4 | grep machine | head -1 | awk -F\> '{ print $1 }' | awk -F\< '{ print $1 }')
+      machine=$(sudo virsh capabilities | grep x86_64 -A4 | grep machine | head -1 | awk -F\> '{ print $1 }' | awk -F\< '{ print $1 }' | sed -e 's/ //g')
+      if [ -z "$machine" ]; then
+        machine=$(sudo virsh capabilities | grep x86_64 -A4 | grep "machine.*canonical" | head -1 | awk -F\' '{ print $2 }' | sed -e 's/ //g')
+      fi
     fi
     if [[ $installtype =~ rdo ]]; then
       localtype=$rdorelease
