@@ -37,8 +37,10 @@ function kill_dnsmasq {
 }
 function wait_for_dnsmasq {
     rc=1
-    while [ $rc -eq 1 ]; do
+    local timeout=10
+    while [ $rc -eq 1 ] && [ $timeout -gt 0 ]; do
       pgrep dnsmasq 2>>$stderr 1>>$stdout
+      timeout=`expr $timeout - 1`
       rc=$?
       sleep 1
     done
