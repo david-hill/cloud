@@ -95,9 +95,10 @@ if [ $rc -eq 0 ]; then
     fi
     restart_libvirtd
     wait_for_dnsmasq
+    rc=$?
     if [ $? -eq 0 ]; then
       kill_dnsmasq
-      rc=$?
+      rc=0
     else
       rc=0
     fi
