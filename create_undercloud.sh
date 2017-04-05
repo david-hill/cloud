@@ -95,8 +95,13 @@ if [ $rc -eq 0 ]; then
     fi
     restart_libvirtd
     wait_for_dnsmasq
-    kill_dnsmasq
     if [ $? -eq 0 ]; then
+      kill_dnsmasq
+      rc=$?
+    else
+      rc=0
+    fi
+    if [ $rc -eq 0 ]; then
     #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
       if [ ! -d $jenkinspath/VMs ]; then
         mkdir -p $jenkinspath/VMs
