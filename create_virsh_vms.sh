@@ -56,7 +56,7 @@ function get_next_ip {
   suffix=10
   found=0
   while [ $found -eq 0 ]; do
-    sudo vbmc list | grep 623 | grep -q "$prefix${suffix}\ "
+    sudo vbmc list 2>>$stderr | grep 623 | grep -q "$prefix${suffix}\ "
     if [ $? -eq 1 ]; then
       found=1
     else
@@ -80,7 +80,7 @@ function set_bmc_ip {
       get_next_ip
       sudo ip addr add $pm_ip dev virbr0 2>>$stderr 1>>$stdout
       sudo vbmc add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
-      sudo vbmc list | grep -q $type-$inc-$localtype
+      sudo vbmc list 2>>$stderr | grep -q $type-$inc-$localtype
       if [ $? -eq 0 ]; then 
         sudo vbmc start $type-$inc-$localtype 2>>$stderr 1>>$stdout
         rc=$?
