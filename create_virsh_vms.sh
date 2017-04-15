@@ -2,6 +2,7 @@
 
 source functions
 source_rc setup.cfg
+vbmc=$( which vbmc )
 
 imagereleasever=$releasever
 
@@ -29,8 +30,7 @@ function gen_disks {
     sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
 }
 function update_instackenv {
-  which vbmc 2>>$stderr 1>>$stdout
-  if [ $? -eq 0 ]; then
+  if [ ! -z "${vbmc}" ]; then
     if [ ! -z "$rootpassword" ]; then
       if [ ! -e instackenv.json ]; then
          echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
@@ -56,7 +56,7 @@ function get_next_ip {
   suffix=10
   found=0
   while [ $found -eq 0 ]; do
-    sudo vbmc list 2>>$stderr | grep 623 | grep -q "$prefix${suffix}\ "
+    sudo ${vbmc} list | grep 623 | grep -q "$prefix${suffix}\ "
     if [ $? -eq 1 ]; then
       found=1
     else
@@ -73,16 +73,15 @@ function set_bmc_ip {
   else
     localtype=$releasever
   fi
-  which vbmc 2>>$stderr 1>>$stdout
-  if [ $? -eq 0 ]; then
+  if [ ! -z "${vbmc}" ]; then
     pm_ip=$(sudo vbmc list | grep $type-$inc-$localtype | awk '{ print $4}')
     if [ -z "${pm_ip}" ]; then
       get_next_ip
       sudo ip addr add $pm_ip dev virbr0 2>>$stderr 1>>$stdout
-      sudo vbmc add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
-      sudo vbmc list 2>>$stderr | grep -q $type-$inc-$localtype
+      sudo ${vbmc} add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
+      sudo ${vbmc} list 2>>$stderr | grep -q $type-$inc-$localtype
       if [ $? -eq 0 ]; then 
-        sudo vbmc start $type-$inc-$localtype 2>>$stderr 1>>$stdout
+        sudo ${vbmc} start $type-$inc-$localtype 2>>$stderr 1>>$stdout
         rc=$?
       fi
     fi
