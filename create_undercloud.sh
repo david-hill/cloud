@@ -41,11 +41,11 @@ function kill_dnsmasq {
 }
 function wait_for_dnsmasq {
     rc=1
-    ttimeout=60
+    ttimeout=10
     while [ $rc -eq 1 ] && [ $ttimeout -gt 0 ]; do
       pgrep dnsmasq 2>>$stderr 1>>$stdout
-      ttimeout=`expr $ttimeout - 1`
       rc=$?
+      ttimeout=`expr $ttimeout - 1`
       sleep 1
     done
     return $rc
