@@ -55,8 +55,9 @@ function get_next_ip {
   prefix="192.168.122."
   suffix=10
   found=0
+  output=$( sudo ${vbmc} list )
   while [ $found -eq 0 ]; do
-    sudo ${vbmc} list | grep 623 | grep -q "$prefix${suffix}\ "
+    echo $output | grep 623 | grep -q "$prefix${suffix}\ "
     if [ $? -eq 1 ]; then
       found=1
     else
