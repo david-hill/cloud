@@ -66,23 +66,9 @@ if [ $? -eq 0 ]; then
 fi
 
 rc=0
-if [[ "$installtype" =~ internal ]]; then
-  if [ -e images/$releasever/${minorver}/update_images.sh ]; then
-    cd images/$releasever/${minorver}/
-    bash update_images.sh
-    cd ../../../  
-  fi
-fi 
 
 if [ $rc -eq 0 ]; then
   rc=0
-  if [[ "$installtype" =~ internal ]]; then
-    if [ -e images/rhel/get_image.sh ]; then
-      cd images/rhel
-      bash get_image.sh
-      cd ../../
-    fi
-  fi
   if [ $rc -eq 0 ]; then
     memory=$undercloudmemory
     type=undercloud
@@ -114,6 +100,22 @@ if [ $rc -eq 0 ]; then
       vpnip=$(ip addr | grep inet | grep "10\." | awk ' { print $2 }' | sed -e 's#/.*##')
       if [ ! -z "${vpnip}" ]; then
         sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
+        if [[ "$installtype" =~ internal ]]; then
+          if [ -e images/rhel/get_image.sh ]; then
+            startlog "Fetching image"
+            cd images/rhel
+            bash get_image.sh
+            cd ../../
+            endlog "done"
+          fi
+          if [ -e images/$releasever/${minorver}/update_images.sh ]; then
+            startlog "Fetching RHOSP image"
+            cd images/$releasever/${minorver}/
+            bash update_images.sh
+            cd ../../../  
+            endlog "done"
+          fi
+        fi
       else
         echo "WARNING: No VPN IP found..."
       fi
