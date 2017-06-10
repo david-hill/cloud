@@ -150,7 +150,7 @@ function delete_overcloud {
   if [ ! -z "$heat" ]; then
     heat stack-delete -y overcloud 2>>$stderr 1>>$stdout
     while [ ! -z "$heat" ]; do
-      heat=$( heat stack-list | grep overcloud 2>>$stderr )
+      heat=$( heat stack-list 2>>$stderr | grep overcloud )
       if [[ "$heat" =~ FAILED ]]; then
         inc=$( expr $inc + 1 )
         if [ $inc -le $maxfailedcount ]; then
