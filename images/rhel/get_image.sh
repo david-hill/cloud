@@ -62,5 +62,6 @@ function get_images {
   return $rc
 }
 releases="7.2 7.3 7.4"
-get_images http://download.eng.bos.redhat.com/brewroot/packages/rhel-guest-image/
+#get_images http://download.eng.bos.redhat.com/brewroot/packages/rhel-guest-image/
+get_images http://download-node-02.eng.bos.redhat.com/brewroot/packages/rhel-guest-image/
 exit $?
