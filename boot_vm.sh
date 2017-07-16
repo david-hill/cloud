@@ -10,7 +10,7 @@ image=$( glance image-list | grep cirros | head -1 | awk '{ print $2 }')
 endlog "done"
 
 startlog "Getting network list"
-neutron=$( neutron net-list | grep test | awk '{ print $2 }')
+neutron=$( neutron net-list 2>>$stderr | grep test | awk '{ print $2 }')
 endlog "done"
 
 startlog "Creating m1.micro flavor"
