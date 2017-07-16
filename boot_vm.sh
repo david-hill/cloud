@@ -31,7 +31,7 @@ if [ $? -eq 0 ]; then
       startlog "Adding rule to default security group"
       nova secgroup-add-rule default icmp -1 -1 0/0 > /dev/null
       if [ $? -ne 0 ]; then
-        groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }')
+        groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }' | sed -e 's/Id //')
         openstack security group rule create --protocol icmp ${groupid} 
         rc=$?
       fi
@@ -55,7 +55,7 @@ if [ $? -eq 0 ]; then
                 startlog "Deleting rule from default security group"
                 nova secgroup-delete-rule default icmp -1 -1 0.0.0.0/0 > /dev/null
                 if [ $? -ne 0 ]; then
-                  ruleid=$( neutron security-group-rule-list | grep icmp | awk -F \| '{ print $1 }' )
+                  ruleid=$( neutron security-group-rule-list | grep icmp | awk -F \| '{ print $2 }' )
                   neutron security-group-rule-delete ${ruleid} > /dev/null
                   rc=$?
 		fi
