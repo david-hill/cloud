@@ -39,13 +39,27 @@ if [ $? -eq 0 ]; then
         endlog "done"
         startlog "Creating a floating IP"
         nova floating-ip-create ext-net > /dev/null
-        if [ $? -eq 0 ]; then
+        rc=$?
+        if [ $rc -ne 0 ]; then
+          openstack floating ip create ext-net > /dev/null
+          rc=$?
+          if [ $? -eq 0 ]; then
+            ip=$( openstack floating ip list | grep None | awk -F\| '{ print $2 }' )
+          fi
+        else
           ip=$( nova floating-ip-list | grep ext-net | awk -F\| '{print $3 }')
+        fi 
+        if [ $rc -eq 0 ]; then
           endlog "done"
           if [ ! -z "$ip" ]; then
             startlog "Attaching a floating IP"
             nova floating-ip-associate test-vm $ip > /dev/null
-            if [ $? -eq 0 ]; then
+            rc=$?
+            if [ $rc -ne 0 ]; then
+              openstack server add floating ip test-vm $ip
+              rc=$?
+            fi
+            if [ $rc -eq 0 ]; then
               sleep 5
               endlog "done"
               startlog "Pinging $ip"
@@ -70,7 +84,11 @@ if [ $? -eq 0 ]; then
                   endlog "done"
                   startlog "Deleting floating IP"
                   nova floating-ip-delete $ip > /dev/null
-                  if [ $? -eq 0 ]; then
+                  rc=$?
+                  if [ $rc -ne 0 ]; then
+                    openstack floating ip delete $ip > /dev/null
+                  fi
+                  if [ $rc -eq 0 ]; then
                     endlog "done"
                     startlog "Deleting flavor"
                     nova flavor-delete m1.micro > /dev/null
