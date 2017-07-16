@@ -53,7 +53,7 @@ if [ $? -eq 0 ]; then
         if [ $rc -eq 0 ]; then
           endlog "done"
           if [ ! -z "$ip" ]; then
-            startlog "Attaching a floating IP"
+            startlog "Attaching floating IP ${ip}"
             nova floating-ip-associate test-vm $ip 2>>$stderr 1>>$stdout
             rc=$?
             if [ $rc -ne 0 ]; then
