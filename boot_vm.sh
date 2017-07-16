@@ -45,7 +45,7 @@ if [ $? -eq 0 ]; then
           openstack floating ip create ext-net 2>>$stderr 1>>$stdout
           rc=$?
           if [ $? -eq 0 ]; then
-            ip=$( openstack floating ip list | grep None | awk -F\| '{ print $2 }' )
+            ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' )
           fi
         else
           ip=$( nova floating-ip-list | grep ext-net | awk -F\| '{print $3 }')
@@ -88,6 +88,7 @@ if [ $? -eq 0 ]; then
                   rc=$?
                   if [ $rc -ne 0 ]; then
                     openstack floating ip delete $ip 2>>$stderr 1>>$stdout
+                    rc=$?
                   fi
                   if [ $rc -eq 0 ]; then
                     endlog "done"
