@@ -30,7 +30,12 @@ if [ $? -eq 0 ]; then
       endlog "done"
       startlog "Adding rule to default security group"
       nova secgroup-add-rule default icmp -1 -1 0/0 > /dev/null
-      if [ $? -eq 0 ]; then
+      if [ $? -ne 0 ]; then
+        groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }')
+        openstack security group rule create --protocol icmp ${groupid} 
+        rc=$?
+      fi
+      if [ $rc -eq 0 ]; then
         endlog "done"
         startlog "Creating a floating IP"
         nova floating-ip-create ext-net > /dev/null
