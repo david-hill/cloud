@@ -4,6 +4,7 @@ source functions
 
 source_rc setup.cfg
 source_rc overcloudrc
+
 if [ $? -eq 0 ]; then
   startlog "Removing interface from router"
   neutron router-interface-delete test-router test-subnet > /dev/null

@@ -1,7 +1,7 @@
 #!/bin/bash
 
 source functions
-source overcloudrc
+source_rc overcloudrc
 
 rc=255
 

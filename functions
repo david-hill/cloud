@@ -3,6 +3,9 @@ function source_rc {
   rc=255
   if [ -e ${file}.local ]; then
     source ${file}.local
+  elif [ -e ${file}.v3 ]; then
+    source ${file}.v3
+    rc=0
   elif [ -e $file ]; then
     source $file
     rc=0
