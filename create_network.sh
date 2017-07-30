@@ -4,6 +4,7 @@ source functions
 
 source_rc setup.cfg
 source_rc overcloudrc
+
 if [ $? -eq 0 ]; then
   rc=255
 
