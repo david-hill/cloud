@@ -2,7 +2,11 @@
 
 source functions
 source_rc setup.cfg
-source overcloudrc
+if [ -e overcloudrc.v3 ]; then
+  source overcloudrc.v3
+else
+  source overcloudrc
+fi
 rc=0
 
 if [ ! -d images ]; then
