@@ -116,7 +116,6 @@ function baremetal_setup {
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
-      sleep 60
       startlog "Starting introspection"
       openstack baremetal introspection bulk start 2>>$stderr 1>>$stdout
       rc=$?
