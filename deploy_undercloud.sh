@@ -116,6 +116,10 @@ function baremetal_setup {
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
+      startlog "Getting nodes information"
+      ironic node-list 2>>$stderr 1>>$stdout
+      ironic node-list | grep False | awk '{ print $2 }' | xargs -I% ironic node-show % 2>>$stderr 1>>$stdout
+      endlog "done"
       startlog "Starting introspection"
       openstack baremetal introspection bulk start 2>>$stderr 1>>$stdout
       rc=$?
