@@ -241,6 +241,8 @@ conformance
 install_undercloud
 rc=$?
 if [ $rc -eq 0 ]; then
+  sudo crudini --set /etc/nova/nova.conf DEFAULT max_concurrent_builds 2
+  sudo openstack-service restart nova
   enable_nfs
   disable_selinux
   source_rc /home/stack/stackrc
