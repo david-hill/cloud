@@ -26,6 +26,7 @@ if [ ! -e images/cirros-0.3.4-x86_64-disk.img ]; then
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
+    cd images
     wget https://github.com/eprasad/virt-cirros/blob/master/virt-cirros-0.3.4-x86_64-disk.img -O cirros-0.3.4-x86_64-disk.img 2>>$stderr 1>>$stdout
     rc=$?
     cd ..
