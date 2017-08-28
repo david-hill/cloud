@@ -13,21 +13,26 @@ source_rc overcloudrc
 >>>>>>> 2b7a33b... Load overcloudrc.v3 if it's present instead of overcloudrc
 rc=0
 
+version="0.3.5"
+imagename="cirros-${version}-x86_64-disk.img"
+primaryurl="http://download.cirros-cloud.net/$version/$imagename"
+alternateurl="https://github.com/sshnaidm/cirros-mirror/raw/master/$imagename"
+
 if [ ! -d images ]; then
   mkdir images
 fi
 
-if [ ! -e images/cirros-0.3.4-x86_64-disk.img ]; then
+if [ ! -e images/$imagename ]; then
   cd images
   startlog "Downloading cirros image"
-  wget  http://download.cirros-cloud.net/0.3.4/cirros-0.3.4-x86_64-disk.img 2>>$stderr 1>>$stdout
+  wget $primaryurl -O $imagename 2>>$stderr 1>>$stdout
   rc=$?
   cd ..
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
     cd images
-    wget https://github.com/eprasad/virt-cirros/blob/master/virt-cirros-0.3.4-x86_64-disk.img -O cirros-0.3.4-x86_64-disk.img 2>>$stderr 1>>$stdout
+    wget $alternateurl -O $imagename 2>>$stderr 1>>$stdout
     rc=$?
     cd ..
     if [ $rc -eq 0 ]; then
@@ -40,17 +45,17 @@ fi
 
 if [ $rc -eq 0 ]; then
   startlog "Listing glance image"
-  glance image-list | grep -q cirros-0.3.4-x86_64
+  glance image-list | grep -q $imagename
   if [ $? -eq 0 ]; then
     endlog "done"
     rc=0
   else
     endlog "done"
     startlog "Creating glance image"
-    glance image-create --name "cirros-0.3.4-x86_64" --file images/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --is-public True --progress 2>>$stderr 1>>$stdout
+    glance image-create --name "$imagename" --file images/$imagename --disk-format qcow2 --container-format bare --is-public True --progress 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -ne 0 ]; then
-      glance image-create --name "cirros-0.3.4-x86_64" --file images/cirros-0.3.4-x86_64-disk.img --disk-format qcow2 --container-format bare --visibility public --progress 2>>$stderr 1>>$stdout
+      glance image-create --name "$imagename" --file images/$imagename --disk-format qcow2 --container-format bare --visibility public --progress 2>>$stderr 1>>$stdout
       rc=$?
     fi
   fi
