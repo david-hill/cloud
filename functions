@@ -3,6 +3,7 @@ function source_rc {
   rc=255
   if [ -e ${file}.local ]; then
     source ${file}.local
+    rc=0
   elif [ -e ${file}.v3 ]; then
     source ${file}.v3
     rc=0
@@ -32,21 +33,17 @@ function wait_for_reboot {
 }
 
 function test_overcloud {
-  rc=255
-  if [ -e /home/stack/cloud/overcloudrc ]; then
-    source /home/stack/cloud/overcloudrc
-    bash setup_image.sh
+  bash setup_image.sh
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    bash create_network.sh
     rc=$?
     if [ $rc -eq 0 ]; then
-      bash create_network.sh
+      bash boot_vm.sh
       rc=$?
       if [ $rc -eq 0 ]; then
-        bash boot_vm.sh
+        bash delete_network.sh
         rc=$?
-        if [ $rc -eq 0 ]; then
-          bash delete_network.sh
-          rc=$?
-        fi
       fi
     fi
   fi
