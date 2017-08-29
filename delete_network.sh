@@ -17,18 +17,18 @@ if [ $? -eq 0 ]; then
       neutron subnet-delete test-subnet 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
-        op=$( neutron subnet-list | grep test-subnet )
+        op=$( neutron subnet-list 2>>$stderr | grep test-subnet )
         while [ ! -z "$op" ]; do
-          op=$( neutron subnet-list | grep test-subnet )
+          op=$( neutron subnet-list 2>>$stderr | grep test-subnet )
         done
         endlog "done"
         startlog "Deleting test network"
         neutron net-delete test 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
-          op=$( neutron net-list | grep test )
+          op=$( neutron net-list 2>>$stderr | grep test )
           while [ ! -z "$op" ]; do
-            op=$( neutron net-list | grep test )
+            op=$( neutron net-list 2>>$stderr | grep test )
           done
           endlog "done"
           startlog "Deleting external subnet"
@@ -37,7 +37,7 @@ if [ $? -eq 0 ]; then
           if [ $rc -eq 0 ]; then
             endlog "done"
             startlog "Deleting external network"
-            neutron net-delete ext-net > /dev/null
+            neutron net-delete ext-net 2>>$stderr 1>>$stdout
             rc=$?
             if [ $rc -eq 0 ]; then
               endlog "done"
