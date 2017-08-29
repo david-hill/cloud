@@ -15,18 +15,14 @@ if [ ! -d images ]; then
 fi
 
 if [ ! -e images/$imagename ]; then
-  cd images
   startlog "Downloading cirros image"
-  wget $primaryurl -O $imagename 2>>$stderr 1>>$stdout
+  wget $primaryurl -O images/$imagename 2>>$stderr 1>>$stdout
   rc=$?
-  cd ..
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
-    cd images
-    wget $alternateurl -O $imagename 2>>$stderr 1>>$stdout
+    wget $alternateurl -O images/$imagename 2>>$stderr 1>>$stdout
     rc=$?
-    cd ..
     if [ $rc -eq 0 ]; then
       endlog "done"
     else
