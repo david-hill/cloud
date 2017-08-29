@@ -280,7 +280,11 @@ if [ $rc -eq 0 ]; then
                   sleep 1
                 done
                 if [[ ! "$rcf" =~ failed ]]; then
+                  rc=0
                   endlog "done"
+                else
+                  rc=255
+                  endlog "error"
                 fi
               else
                 endlog "error"
