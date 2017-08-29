@@ -1,18 +1,15 @@
 #!/bin/bash
 
 source functions
-
 source_rc setup.cfg
 source_rc overcloudrc
 
 if [ $? -eq 0 ]; then
-
   if [ ! -z "$gw" ]; then
     gwarg="--gateway $gw"
   else
     gwarg=""
   fi
-
   startlog "Listing networks"
   neutron router-list | grep -q test-router
   if [ $? -ne 0 ]; then
@@ -46,12 +43,16 @@ if [ $? -eq 0 ]; then
               neutron subnet-create test 10.254.0.0/16 --name test-subnet > /dev/null
               rc=$?
               if [ $rc -eq 0 ]; then
-              endlog "done"
-              startlog "Adding interface to router"
-              neutron router-interface-add test-router test-subnet > /dev/null
-              rc=$?
-              if [ $rc -eq 0 ]; then
                 endlog "done"
+                startlog "Adding interface to router"
+                neutron router-interface-add test-router test-subnet > /dev/null
+                rc=$?
+                if [ $rc -eq 0 ]; then
+                  endlog "done"
+                else
+                  endlog "error"
+                  rc=255
+                fi
               else
                 endlog "error"
                 rc=255
