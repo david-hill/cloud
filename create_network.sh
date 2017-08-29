@@ -6,7 +6,6 @@ source_rc setup.cfg
 source_rc overcloudrc
 
 if [ $? -eq 0 ]; then
-  rc=255
 
   if [ ! -z "$gw" ]; then
     gwarg="--gateway $gw"
@@ -20,28 +19,66 @@ if [ $? -eq 0 ]; then
     endlog "done"
     startlog "Creating router"
     neutron router-create test-router > /dev/null
-    endlog "done"
-    startlog "Creating external network"
-    neutron net-create ext-net --router:external True --provider:physical_network datacentre --provider:network_type flat > /dev/null
-    endlog "done"
-    startlog "Creating external subnet"
-    neutron subnet-create --name ext-subnet --allocation-pool start=192.168.122.201,end=192.168.122.254 --dns-nameserver 8.8.8.8 --disable-dhcp $gwarg ext-net 192.168.122.0/24 > /dev/null
-    endlog "done"
-    startlog "Setting external gateway"
-    neutron router-gateway-set test-router ext-net > /dev/null
-    endlog "done"
-    startlog "Creating test network"
-    neutron net-create --provider:network_type  $neutronnwtype test > /dev/null
-    endlog "done"
-    startlog "Creating test subnet"
-    neutron subnet-create test 10.254.0.0/16 --name test-subnet > /dev/null
-    endlog "done"
-    startlog "Adding interface to router"
-    neutron router-interface-add test-router test-subnet > /dev/null
-    endlog "done"
-    rc=0
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+      startlog "Creating external network"
+      neutron net-create ext-net --router:external True --provider:physical_network datacentre --provider:network_type flat > /dev/null
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+        startlog "Creating external subnet"
+        neutron subnet-create --name ext-subnet --allocation-pool start=192.168.122.201,end=192.168.122.254 --dns-nameserver 8.8.8.8 --disable-dhcp $gwarg ext-net 192.168.122.0/24 > /dev/null
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          endlog "done"
+          startlog "Setting external gateway"
+          neutron router-gateway-set test-router ext-net > /dev/null
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            endlog "done"
+            startlog "Creating test network"
+            neutron net-create --provider:network_type $neutronnwtype test > /dev/null
+            rc=$?
+            if [ $rc -eq 0 ]; then
+              endlog "done"
+              startlog "Creating test subnet"
+              neutron subnet-create test 10.254.0.0/16 --name test-subnet > /dev/null
+              rc=$?
+              if [ $rc -eq 0 ]; then
+              endlog "done"
+              startlog "Adding interface to router"
+              neutron router-interface-add test-router test-subnet > /dev/null
+              rc=$?
+              if [ $rc -eq 0 ]; then
+                endlog "done"
+              else
+                endlog "error"
+                rc=255
+              fi
+            else
+              endlog "error"
+              rc=255
+            fi
+          else
+            endlog "error"
+            rc=255
+          fi
+        else
+          endlog "error"
+          rc=255
+        fi
+      else
+        endlog "error"
+        rc=255
+      fi
+    else
+      endlog "error"
+      rc=255
+    fi
   else
     endlog "error"
+    rc=255
   fi
 fi
 exit $rc
