@@ -257,7 +257,7 @@ if [ $rc -eq 0 ]; then
     if [ $rc -eq 0 ]; then 
       test_overcloud
       rc=$?
-      if [ $? -eq 0 ]; then
+      if [ $rc -eq 0 ]; then
         touch /home/stack/deployment_state/tested
       fi
     fi
