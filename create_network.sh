@@ -11,7 +11,7 @@ if [ $? -eq 0 ]; then
     gwarg=""
   fi
   startlog "Listing networks"
-  neutron router-list | grep -q test-router
+  neutron router-list 2>>$stderr 2>>$stderr | grep -q test-router
   if [ $? -ne 0 ]; then
     endlog "done"
     startlog "Creating router"
