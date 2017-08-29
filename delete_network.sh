@@ -4,17 +4,17 @@ source_rc setup.cfg
 source_rc overcloudrc
 if [ $? -eq 0 ]; then
   startlog "Removing interface from router"
-  neutron router-interface-delete test-router test-subnet > /dev/null
+  neutron router-interface-delete test-router test-subnet 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
     startlog "Clearing router gateway"
-    neutron router-gateway-clear test-router > /dev/null
+    neutron router-gateway-clear test-router 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
       startlog "Deleting test subnet"
-      neutron subnet-delete test-subnet > /dev/null
+      neutron subnet-delete test-subnet 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         op=$( neutron subnet-list | grep test-subnet )
@@ -23,7 +23,7 @@ if [ $? -eq 0 ]; then
         done
         endlog "done"
         startlog "Deleting test network"
-        neutron net-delete test > /dev/null
+        neutron net-delete test 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
           op=$( neutron net-list | grep test )
@@ -32,7 +32,7 @@ if [ $? -eq 0 ]; then
           done
           endlog "done"
           startlog "Deleting external subnet"
-          neutron subnet-delete ext-subnet > /dev/null
+          neutron subnet-delete ext-subnet 2>>$stderr 1>>$stdout
           rc=$?
           if [ $rc -eq 0 ]; then
             endlog "done"
@@ -42,7 +42,7 @@ if [ $? -eq 0 ]; then
             if [ $rc -eq 0 ]; then
               endlog "done"
               startlog "Deleting router"
-              neutron router-delete test-router > /dev/null
+              neutron router-delete test-router 2>>$stderr 1>>$stdout
               rc=$?
               if [ $rc -eq 0 ]; then
                 endlog "done"
