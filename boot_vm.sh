@@ -69,10 +69,10 @@ if [ $? -eq 0 ]; then
                 startlog "Deleting rule from default security group"
                 nova secgroup-delete-rule default icmp -1 -1 0.0.0.0/0 2>>$stderr 1>>$stdout
                 if [ $? -ne 0 ]; then
-                  ruleid=$( neutron security-group-rule-list | grep icmp | awk -F \| '{ print $2 }' )
+                  ruleid=$( neutron security-group-rule-list | grep icmp | awk -F\| '{ print $2 }' )
                   neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
                   rc=$?
-		fi
+                fi
                 if [ $rc -eq 0 ]; then
                   endlog "done"
                   startlog "Deleting test VM"
