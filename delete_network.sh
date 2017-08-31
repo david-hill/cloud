@@ -75,4 +75,4 @@ if [ $? -eq 0 ]; then
     rc=255
   fi
 fi
-exit 0
+exit $rc
