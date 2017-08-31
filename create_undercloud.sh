@@ -298,13 +298,6 @@ if [ $rc -eq 0 ]; then
             endlog "error"
             rc=255
           fi
-          if [[ $rc =~ completed ]]; then
-            endlog "done"
-            rc=0
-          else
-            rc=255
-            endlog "error"
-          fi
         else
           rc=255
           endlog "error"
