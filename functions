@@ -19,8 +19,8 @@ function wait_for_reboot {
   timeout=600
   inc=0
   while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]] && [[ $inc -lt $timeout ]]; do
-    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi" 2>>$stderr)
-    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi" 2>>$stderr)
+    rc=$(ssh -o LogLevel=quiet -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi" 2>>$stderr)
+    rcf=$(ssh -o LogLevel=quiet -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi" 2>>$stderr)
     sleep 1
     inc=`expr $inc + 1`
   done
