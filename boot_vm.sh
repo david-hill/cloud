@@ -73,7 +73,7 @@ if [ $? -eq 0 ]; then
                   ruleid=$( neutron security-group-rule-list 2>>$stderr | grep icmp | awk -F\| '{ print $2 }' )
                   neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
                   rc=$?
-             		fi
+                fi
                 if [ $rc -eq 0 ]; then
                   endlog "done"
                   startlog "Deleting test VM"
