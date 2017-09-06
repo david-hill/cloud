@@ -2,15 +2,7 @@
 
 source functions
 source_rc setup.cfg
-<<<<<<< HEAD
-if [ -e overcloudrc.v3 ]; then
-  source overcloudrc.v3
-else
-  source overcloudrc
-fi
-=======
 source_rc overcloudrc
->>>>>>> 2b7a33b... Load overcloudrc.v3 if it's present instead of overcloudrc
 rc=0
 
 version="0.3.5"
