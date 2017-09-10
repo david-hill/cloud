@@ -101,6 +101,10 @@ if [ $rc -eq 0 ]; then
       if [ $? -eq 1 ]; then
         ip addr add 169.254.169.254/32 dev virbr0 2>>$stderr 1>>$stdout
       fi
+      sudo iptables -nL INPUT_direct -v | grep virbr0 | grep -v tun0 | grep -q dpt:80
+      if [ $? -eq 1 ]; then
+        sudo iptables -I INPUT_direct -m tcp -p tcp -i virbr0 --dport 80 -j ACCEPT 2>>$stderr 1>>$stdout
+      fi
       vpnip=$(ip addr | grep inet | grep "10\." | awk ' { print $2 }' | sed -e 's#/.*##')
       if [ ! -z "${vpnip}" ]; then
         sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
