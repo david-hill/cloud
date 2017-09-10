@@ -24,7 +24,7 @@ function wait_for_reboot {
     sleep 1
     inc=`expr $inc + 1`
   done
-  if [[ "$rcf" =~ present ]]; then
+  if [[ "$rcf" =~ present ]] || [[ $inc -ge $timeout ]]; then
    rc=255
   else
    rc=0
