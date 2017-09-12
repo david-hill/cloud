@@ -173,7 +173,7 @@ function create_floating_ip {
       ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' )
     fi
   else
-    ip=$( nova floating-ip-list | grep ext-net | awk -F\| '{print $3 }')
+    ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }')
   fi 
   if [ $rc -eq 0 ]; then
     endlog "done"
