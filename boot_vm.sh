@@ -14,6 +14,73 @@ startlog "Getting network list"
 neutron=$( neutron net-list 2>>$stderr | grep test | awk '{ print $2 }')
 endlog "done"
 
+function delete_secgroup_rule {
+  startlog "Deleting rule from default security group"
+  nova secgroup-delete-rule default icmp -1 -1 0.0.0.0/0 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $? -ne 0 ]; then
+    ruleid=$( neutron security-group-rule-list 2>>$stderr | grep icmp | awk -F\| '{ print $2 }' )
+    neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
+    rc=$?
+  fi
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
+function delete_vm {
+  startlog "Deleting test VM"
+  nova delete test-vm 2>>$stderr 1>>$stdout
+  state=$(nova list | grep test-vm  )
+  while [ "$state" != "" ]; do
+    state=$(nova list | grep test-vm )
+  done
+  endlog "done"
+}
+function delete_floating_ip {
+  startlog "Deleting floating IP"
+  nova floating-ip-delete $ip 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    openstack floating ip delete $ip 2>>$stderr 1>>$stdout
+    rc=$?
+  fi
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
+function delete_flavor {
+  startlog "Deleting flavor"
+  nova flavor-delete m1.micro 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
+
+function unprovision_vm {
+  delete_secgroup_rule
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    delete_vm
+    delete_floating_ip
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      delete_flavor
+      rc=$?
+    fi
+  fi
+  return $rc
+}
+
 function create_flavor {
   startlog "Creating m1.micro flavor"
   nova flavor-list 2>>$stderr | grep -q m1.micro
@@ -34,15 +101,23 @@ function create_flavor {
 }
 
 function create_test_vm {
-  startlog "Creating test VM"
   nova list 2>>$stderr | grep -q test-vm
   rc=$?
   if [ $rc -eq 1 ]; then
+    startlog "Creating test VM"
     nova boot --flavor m1.micro --image $image  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
+    rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
     else
       endlog "error"
+    fi
+  else
+    delete_vm
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      create_test_vm
+      rc=$?
     fi
   fi
   return $rc
@@ -159,72 +234,6 @@ function provision_vm {
   return $rc
 }
 
-function delete_secgroup_rule {
-  startlog "Deleting rule from default security group"
-  nova secgroup-delete-rule default icmp -1 -1 0.0.0.0/0 2>>$stderr 1>>$stdout
-  rc=$?
-  if [ $? -ne 0 ]; then
-    ruleid=$( neutron security-group-rule-list 2>>$stderr | grep icmp | awk -F\| '{ print $2 }' )
-    neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
-    rc=$?
-  fi
-  if [ $rc -eq 0 ]; then
-    endlog "done"
-  else
-    endlog "error"
-  fi
-  return $rc
-}
-function delete_vm {
-  startlog "Deleting test VM"
-  nova delete test-vm 2>>$stderr 1>>$stdout
-  state=$(nova list | grep test-vm  )
-  while [ "$state" != "" ]; do
-    state=$(nova list | grep test-vm )
-  done
-  endlog "done"
-}
-function delete_floating_ip {
-  startlog "Deleting floating IP"
-  nova floating-ip-delete $ip 2>>$stderr 1>>$stdout
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    openstack floating ip delete $ip 2>>$stderr 1>>$stdout
-    rc=$?
-  fi
-  if [ $rc -eq 0 ]; then
-    endlog "done"
-  else
-    endlog "error"
-  fi
-  return $rc
-}
-function delete_flavor {
-  startlog "Deleting flavor"
-  nova flavor-delete m1.micro 2>>$stderr 1>>$stdout
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    endlog "done"
-  else
-    endlog "error"
-  fi
-  return $rc
-}
-
-function unprovision_vm {
-  delete_secgroup_rule
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    delete_vm
-    delete_floating_ip
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      delete_flavor
-      rc=$?
-    fi
-  fi
-  return $rc
-}
 
 provision_vm
 rc=$?
