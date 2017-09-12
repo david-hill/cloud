@@ -31,7 +31,8 @@ if [ $? -eq 0 ]; then
       endlog "done"
       startlog "Adding rule to default security group"
       nova secgroup-add-rule default icmp -1 -1 0/0 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
+      rc=$?
+      if [ $rc -ne 0 ]; then
         groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }' | sed -e 's/Id //')
         openstack security group rule create --protocol icmp ${groupid} 2>>$stderr 1>>$stdout
         rc=$?
