@@ -140,12 +140,20 @@ function wait_for_vm {
 }
 function add_secgroup_rule {
   startlog "Adding rule to default security group"
-  nova secgroup-add-rule default icmp -1 -1 0/0 2>>$stderr 1>>$stdout
+  nova secgroup-list-rules default 2>>$stderr | grep -q icmp
   rc=$?
   if [ $rc -ne 0 ]; then
-    groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }' | sed -e 's/Id //')
-    openstack security group rule create --protocol icmp ${groupid} 2>>$stderr 1>>$stdout
+    nova secgroup-add-rule default icmp -1 -1 0/0 2>>$stderr 1>>$stdout
     rc=$?
+    if [ $rc -ne 0 ]; then
+      groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }' | sed -e 's/Id //')
+      openstack security group show ${groupid} 2>>$stderr | grep -q icmp
+      rc=$?
+      if [ $rc -eq 1 ]; then
+        openstack security group rule create --protocol icmp ${groupid} 2>>$stderr 1>>$stdout
+        rc=$?
+      fi
+    fi
   fi
   if [ $rc -eq 0 ]; then
     endlog "done"
