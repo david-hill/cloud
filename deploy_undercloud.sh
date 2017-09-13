@@ -121,7 +121,7 @@ function upload_oc_images {
   fi
   if [ $diff -eq 1 ]; then
     startlog "Installing images RPMs"
-    sudo yum install rhosp-director-images rhosp-director-images-ipa 2>>$stderr 1>>$stdout
+    sudo yum install -y rhosp-director-images rhosp-director-images-ipa 2>>$stderr 1>>$stdout
     endlog "done"
     startlog "Extracting images"
     for tarfile in /usr/share/rhosp-director-images/*.tar; do tar -xf $tarfile -C ~/images; done
