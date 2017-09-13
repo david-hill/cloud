@@ -103,14 +103,14 @@ function upload_oc_images {
   diff=0
   ver=$(sudo yum info rhosp-director-images 2>>$stderr | grep Release | awk '{ print $3 }')
   if [ ! -z "$ver" ]; then
-    sudo yum info rhosp-director-images 2>>$stderr | grep Release | awk '{ print $3 }' > rhosp-director-images.latest
-    sudo yum info rhosp-director-images-ipa 2>>$stdout | grep Release | awk '{ print $3 }' > rhosp-director-images-ipa.latest
-    if [ -e rhosp-director-images.previous ] || [ rhosp-director-images-ipa.previous ]; then
-      cmp -s rhosp-director-images.previous rhosp-director-images.latest
+    sudo yum info rhosp-director-images 2>>$stderr | grep Release | awk '{ print $3 }' > ../rhosp-director-images.latest
+    sudo yum info rhosp-director-images-ipa 2>>$stdout | grep Release | awk '{ print $3 }' > ../rhosp-director-images-ipa.latest
+    if [ -e ../rhosp-director-images.previous ] || [ ../rhosp-director-images-ipa.previous ]; then
+      cmp -s ../rhosp-director-images.previous ../rhosp-director-images.latest
       if [ $? -ne 0 ]; then
         diff=1
       else
-        cmp -s rhosp-director-images-ipa.previous rhosp-director-images-ipa.latest
+        cmp -s ../rhosp-director-images-ipa.previous ../rhosp-director-images-ipa.latest
         if [ $? -ne 0 ]; then
           diff=1
         fi
