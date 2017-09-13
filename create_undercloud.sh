@@ -288,7 +288,9 @@ if [ $rc -eq 0 ]; then
           fi
           if [[ ! "$rcf" =~ failed ]]; then
             endlog "done"
-            get_new_images
+            if [ -z $rdorelease ]; then
+              get_new_images
+            fi
             startlog "Waiting for introspection"
             rc=in_progress
             while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
