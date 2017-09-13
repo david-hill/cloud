@@ -99,7 +99,34 @@ function tag_hosts {
   endlog "done"
 }
 
-function create_oc_images {
+function upload_oc_images {
+  diff=0
+  ver=$(sudo yum info rhosp-director-images 2>>$stderr | grep Release | awk '{ print $3 }')
+  if [ ! -z "$ver" ]; then
+    sudo yum info rhosp-director-images 2>>$stderr | grep Release | awk '{ print $3 }' > rhosp-director-images.latest
+    sudo yum info rhosp-director-images-ipa 2>>$stdout | grep Release | awk '{ print $3 }' > rhosp-director-images-ipa.latest
+    if [ -e rhosp-director-images.previous ] || [ rhosp-director-images-ipa.previous ]; then
+      cmp -s rhosp-director-images.previous rhosp-director-images.latest
+      if [ $? -ne 0 ]; then
+        diff=1
+      else
+        cmp -s rhosp-director-images-ipa.previous rhosp-director-images-ipa.latest
+        if [ $? -ne 0 ]; then
+          diff=1
+        fi
+      fi
+    else
+      diff=1
+    fi
+  fi
+  if [ $diff -eq 1 ]; then
+    startlog "Installing images RPMs"
+    sudo yum install rhosp-director-images rhosp-director-images-ipa 2>>$stderr 1>>$stdout
+    endlog "done"
+    startlog "Extracting images"
+    for tarfile in /usr/share/rhosp-director-images/*.tar; do tar -xf $tarfile -C ~/images; done
+    endlog "done"
+  fi
   startlog "Importing overcloud images"
   openstack overcloud image upload --image-path /home/stack/images 2>>$stderr 1>>$stdout
   endlog "done"
@@ -146,7 +173,7 @@ function deploy_overcloud {
   rc=255
   if [ -d  "/home/stack/images" ]; then
     if [ -e "/home/stack/stackrc" ]; then
-      create_oc_images
+      upload_oc_images
       baremetal_setup
       rc=$?
       if [ $rc -eq 0 ]; then
