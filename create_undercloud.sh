@@ -30,6 +30,36 @@ else
   uploadcmd="--copy-in"
 fi
 
+function get_new_images {
+  diff=0
+  startlog "Getting new images"
+  scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
+  scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images-ipa.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
+  if [ ! -e rhosp-director-images.previous ] || [ ! -e rhosp-director-images-ipa.previous ]; then
+    diff=1
+    backupfolder=$(cat images/$releasever/${minorver}/version)
+  else
+    cmp -s images/$releasever/${minorver}/rhosp-director-images.previous images/$releasever/${minorver}/rhosp-director-images.latest
+    if [ $? -ne 0 ]; then
+      diff=1
+    else
+      cmp -s images/$releasever/${minorver}/rhosp-director-images-ipa.latest images/$releasever/${minorver}/rhosp-director-images-ipa.previous
+      if [ $? -ne 0 ]; then
+        diff=1
+      fi
+    fi
+    if [ $diff -eq 1 ]; then
+      backupfolder=$(cat images/$releasever/${minorver}/rhosp-director-images-ipa.previous)
+    fi
+  fi
+  if [ $diff -eq 1 ]; then
+    mkdir -p images/$releasever/${minorver}/backup/${backupfolder}
+    mv images/$releasever/${minorver}/*.tar images/$releasever/${minorver}/backup/${backupfolder}
+    cat rhosp-director-images.latest > rhosp-director-images.previous
+    cat rhosp-director-images-ipa.latest > rhosp-director-images-ipa.previous
+  fi
+  endlog "done"
+}
 function kill_dnsmasq {
     rc=1
     pgrep dnsmasq 2>>$stderr 1>>$stdout
@@ -258,6 +288,7 @@ if [ $rc -eq 0 ]; then
           fi
           if [[ ! "$rcf" =~ failed ]]; then
             endlog "done"
+            get_new_images
             startlog "Waiting for introspection"
             rc=in_progress
             while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
