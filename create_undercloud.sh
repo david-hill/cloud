@@ -32,7 +32,14 @@ fi
 
 function get_new_images {
   diff=0
+  continue=1
   startlog "Getting new images"
+  while [ $continue -eq 1 ]; do
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.latest ]; then echo present; fi")
+    if [[ $rc ~ present ]]; then
+      continue=0
+    fi
+  done
   scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
   scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images-ipa.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
   if [ ! -e rhosp-director-images.previous ] || [ ! -e rhosp-director-images-ipa.previous ]; then
@@ -55,8 +62,8 @@ function get_new_images {
   if [ $diff -eq 1 ]; then
     mkdir -p images/$releasever/${minorver}/backup/${backupfolder}
     mv images/$releasever/${minorver}/*.tar images/$releasever/${minorver}/backup/${backupfolder}
-    cat rhosp-director-images.latest > rhosp-director-images.previous
-    cat rhosp-director-images-ipa.latest > rhosp-director-images-ipa.previous
+    cat images/$releasever/${minorver}/rhosp-director-images.latest 2>>$stderr > images/$releasever/${minorver}/rhosp-director-images.previous
+    cat images/$releasever/${minorver}/rhosp-director-images-ipa.latest 2>>$stderr > images/$releasever/${minorver}/rhosp-director-images-ipa.previous
   fi
   endlog "done"
 }
