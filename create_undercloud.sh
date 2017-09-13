@@ -36,7 +36,7 @@ function get_new_images {
   startlog "Getting new images"
   while [ $continue -eq 1 ]; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.latest ]; then echo present; fi")
-    if [[ $rc ~ present ]]; then
+    if [[ $rc =~ present ]]; then
       continue=0
     fi
   done
