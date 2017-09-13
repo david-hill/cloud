@@ -97,9 +97,9 @@ if [ $rc -eq 0 ]; then
       if [ ! -d $jenkinspath/VMs ]; then
         mkdir -p $jenkinspath/VMs
       fi
-      ip addr show dev virbr0 2>>$stderr| grep -q "169.254.169.254"
+      sudo ip addr show dev virbr0 2>>$stderr| grep -q "169.254.169.254"
       if [ $? -eq 1 ]; then
-        ip addr add 169.254.169.254/32 dev virbr0 2>>$stderr 1>>$stdout
+        sudo ip addr add 169.254.169.254/32 dev virbr0 2>>$stderr 1>>$stdout
       fi
       sudo iptables -nL INPUT_direct -v | grep virbr0 | grep -v tun0 | grep -q dpt:80
       if [ $? -eq 1 ]; then
