@@ -129,6 +129,12 @@ function send_images {
   ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
   if [ -z $rdorelease ]; then
     cd images/$imagereleasever/$minorver
+    if [ -e rhosp-director-images.latest ]; then
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhosp-director-images.latest stack@$undercloudip:rhosp-director-images.previous 2>>$stderr 1>>$stdout
+    fi
+    if [ -e rhosp-director-images-ipa.latest ]; then
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhosp-director-images-ipa.latest stack@$undercloudip:rhosp-director-images-ipa.previous 2>>$stderr 1>>$stdout
+    fi
   else
     cd images/rdo-$rdorelease
   fi
