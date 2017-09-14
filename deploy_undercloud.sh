@@ -120,8 +120,8 @@ function upload_oc_images {
     startlog "Extracting images"
     for tarfile in /usr/share/rhosp-director-images/*.tar; do tar -xf $tarfile -C ~/images; done
     endlog "done"
-    echo "$ver" > ../rhosp-director-images.latest
   fi
+  echo "$ver" > ../rhosp-director-images.latest
   startlog "Importing overcloud images"
   openstack overcloud image upload --image-path /home/stack/images 2>>$stderr 1>>$stdout
   endlog "done"
