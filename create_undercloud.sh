@@ -41,7 +41,7 @@ function get_new_images {
     fi
   done
   scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
-  if [ ! -e rhosp-director-images.previous ]; then
+  if [ ! -e images/$releasever/${minorver}/rhosp-director-images.previous ]; then
     diff=1
     backupfolder=$(cat images/$releasever/${minorver}/version)
   else
