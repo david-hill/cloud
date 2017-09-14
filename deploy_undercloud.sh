@@ -103,9 +103,9 @@ function upload_oc_images {
   diff=0
   ver=$(sudo yum info rhosp-director-images 2>>$stderr | grep Release | awk '{ print $3 }')
   if [ ! -z "$ver" ]; then
-    echo "$ver" > ../rhosp-director-images.latest
+    echo "$ver" > ../rhosp-director-images.current
     if [ -e ../rhosp-director-images.previous ]; then
-      cmp -s ../rhosp-director-images.previous ../rhosp-director-images.latest
+      cmp -s ../rhosp-director-images.previous ../rhosp-director-images.current
       if [ $? -ne 0 ]; then
         diff=1
       fi
@@ -120,6 +120,7 @@ function upload_oc_images {
     startlog "Extracting images"
     for tarfile in /usr/share/rhosp-director-images/*.tar; do tar -xf $tarfile -C ~/images; done
     endlog "done"
+    echo "$ver" > ../rhosp-director-images.latest
   fi
   startlog "Importing overcloud images"
   openstack overcloud image upload --image-path /home/stack/images 2>>$stderr 1>>$stdout
