@@ -41,29 +41,24 @@ function get_new_images {
     fi
   done
   scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
-  scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images-ipa.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
-  if [ ! -e rhosp-director-images.previous ] || [ ! -e rhosp-director-images-ipa.previous ]; then
+  if [ ! -e rhosp-director-images.previous ]; then
     diff=1
     backupfolder=$(cat images/$releasever/${minorver}/version)
   else
     cmp -s images/$releasever/${minorver}/rhosp-director-images.previous images/$releasever/${minorver}/rhosp-director-images.latest
     if [ $? -ne 0 ]; then
       diff=1
-    else
-      cmp -s images/$releasever/${minorver}/rhosp-director-images-ipa.latest images/$releasever/${minorver}/rhosp-director-images-ipa.previous
-      if [ $? -ne 0 ]; then
-        diff=1
-      fi
     fi
     if [ $diff -eq 1 ]; then
-      backupfolder=$(cat images/$releasever/${minorver}/rhosp-director-images-ipa.previous)
+      backupfolder=$(cat images/$releasever/${minorver}/rhosp-director-images.previous)
     fi
   fi
   if [ $diff -eq 1 ]; then
     mkdir -p images/$releasever/${minorver}/backup/${backupfolder}
     mv images/$releasever/${minorver}/*.tar images/$releasever/${minorver}/backup/${backupfolder}
-    cat images/$releasever/${minorver}/rhosp-director-images.latest 2>>$stderr > images/$releasever/${minorver}/rhosp-director-images.previous
-    cat images/$releasever/${minorver}/rhosp-director-images-ipa.latest 2>>$stderr > images/$releasever/${minorver}/rhosp-director-images-ipa.previous
+    if [ -e images/$releasever/${minorver}/rhosp-director-images.latest ]; then
+      cat images/$releasever/${minorver}/rhosp-director-images.latest > images/$releasever/${minorver}/rhosp-director-images.previous
+    fi
   fi
   endlog "done"
 }
