@@ -45,7 +45,7 @@ function getfiles {
   for p in $(cat index.html | grep .tar | awk -F\" '{ print $8 }' | grep -v "\.[0-9]$"); do
     if [ -e $p ]; then
       if [[ $nversion =~ $cversion ]]; then
-        echo "Nothing to do"
+        echo "Nothing to do" > /dev/null
       else
         backupfiles
         rc=$?
