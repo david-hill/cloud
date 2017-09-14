@@ -56,6 +56,7 @@ function get_new_images {
   if [ $diff -eq 1 ]; then
     mkdir -p images/$releasever/${minorver}/backup/${backupfolder}
     mv images/$releasever/${minorver}/*.tar images/$releasever/${minorver}/backup/${backupfolder}
+    scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:images/*.tar images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
     if [ -e images/$releasever/${minorver}/rhosp-director-images.latest ]; then
       cat images/$releasever/${minorver}/rhosp-director-images.latest > images/$releasever/${minorver}/rhosp-director-images.previous
     fi
