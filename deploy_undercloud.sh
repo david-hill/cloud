@@ -121,7 +121,9 @@ function upload_oc_images {
     for tarfile in /usr/share/rhosp-director-images/*.tar; do tar -xf $tarfile -C ~/images; done
     endlog "done"
   fi
-  echo "$ver" > ../rhosp-director-images.latest
+  if [ ! -z "$ver" ]; then
+    echo "$ver" > ../rhosp-director-images.latest
+  fi
   startlog "Importing overcloud images"
   openstack overcloud image upload --image-path /home/stack/images 2>>$stderr 1>>$stdout
   endlog "done"
