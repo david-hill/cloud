@@ -25,11 +25,14 @@ function cleanup_undercloud {
   startlog "Uninstalling rabbitmq"
   sudo yum remove -y rabbitmq-server > /dev/null
   endlog "done"
-  startlog "Whiping database files"
+  startlog "Wiping database files"
   sudo rm -rf /var/lib/mysql
   sudo rm -rf /var/lib/ironic-discoverd/discoverd.sqlite
   endlog "done"
-  startlog "Whiping various log files"
+  startlog "Wiping swift storage"
+  sudo rm -rf /srv/node
+  endlog "done"
+  startlog "Wiping various log files"
   cleanup_logs
   endlog "done"
 }
