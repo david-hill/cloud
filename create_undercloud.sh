@@ -234,13 +234,13 @@ if [ $rc -eq 0 ]; then
             if [ $? -eq 0 ]; then
               startlog "Customizing RHEL image"
               rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
-              sudo cp images/rhel/$rhelimage rhel-guest-image-local.qcow2
-              sudo chown qemu rhel-guest-image-local.qcow2
-              sudo virt-customize -v -a rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
+              sudo cp images/rhel/$rhelimage tmp/rhel-guest-image-local.qcow2
+              sudo chown qemu tmp/rhel-guest-image-local.qcow2
+              sudo virt-customize -v -a tmp/rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
               endlog "done"
               startlog "Uploading RHEL image"
               ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhel-guest-image-local.qcow2 stack@$undercloudip:images/ 2>>$stderr 1>>$stdout
+              scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no tmp/rhel-guest-image-local.qcow2 stack@$undercloudip:images/ 2>>$stderr 1>>$stdout
               endlog "done"
               cd images
               bash verify_repo.sh $rdorelease
