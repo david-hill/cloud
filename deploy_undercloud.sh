@@ -123,6 +123,8 @@ function upload_oc_images {
   fi
   if [ ! -z "$ver" ]; then
     echo "$ver" > ../rhosp-director-images.latest
+  else
+    touch ../rhosp-director-images.missing
   fi
   startlog "Importing overcloud images"
   openstack overcloud image upload --image-path /home/stack/images 2>>$stderr 1>>$stdout
