@@ -143,6 +143,9 @@ if [ $rc -eq 0 ]; then
 #      if [ $? -eq 1 ]; then
 #        sudo iptables -I INPUT_direct -m tcp -p tcp -i virbr0 --dport 80 -j ACCEPT 2>>$stderr 1>>$stdout
 #      fi
+      for arpentry in $( sudo arp -na | grep virbr | awk '{ print $2 }' | sed -e 's/(//g' -e 's/)//g' ); do
+        sudo arp -i virbr0 -d $arpentry
+      done
       vpnip=$(ip addr | grep inet | grep "10\." | awk ' { print $2 }' | sed -e 's#/.*##')
       if [ ! -z "${vpnip}" ]; then
         sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o wlp3s0 -j SNAT --to-source $vpnip
