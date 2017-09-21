@@ -49,9 +49,11 @@ function configure_local_ntp {
   sed -i -e 's#restrict ::1$#restrict ::1\nrestrict 192.0.2.0 mask 255.255.255.0 nomodify notrap#g' /etc/ntp.conf
   sed -i -e 's/^server/#server/g' /etc/ntp.conf
   sed -i -e 's/^#server 0.rhel.pool.ntp.org iburst/server 192.168.122.1/g' /etc/ntp.conf
-  systemctl restart stop 2>>$stderr 1>>$stdout
+  systemctl stop ntpd 2>>$stderr 1>>$stdout
+  systemctl disable chronyd.service 2>>$stderr 1>>$stdout
+  systemctl stop chronyd.service 2>>$stderr 1>>$stdout
   ntpdate 192.168.122.1 2>>$stderr 1>>$stdout
-  systemctl restart start 2>>$stderr 1>>$stdout
+  systemctl start ntpd 2>>$stderr 1>>$stdout
 }
 function configure_selinxu {
   sed -i 's/enforcing/permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
