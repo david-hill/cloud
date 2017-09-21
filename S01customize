@@ -17,27 +17,6 @@ if [[ ! "${installtype}" =~ rdo ]]; then
   vernum=$( echo $releasever | sed -e 's/rhosp//' )
 fi
 
-function bootstrap {
-  rc=0
-  if [ ! -e /home/stack/elrepo ]; then
-    prepare_environment
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      install_kernel
-      rc=$?
-    fi
-  else
-    kernel=$(uname -r)
-    if [ -e /home/stack/reboot ]; then
-      touch /home/stack/rebooted
-    else
-      install_kernel
-      rc=$?
-    fi
-  fi
-  return $rc
-}
-
 function cleanup {
   chown stack:stack -R /home/stack
   touch /.autorelabel
@@ -411,6 +390,27 @@ EOF
     sleep 1
   done
   endlog "done"
+  return $rc
+}
+
+function bootstrap {
+  rc=0
+  if [ ! -e /home/stack/elrepo ]; then
+    prepare_environment
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      install_kernel
+      rc=$?
+    fi
+  else
+    kernel=$(uname -r)
+    if [ -e /home/stack/reboot ]; then
+      touch /home/stack/rebooted
+    else
+      install_kernel
+      rc=$?
+    fi
+  fi
   return $rc
 }
 
