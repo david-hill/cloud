@@ -8,6 +8,10 @@ rdorelease=###RDORELEASE###
 releasever=###RELEASEVER###
 minorver=###MINORVER###
 enablenfs=###ENABLENFS###
+email=###EMAIL###
+fullname=###FULLNAME###
+rhnusername=###RHNUSERNAME###
+rhnpassword=###RHNPASSWORD###
 eol="liberty mitaka"
 if [[ ! "${installtype}" =~ rdo ]]; then
   vernum=$( echo $releasever | sed -e 's/rhosp//' )
@@ -131,8 +135,8 @@ function inject_password {
 
 function clone_repositories {
   cd /home/stack
-  sudo su stack bash -c 'git config --global user.email "###YOUREMAIL###"'
-  sudo su stack bash -c 'git config --global user.name "###YOURNAME###"'
+  sudo su stack bash -c "git config --global user.email '$email'"
+  sudo su stack bash -c "git config --global user.name '$fullname'"
   startlog "Cloning cloud repository"
   git clone http://github.com/david-hill/cloud > /dev/null
   endlog "done"
@@ -228,8 +232,8 @@ function generate_overcloud_images {
         export REG_METHOD=portal
         export NODE_DIST=rhel7
         export FS_TYPE=ext4
-        export REG_USER="###YOURUSER###"
-        export REG_PASSWORD='###YOURPASSWORD###'
+        export REG_USER="$rhnusername"
+        export REG_PASSWORD="$rhnpassword"
         export REG_POOL_ID="$poolid"
         export DIB_YUM_REPO_CONF=${rdorelease}.repo
         export RDO_RELEASE=$rdorelease
@@ -617,7 +621,7 @@ function enable_internal_repositories {
 
 function register_server_with_rhn {
   startlog "Registering the server with RH"
-  /sbin/subscription-manager register --username ###YOURUSER### --password ###YOURPASSWORD### 2>>$stderr 1>>$stdout
+  /sbin/subscription-manager register --username $rhnusername --password $rhnpassword 2>>$stderr 1>>$stdout
   rc=$?
   if [ $? -eq 0 ]; then
     endlog "done"
