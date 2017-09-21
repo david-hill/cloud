@@ -358,13 +358,13 @@ EOF
   fi
   endlog "done"
   startlog "Reloading network"
-  /sbin/ifdown eth0 > /dev/null
-  /sbin/ifup eth0 > /dev/null
+  /sbin/ifdown eth0 2>>$stderr 1>>$stdout
+  /sbin/ifup eth0 2>>$stderr 1>>$stdout
   if ! $( ifconfig eth0 | grep -q 192.168.122.2 ); then
-    endlog "error"
+    endlog "failed"
     startlog "Reloading network"
-    /sbin/ifdown eth0 
-    /sbin/ifup eth0
+    /sbin/ifdown eth0 2>>$stderr 1>>$stdout
+    /sbin/ifup eth0 2>>$stderr 1>>$stdout
     if ! $( ifconfig eth0 | grep -q 192.168.122.2 ); then
       endlog "error"
     else
