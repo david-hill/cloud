@@ -283,8 +283,14 @@ function startlog {
 }
 
 function endlog {
+  message=$1
   final=$(date "+%s")
   elapsed=$(( $final - $initial ))
   printf "%-15s\n" "$1 (${elapsed}s)"
+  if [[ $message =~ error ]]; then
+    if [ -d /home/stack ]; then
+      touch /home/stack/failed
+    fi
+  fi
 }
 
