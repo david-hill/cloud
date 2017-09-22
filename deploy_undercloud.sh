@@ -131,6 +131,14 @@ function upload_oc_images {
   endlog "done"
 }
 
+function clear_arp_table {
+  for ip in $( sudo arp -na  | grep br-ctlplane | awk '{ print $2 }' | sed -e 's/(//' -e 's/)//'  ); do
+    sudo arp -i br-ctlplane -d $ip
+  done
+  for ip in $( sudo arp -na  | grep eth0 | awk '{ print $2 }' | sed -e 's/(//' -e 's/)//'  ); do
+    sudo arp -i eth0 -d $ip
+  done
+}
 function baremetal_setup {
   startlog "Importing instackenv.json"
   openstack baremetal import --json /home/stack/instackenv.json 2>>$stderr 1>>$stdout
@@ -151,6 +159,7 @@ function baremetal_setup {
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
+        clear_arp_table
         if [ ! -d "/home/stack/deployment_state" ]; then
           mkdir -p /home/stack/deployment_state
         fi
