@@ -156,7 +156,6 @@ function baremetal_setup {
       if [ $rc -eq 0 ]; then
         endlog "done"
         clear_arp_table
-        sleep 600
         if [ ! -d "/home/stack/deployment_state" ]; then
           mkdir -p /home/stack/deployment_state
         fi
