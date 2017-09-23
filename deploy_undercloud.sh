@@ -132,12 +132,8 @@ function upload_oc_images {
 }
 
 function clear_arp_table {
-  for ip in $( sudo arp -na  | grep br-ctlplane | awk '{ print $2 }' | sed -e 's/(//' -e 's/)//'  ); do
-    sudo arp -i br-ctlplane -d $ip
-  done
-  for ip in $( sudo arp -na  | grep eth0 | awk '{ print $2 }' | sed -e 's/(//' -e 's/)//'  ); do
-    sudo arp -i eth0 -d $ip
-  done
+  sudo ip neighbor flush dev eth0
+  sudo ip neighbor flush dev br-ctlplane
 }
 function baremetal_setup {
   startlog "Importing instackenv.json"
