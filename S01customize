@@ -469,72 +469,50 @@ function enable_required_repositories {
   #subscription-manager repos --enable rhel-7-server-optional-beta-rpms 2>>$stderr 1>>$stdout
   subscription-manager repos --enable rhel-7-server-optional-rpms 2>>$stderr 1>>$stdout
 }
+
+function enable_repository {
+  repository=$1
+  startlog "Enabling ${repository}"
+  /sbin/subscription-manager repos --enable $repository 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
 function enable_official_repositories {
   if [[ "$releasever" =~ rhosp7 ]]; then
-    startlog "Enabling rhel-7-server-openstack-7.0-director-rpms"
-    /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-director-rpms > /dev/null
-    if [ $? -eq 0 ]; then
-      endlog "done"
-      startlog "Enabling rhel-7-server-openstack-7.0-rpms"
-      /sbin/subscription-manager repos --enable rhel-7-server-openstack-7.0-rpms > /dev/null
-      if [ $? -eq 0 ]; then
-        endlog "done"
-        rc=0
-      else
-        endlog "error"
-      fi
-    else
-      endlog "error"
+    enable_repository rhel-7-server-openstack-7.0-director-rpms
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      enable_repsoitory rhel-7-server-openstack-7.0-rpms
     fi
   elif [[ "$releasever" =~ rhosp8 ]] || [[ "$releasever" =~ rhosp9 ]]; then
-    startlog "Enabling rhel-7-server-openstack-${vernum}-director-rpms"
-    /sbin/subscription-manager repos --enable rhel-7-server-openstack-${vernum}-director-rpms > /dev/null
-    if [ $? -eq 0 ]; then
-      endlog "done"
-      startlog "Enabling rhel-7-server-openstack-8.0-rpms"
-      /sbin/subscription-manager repos --enable rhel-7-server-openstack-${vernum}-rpms > /dev/null
-      if [ $? -eq 0 ]; then
-        endlog "done"
-        startlog "Enabling rhel-7-server-optional-rpms"
-        /sbin/subscription-manager repos --enable rhel-7-server-optional-rpms > /dev/null
-        if [ $? -eq 0 ]; then
-          endlog "done"
-          startlog "Enabling rhel-7-server-extras-rpms"
-          /sbin/subscription-manager repos --enable rhel-7-server-extras-rpms > /dev/null
-          if [ $? -eq 0 ]; then
-            endlog "done"
-            rc=0
-          else 
-            endlog "error"
-          fi
-        else
-          endlog "error"
+    enable_repository rhel-7-server-openstack-${vernum}-director-rpms
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      enable_repository rhel-7-server-openstack-${vernum}-rpms
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        enable_repsoitory rhel-7-server-optional-rpms
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          enable_repository rhel-7-server-extras-rpms
+          rc=$?
         fi
-      else
-        endlog "error"
       fi
-    else
-      endlog "error"
     fi
   elif [[ "$releasever" =~ rhosp10 ]] || [[ "$releasever" =~ rhosp11 ]] || [[ "$releasever" =~ rhosp12 ]]; then
-    startlog "Enabling rhel-7-server-openstack-${vernum}-rpms"
-    /sbin/subscription-manager repos --enable rhel-7-server-openstack-${vernum}-rpms > /dev/null
-    if [ $? -eq 0 ]; then
-      endlog "done"
-      startlog "Enabling rhel-7-server-optional-rpms"
-      /sbin/subscription-manager repos --enable rhel-7-server-optional-rpms > /dev/null
-      if [ $? -eq 0 ]; then
-        endlog "done"
-        startlog "Enabling rhel-7-server-extras-rpms"
-        /sbin/subscription-manager repos --enable rhel-7-server-extras-rpms > /dev/null
-        if [ $? -eq 0 ]; then
-          endlog "done"
-          rc=0
-        else 
-          endlog "error"
-        fi
-      else
-        endlog "error"
+    enable_repository rhel-7-server-openstack-${vernum}-rpms
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      enable_repository rhel-7-server-optional-rpms
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        enable_repository rhel-7-server-extras-rpms
+        rc=$?
       fi
     fi
   fi
@@ -543,17 +521,15 @@ function enable_rdo_repositories {
   create_rdo_repo_file
   rc=$?
   if [ $rc -eq 0 ]; then
-    startlog "Enabling rhel-7-server-common-rpms"
-    /sbin/subscription-manager repos --enable rhel-7-server-rh-common-rpms > /dev/null
-    if [ $? -eq 0 ]; then
-      endlog "done"
-      startlog "Enabling rhel-7-server-optional-rpms"
-      /sbin/subscription-manager repos --enable rhel-7-server-optional-rpms > /dev/null
-      if [ $? -eq 0 ]; then
-        endlog "done"
-        startlog "Enabling rhel-7-server-extras-rpms"
-        /sbin/subscription-manager repos --enable rhel-7-server-extras-rpms > /dev/null
-        if [ $? -eq 0 ]; then
+    enable_repository rhel-7-server-rh-common-rpms
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      enable_repository rhel-7-server-optional-rpms
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        enable_repository rhel-7-server-extras-rpms
+        rc=$?
+        if [ $rc -eq 0 ]; then
           if [[ "$rdorelease" =~ liberty ]]; then
             echo "distroverpkg=7.2" >> /etc/yum.conf
             sed -i 's/\$releasever/7Server/g' /etc/yum.repos.d/redhat.repo 2>>$stderr 1>>$stdout
@@ -563,19 +539,10 @@ function enable_rdo_repositories {
             subscription-manager repos 2>>$stderr 1>>$stdout
             yum clean all 2>>$stderr 1>>$stdout
           fi
-          endlog "done"
           rc=0
-        else 
-          endlog "error"
         fi
-      else
-        endlog "error"
       fi
-    else
-      endlog "error"
     fi
-  else
-    endlog "error"
   fi
 }
 function enable_internal_repositories {
