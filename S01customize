@@ -460,15 +460,14 @@ function attach_pool {
 
 function disable_repositories {
   subscription-manager repos --disable *-htb-* 2>>$stderr 1>>$stdout
-  subscription-manager repos --disable *-rt-* 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    subscription-manager repos --disable *-rt-* 2>>$stderr 1>>$stdout
+    rc=$?
+  fi
+  return $rc
 }
 
-function enable_required_repositories {
-  subscription-manager repos --enable rhel-7-server-rpms  2>>$stderr 1>>$stdout
-  subscription-manager repos --enable rhel-7-server-eus-rpms 2>>$stderr 1>>$stdout
-  #subscription-manager repos --enable rhel-7-server-optional-beta-rpms 2>>$stderr 1>>$stdout
-  subscription-manager repos --enable rhel-7-server-optional-rpms 2>>$stderr 1>>$stdout
-}
 
 function enable_repository {
   repository=$1
@@ -479,6 +478,27 @@ function enable_repository {
     endlog "done"
   else
     endlog "error"
+  fi
+  return $rc
+}
+function enable_required_repositories {
+  enable_repository rhel-7-server-rpms
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    enable_repository rhel-7-server-eus-rpms
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      enable_repository rhel-7-server-optional-rpms
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        enable_repository rhel-7-server-extras-rpms
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          enable_repository rhel-7-server-rh-common-rpms
+          rc=$?
+        fi
+      fi
+    fi
   fi
   return $rc
 }
@@ -495,54 +515,26 @@ function enable_official_repositories {
     if [ $rc -eq 0 ]; then
       enable_repository rhel-7-server-openstack-${vernum}-rpms
       rc=$?
-      if [ $rc -eq 0 ]; then
-        enable_repsoitory rhel-7-server-optional-rpms
-        rc=$?
-        if [ $rc -eq 0 ]; then
-          enable_repository rhel-7-server-extras-rpms
-          rc=$?
-        fi
-      fi
     fi
   elif [[ "$releasever" =~ rhosp10 ]] || [[ "$releasever" =~ rhosp11 ]] || [[ "$releasever" =~ rhosp12 ]]; then
     enable_repository rhel-7-server-openstack-${vernum}-rpms
     rc=$?
-    if [ $rc -eq 0 ]; then
-      enable_repository rhel-7-server-optional-rpms
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        enable_repository rhel-7-server-extras-rpms
-        rc=$?
-      fi
-    fi
   fi
 }
 function enable_rdo_repositories {
   create_rdo_repo_file
   rc=$?
   if [ $rc -eq 0 ]; then
-    enable_repository rhel-7-server-rh-common-rpms
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      enable_repository rhel-7-server-optional-rpms
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        enable_repository rhel-7-server-extras-rpms
-        rc=$?
-        if [ $rc -eq 0 ]; then
-          if [[ "$rdorelease" =~ liberty ]]; then
-            echo "distroverpkg=7.2" >> /etc/yum.conf
-            sed -i 's/\$releasever/7Server/g' /etc/yum.repos.d/redhat.repo 2>>$stderr 1>>$stdout
-            subscription-manager release --set=7.2 2>>$stderr 1>>$stdout
-            subscription-manager repos --disable *-htb-* 2>>$stderr 1>>$stdout
-            subscription-manager repos --disable *-rt-* 2>>$stderr 1>>$stdout
-            subscription-manager repos 2>>$stderr 1>>$stdout
-            yum clean all 2>>$stderr 1>>$stdout
-          fi
-          rc=0
-        fi
-      fi
+    if [[ "$rdorelease" =~ liberty ]]; then
+      echo "distroverpkg=7.2" >> /etc/yum.conf
+      sed -i 's/\$releasever/7Server/g' /etc/yum.repos.d/redhat.repo 2>>$stderr 1>>$stdout
+      subscription-manager release --set=7.2 2>>$stderr 1>>$stdout
+      subscription-manager repos --disable *-htb-* 2>>$stderr 1>>$stdout
+      subscription-manager repos --disable *-rt-* 2>>$stderr 1>>$stdout
+      subscription-manager repos 2>>$stderr 1>>$stdout
+      yum clean all 2>>$stderr 1>>$stdout
     fi
+    rc=0
   fi
 }
 function enable_internal_repositories {
@@ -611,22 +603,23 @@ function register_system {
       rc=$?
       if [ $rc -eq 0 ]; then
         disable_repositories
-        enable_required_repositories
-        if [[ "${installtype}" =~ official ]]; then
-          enable_official_repositories
-        elif [[ "${installtype}" =~ rdo ]]; then
-          enable_rdo_repositories
-        else
-          enable_internal_repositories
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          enable_required_repositories
+          rc=$?
+          if [[ "${installtype}" =~ official ]]; then
+            enable_official_repositories
+            rc=$?
+          elif [[ "${installtype}" =~ rdo ]]; then
+            enable_rdo_repositories
+            rc=$?
+          else
+            enable_internal_repositories
+            rc=$?
+          fi
         fi
-      else 
-        endlog "error"
       fi
-    else
-      endlog "error"
     fi
-  else
-    endlog "error"
   fi
   return $rc
 }
@@ -717,6 +710,7 @@ function install_kernel {
   fi
   return $rc
 }
+
 function log_rotate {
 if [ -e /var/log/cloud-init.log.1 ]; then
   mv /var/log/cloud-init.log.1 /var/log/cloud-init.log.2
