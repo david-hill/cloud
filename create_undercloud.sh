@@ -94,6 +94,7 @@ function get_new_images {
     fi
   done
   if [[ $rc =~ present ]]; then
+    rc=0
     scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
     if [ ! -e images/$releasever/${minorver}/rhosp-director-images.previous ]; then
       diff=1
@@ -120,6 +121,8 @@ function get_new_images {
         cat images/$releasever/${minorver}/rhosp-director-images.latest > images/$releasever/${minorver}/rhosp-director-images.previous
       fi
     fi
+  else
+    rc=255
   fi
   endlog "done"
   return $rc
