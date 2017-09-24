@@ -400,9 +400,9 @@ function vpn_setup {
   rc=1
   vpnip=$(ip addr | grep inet | grep "10\." | awk ' { print $2 }' | sed -e 's#/.*##')
   if [ ! -z "${vpnip}" ]; then
-    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep $vpnip
+    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep -q $vpnip
     if [ $? -ne 0 ]; then
-      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip
+      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip 2>>$stderr 1>>$stdout
       rc=0
     fi
   fi
