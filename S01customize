@@ -507,7 +507,7 @@ function enable_official_repositories {
     enable_repository rhel-7-server-openstack-7.0-director-rpms
     rc=$?
     if [ $rc -eq 0 ]; then
-      enable_repsoitory rhel-7-server-openstack-7.0-rpms
+      enable_repository rhel-7-server-openstack-7.0-rpms
     fi
   elif [[ "$releasever" =~ rhosp8 ]] || [[ "$releasever" =~ rhosp9 ]]; then
     enable_repository rhel-7-server-openstack-${vernum}-director-rpms
