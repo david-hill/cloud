@@ -519,7 +519,10 @@ function enable_official_repositories {
   elif [[ "$releasever" =~ rhosp10 ]] || [[ "$releasever" =~ rhosp11 ]] || [[ "$releasever" =~ rhosp12 ]]; then
     enable_repository rhel-7-server-openstack-${vernum}-rpms
     rc=$?
+  else
+    rc=255
   fi
+  return $rc
 }
 function enable_rdo_repositories {
   create_rdo_repo_file
@@ -536,16 +539,19 @@ function enable_rdo_repositories {
     fi
     rc=0
   fi
+  return $rc
 }
 function enable_internal_repositories {
   if [[ "$releasever" =~ rhosp7 ]]; then
     startlog "Installing rhos-release-latest"
     yum install -y http://rhos-release.virt.bos.redhat.com/repos/rhos-release/rhos-release-latest.noarch.rpm 2>>$stderr 1>>$stdout
-    if [ $? -eq 0 ]; then
+    rc=$?
+    if [ $rc -eq 0 ]; then
       endlog "done"
       startlog "Setting rhos-release to 7"
       rhos-release 7-director # -p Y3 2>>$stderr 1>>$stdout
-      if [ $? -eq 0 ]; then
+      rc=$?
+      if [ $rc -eq 0 ]; then
         endlog "done"
 #                startlog "Setting z-release to 4"
 #                rhos-release -p Z4  7 2>>$stderr 1>>$stdout
@@ -564,20 +570,24 @@ function enable_internal_repositories {
   elif [[ "$releasever" =~ rhosp8 ]] || [[ "$releasever" =~ rhosp9 ]] || [[ "$releasever" =~ rhosp10 ]] || [[ "$releasever" =~ rhosp11 ]] || [[ "$releasever" =~ rhosp12 ]]; then
     startlog "Installing rhos-release-latest"
     yum install -y http://rhos-release.virt.bos.redhat.com/repos/rhos-release/rhos-release-latest.noarch.rpm 2>>$stderr 1>>$stdout
-    if [ $? -eq 0 ]; then
+    rc=$?
+    if [ $rc -eq 0 ]; then
       endlog "done"
       startlog "Setting rhos-release to ${vernum}"
       rhos-release -P ${vernum}-director 2>>$stderr 1>>$stdout
-      if [ $? -eq 0 ]; then
+      rc=$?
+      if [ $rc -eq 0 ]; then
         endlog "done"
-        rc=0
       else
         endlog "error"
       fi
     else
       endlog "error"
     fi
+  else
+    rc=255
   fi
+  return $rc
 }
 
 function register_server_with_rhn {
