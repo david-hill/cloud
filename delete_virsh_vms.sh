@@ -71,6 +71,7 @@ function delete_vms {
         done
         sudo virsh destroy $server 2>>$stderr 1>>$stdout
         sudo virsh undefine $server 2>>$stderr 1>>$stdout
+        sudo rm -rf /run/systemd/machines/*$server
       else
         ip=$(ip addr)
         if [[ ! "$ip" =~ $kvmhost ]]; then
@@ -79,6 +80,7 @@ function delete_vms {
             if [[ "$tserver" =~ $type-$inc ]]; then
               ssh root@$kvmhost "sudo virsh destroy $tserver" 2>>$stderr 1>>$stdout
               ssh root@$kvmhost "sudo virsh undefine $tserver" 2>>$stderr 1>>$stdout
+              ssh root@$kvmhost "sudo rm -rf /run/systemd/machines/*$server" 2>>$stderr 1>>$stdout
             fi
           done
         fi
