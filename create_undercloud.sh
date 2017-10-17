@@ -162,6 +162,8 @@ function spawn_undercloud_vm {
       gen_xml
       create_domain
       start_domain
+      try=0
+      verify_domain
       cleanup
 }
 
