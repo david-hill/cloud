@@ -222,9 +222,9 @@ function wait_for_vm {
   down=1
   while [ $down -eq 1 ] && [ $telapsed -lt $timeout ]; do
     ping -q -c 1 $undercloudip 2>>$stderr 1>>$stdout
+    down=$?
     tcurrent=$(date "+%s")
     telapsed=$(( $tcurrent - $initial ))
-    down=$?
     sleep 1
   done
   if [ $telapsed -lt $timeout ]; then
@@ -304,9 +304,9 @@ function wait_for_ssh {
   ssh-keygen -q -R $undercloudip 2>>$stderr 1>>$stdout
   while [ $sshrc -ne 0 ] && [ $telapsed -lt $timeout ]; do
     ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'uptime' 2>>$stderr 1>>$stdout
+    sshrc=$?
     tcurrent=$(date "+%s")
     telapsed=$(( $tcurrent - $initial ))
-    sshrc=$?
     sleep 1
   done
   if [ $telapsed -lt $timeout ]; then
