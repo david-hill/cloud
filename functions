@@ -242,7 +242,7 @@ function start_domain {
 }
 
 function verify_domain {
-  while [ $try -lt 3 ]; then
+  while [ $try -lt 3 ]; do
     sleep 1
     sudo virsh list | grep -q $vmname
     rc=$?
