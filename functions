@@ -241,6 +241,19 @@ function start_domain {
     return $?
 }
 
+function verify_domain {
+  while [ $try -lt 3 ]; then
+    sleep 1
+    sudo virsh list | grep -q $vmname
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      start_domain
+      rc=$?
+    fi
+    try=$(( $try + 1 ))
+  done
+  return $rc
+}
 function cleanup {
     rm -rf $tmpfile
 }
