@@ -26,7 +26,9 @@ function delete_vms {
       done
       sudo virsh destroy $server 2>>$stderr 1>>$stdout
       sudo virsh undefine $server 2>>$stderr 1>>$stdout
-      sudo rm -rf /run/systemd/machines/*$server
+      sudo rm -rf /run/systemd/machines/*$type*$inc*$releasever*
+      sudo rm -rf /run/systemd/transient/*$type*$inc*$releasever*
+      sudo systemctl daemon-reload
     done
   fi
 }
