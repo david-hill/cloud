@@ -18,7 +18,7 @@ function delete_secgroup_rule {
   startlog "Deleting rule from default security group"
   nova secgroup-delete-rule default icmp -1 -1 0.0.0.0/0 2>>$stderr 1>>$stdout
   rc=$?
-  if [ $? -ne 0 ]; then
+  if [ $rc -ne 0 ]; then
     ruleid=$( neutron security-group-rule-list 2>>$stderr | grep icmp | awk -F\| '{ print $2 }' )
     neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
     rc=$?
