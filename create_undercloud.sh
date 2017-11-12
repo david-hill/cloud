@@ -343,12 +343,15 @@ function fetch_internal_images {
 function wait_for_overcloud_deployment {
   startlog "Waiting for overcloud deployment"
   rc=in_progress
-  while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+  timeout=6000
+  inc=0
+  while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]] && [[ $inc -lt $timeout ]]; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e cloud/overcloudrc ]; then echo completed; fi')
     rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+    inc=$(( $inc + 1 ))
     sleep 1
   done
-  if [[ ! "$rcf" =~ failed ]]; then
+  if [[ ! "$rcf" =~ failed ]] && [[ $inc -lt $timeout ]]; then
     endlog "done"
     rc=0
   else
