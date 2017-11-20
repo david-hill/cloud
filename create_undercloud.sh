@@ -94,31 +94,39 @@ function get_new_images {
     fi
   done
   if [[ $rc =~ present ]]; then
+    if [[ "$installtype" =~ internal ]]; then
+      subfolder="-$insalltype"
+      if [ ! -d images/$releasever/${minorver}${subfolder} ]; then
+        mkdir -p images/$releasever/${minorver}${subfolder}
+      fi
+    else
+      subfolder=
+    fi
     rc=0
-    scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images.latest images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
-    if [ ! -e images/$releasever/${minorver}/rhosp-director-images.previous ]; then
+    scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:rhosp-director-images.latest images/$releasever/${minorver}${subfolder}/ 2>>$stderr 1>>$stdout
+    if [ ! -e images/$releasever/${minorver}${subfolder}/rhosp-director-images.previous ]; then
       diff=1
-      if [ -e images/$releasever/${minorver}/version ]; then
-        backupfolder=$(cat images/$releasever/${minorver}/version)
+      if [ -e images/$releasever/${minorver}${subfolder}/version ]; then
+        backupfolder=$(cat images/$releasever/${minorver}${subfolder}/version)
       else
         backupfolder=$( date +'%Y%m%d%H' )
       fi
     else
-      cmp -s images/$releasever/${minorver}/rhosp-director-images.previous images/$releasever/${minorver}/rhosp-director-images.latest
+      cmp -s images/$releasever/${minorver}/rhosp-director-images.previous images/$releasever/${minorver}${subfolder}/rhosp-director-images.latest
       if [ $? -ne 0 ]; then
         diff=1
       fi
       if [ $diff -eq 1 ]; then
-        backupfolder=$(cat images/$releasever/${minorver}/rhosp-director-images.previous)
+        backupfolder=$(cat images/$releasever/${minorver}${subfolder}/rhosp-director-images.previous)
       fi
     fi
     if [ $diff -eq 1 ]; then
-      mkdir -p images/$releasever/${minorver}/backup/${backupfolder}
-      mv images/$releasever/${minorver}/*.tar images/$releasever/${minorver}/backup/${backupfolder}
-      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:/usr/share/rhosp-director-images/ironic-python-agent.tar images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
-      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:/usr/share/rhosp-director-images/overcloud-full.tar images/$releasever/${minorver}/ 2>>$stderr 1>>$stdout
-      if [ -e images/$releasever/${minorver}/rhosp-director-images.latest ]; then
-        cat images/$releasever/${minorver}/rhosp-director-images.latest > images/$releasever/${minorver}/rhosp-director-images.previous
+      mkdir -p images/$releasever/${minorver}${subfolder}/backup/${backupfolder}
+      mv images/$releasever/${minorver}${subfolder}/*.tar images/$releasever/${minorver}${subfolder}/backup/${backupfolder}
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:/usr/share/rhosp-director-images/ironic-python-agent.tar images/$releasever/${minorver}${subfolder}/ 2>>$stderr 1>>$stdout
+      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip:/usr/share/rhosp-director-images/overcloud-full.tar images/$releasever/${minorver}${subfolder}/ 2>>$stderr 1>>$stdout
+      if [ -e images/$releasever/${minorver}${subfolder}/rhosp-director-images.latest ]; then
+        cat images/$releasever/${minorver}${subfolder}/rhosp-director-images.latest > images/$releasever/${minorver}${subfolder}/rhosp-director-images.previous
       fi
     fi
   else
