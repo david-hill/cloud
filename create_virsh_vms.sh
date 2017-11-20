@@ -125,10 +125,19 @@ function create_vm {
 }
 
 function send_images {
+  if [[ "$installtype" =~ internal ]]; then
+    subfolder="-$insalltype"
+    if [ ! -d images/$imagereleasever/${minorver}${subfolder} ]; then
+      mkdir -p images/$imagereleasever/${minorver}${subfolder}
+    fi
+  else
+    subfolder=
+  fi
+
   startlog "Sending overcloud images to undercloud"
   ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
   if [ -z $rdorelease ]; then
-    cd images/$imagereleasever/$minorver
+    cd images/$imagereleasever/${minorver}${subfolder}
     if [ -e rhosp-director-images.latest ]; then
       scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhosp-director-images.latest stack@$undercloudip:rhosp-director-images.previous 2>>$stderr 1>>$stdout
     fi
