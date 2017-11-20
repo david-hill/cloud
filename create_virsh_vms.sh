@@ -126,7 +126,7 @@ function create_vm {
 
 function send_images {
   if [[ "$installtype" =~ internal ]]; then
-    subfolder="-$insalltype"
+    subfolder="-$installtype"
     if [ ! -d images/$imagereleasever/${minorver}${subfolder} ]; then
       mkdir -p images/$imagereleasever/${minorver}${subfolder}
     fi
@@ -145,13 +145,15 @@ function send_images {
     cd images/rdo-$rdorelease
   fi
   for file in *.tar; do
-    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
-    if [[ ! "$rc" =~ present ]] ; then
-      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/ > /dev/null
-      ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
-      rc=$?
-    else
-      rc=0
+    if [ ! -z "${file}" ]; then
+      rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
+      if [[ ! "$rc" =~ present ]] ; then
+        scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/ > /dev/null
+        ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
+        rc=$?
+      else
+        rc=0
+      fi
     fi
   done
   if [ -z $rdorelease ]; then
