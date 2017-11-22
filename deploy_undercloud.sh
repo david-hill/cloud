@@ -30,6 +30,7 @@ function conformance {
 }
 
 function create_flavors {
+  rc=0
   startlog "Creating flavors"
   run_in_qemu
   rc_qemu=$?
@@ -77,9 +78,11 @@ function create_flavors {
     nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus 2>>$stderr 1>>$stdout
   fi
   endlog "done"
+  return $rc
 }
 
 function tag_hosts {
+  rc=0
   startlog "Tagging hosts"
   inc=0
   ironic node-list | grep -q manag
@@ -97,9 +100,14 @@ function tag_hosts {
     inc=$( expr $inc + 1)
   done
   endlog "done"
+  return $rc
 }
 
-function upload_oc_images {
+
+function get_oc_images {
+  if [ ! -d /home/stack/images ]; then
+    mkdir -p /home/stack/images
+  fi
   diff=0
   ver=$(sudo yum info rhosp-director-images 2>>$stderr | grep Release | awk '{ print $3 }')
   if [ ! -z "$ver" ]; then
@@ -116,19 +124,34 @@ function upload_oc_images {
   if [ $diff -eq 1 ]; then
     startlog "Installing images RPMs"
     sudo yum install -y rhosp-director-images rhosp-director-images-ipa 2>>$stderr 1>>$stdout
-    endlog "done"
-    startlog "Extracting images"
-    for tarfile in /usr/share/rhosp-director-images/*.tar; do tar -xf $tarfile -C ~/images; done
-    endlog "done"
+    rc=0
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+      startlog "Extracting images"
+      for tarfile in /usr/share/rhosp-director-images/*.tar; do tar -xf $tarfile -C ~/images; done
+      endlog "done"
+    else
+      endlog "error"
+    fi
   fi
   if [ ! -z "$ver" ]; then
     echo "$ver" > ../rhosp-director-images.latest
   else
     touch ../rhosp-director-images.missing
+    rc=0
   fi
+  return $rc
+}
+function upload_oc_images {
   startlog "Importing overcloud images"
   openstack overcloud image upload --image-path /home/stack/images 2>>$stderr 1>>$stdout
-  endlog "done"
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
 }
 
 function clear_arp_table {
@@ -174,23 +197,29 @@ function baremetal_setup {
 
 
 function deploy_overcloud {
-  rc=255
-  if [ -d  "/home/stack/images" ]; then
+  get_oc_images
+  rc=$?
+  if [ $rc -eq 0 ]; then
     if [ -e "/home/stack/stackrc" ]; then
       upload_oc_images
-      baremetal_setup
       rc=$?
       if [ $rc -eq 0 ]; then
-        create_flavors
-        tag_hosts
-        bash deploy_overcloud.sh
+        baremetal_setup
         rc=$?
+        if [ $rc -eq 0 ]; then
+          create_flavors
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            tag_hosts
+            rc=$?
+            if [ $rc -eq 0 ]; then
+              bash deploy_overcloud.sh
+              rc=$?
+            fi
+          fi
+        fi
       fi
-    else 
-      echo "Undercloud wasn't successfully deployed!"
     fi
-  else
-    echo "Please download the overcloud-* images and put them in /home/stack/images"
   fi
   return $rc
 }
