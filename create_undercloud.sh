@@ -85,13 +85,15 @@ function get_new_images {
   rc=0
   diff=0
   continue=1
+  ttimeout=1200
   startlog "Getting new images"
-  while [ $continue -eq 1 ]; do
+  while [ $continue -eq 1 ] && [ $ttimeout -gt 0 ]; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.latest ]; then echo present; fi")
     rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.missing ]; then echo missing; fi")
     if [[ $rc =~ present ]] || [[ $rcf =~ missing ]]; then
       continue=0
     fi
+    ttimeout=$(( $ttimeout - 1 ))
   done
   if [[ $rc =~ present ]]; then
     if [[ "$installtype" =~ internal ]]; then
@@ -129,10 +131,11 @@ function get_new_images {
         cat images/$releasever/${minorver}${subfolder}/rhosp-director-images.latest > images/$releasever/${minorver}${subfolder}/rhosp-director-images.previous
       fi
     fi
+    endlog "done"
   else
+    endlog "error"
     rc=255
   fi
-  endlog "done"
   return $rc
 }
 function kill_dnsmasq {
