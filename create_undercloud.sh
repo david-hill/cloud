@@ -98,7 +98,7 @@ function get_new_images {
     done
     if [[ $rc =~ present ]]; then
       if [[ "$installtype" =~ internal ]]; then
-        subfolder="-$insalltype"
+        subfolder="-$installtype"
         if [ ! -d images/$releasever/${minorver}${subfolder} ]; then
           mkdir -p images/$releasever/${minorver}${subfolder}
         fi
