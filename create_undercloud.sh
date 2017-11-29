@@ -183,12 +183,14 @@ function spawn_undercloud_vm {
 function wait_for_undercloud_deployment {
   startlog "Waiting for undercloud deployment"
   rc=0
-  while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]]; do
+  ttimeout=3600
+  while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
     rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
     sleep 1
+    ttimeout=$(( $ttimeout - 1 ))
   done
-  if [[ ! "$rcf" =~ failed ]]; then
+  if [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; then
     endlog "done"
     rc=0
   else
