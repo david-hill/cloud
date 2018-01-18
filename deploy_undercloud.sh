@@ -293,6 +293,26 @@ function delete_nodes {
   endlog "done"
 }
 
+function create_local_docker_registry {
+  rc=0
+  if [ $use_docker -eq 1 ]; then
+    rc=255
+    tag=$(sudo openstack overcloud container image tag discover --image registry.access.redhat.com/rhosp12/openstack-base:latest --tag-from-label version-release)
+    if [ ! -z $tag ]; then
+      openstack overcloud container image prepare --namespace=registry.access.redhat.com/rhosp12 --prefix=openstack- --tag=$tag --output-images-file /home/stack/local_registry_images.yaml
+      if [ $? -eq 0 ]; then
+        sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
+        if [ $? -eq 0 ]; then
+          openstack overcloud container image prepare --namespace=192.168.122.2:8787/rhosp12 --prefix=openstack- --tag=$tag --output-env-file=/home/stack/templates/overcloud_images.yaml
+          rc=$?
+        fi
+      fi
+    fi
+  fi
+  return $rc
+}
+
+
 function create_overcloud_route {
   sudo ip addr add 10.1.2.1 dev br-ctlplane
   sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
@@ -311,14 +331,18 @@ if [ $rc -eq 0 ]; then
   validate_network_environment
   rc=$?
   if [ $rc -eq 0 ]; then
-    create_overcloud_route
-    deploy_overcloud
+    create_local_docker_registry
     rc=$?
-    if [ $rc -eq 0 ]; then 
-      test_overcloud
+    if [ $rc -eq 0 ]; then
+      create_overcloud_route
+      deploy_overcloud
       rc=$?
-      if [ $rc -eq 0 ]; then
-        touch /home/stack/deployment_state/tested
+      if [ $rc -eq 0 ]; then 
+        test_overcloud
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          touch /home/stack/deployment_state/tested
+        fi
       fi
     fi
   fi
