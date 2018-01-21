@@ -315,7 +315,7 @@ function create_local_docker_registry {
           openstack overcloud container image prepare --namespace=192.168.122.2:8787/rhosp12 --prefix=openstack- --tag=$tag --output-env-file=/home/stack/templates/overcloud_images.yaml 2>>$stderr 1>>$stdout
           rc=$?
           if [ $rc -eq 0 ]; then
-            endlog "error"
+            endlog "done"
           else
             endlog "error"
           fi
