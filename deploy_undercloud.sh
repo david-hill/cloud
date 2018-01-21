@@ -297,16 +297,34 @@ function create_local_docker_registry {
   rc=0
   if [ $use_docker -eq 1 ]; then
     rc=255
+    startlog "Discover latest container image tag"
     tag=$(sudo openstack overcloud container image tag discover --image registry.access.redhat.com/rhosp12/openstack-base:latest --tag-from-label version-release)
     if [ ! -z $tag ]; then
-      openstack overcloud container image prepare --namespace=registry.access.redhat.com/rhosp12 --prefix=openstack- --tag=$tag --output-images-file /home/stack/local_registry_images.yaml
-      if [ $? -eq 0 ]; then
-        sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose
-        if [ $? -eq 0 ]; then
-          openstack overcloud container image prepare --namespace=192.168.122.2:8787/rhosp12 --prefix=openstack- --tag=$tag --output-env-file=/home/stack/templates/overcloud_images.yaml
+      endlog "done"
+      startlog "Preparing local image registry"
+      openstack overcloud container image prepare --namespace=registry.access.redhat.com/rhosp12 --prefix=openstack- --tag=$tag --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+        startlog "Uploading local image registry"
+        sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          endlog "done"
+          startlog "Preparing local container image registry"
+          openstack overcloud container image prepare --namespace=192.168.122.2:8787/rhosp12 --prefix=openstack- --tag=$tag --output-env-file=/home/stack/templates/overcloud_images.yaml 2>>$stderr 1>>$stdout
           rc=$?
+          if [ $rc -eq 0 ]; then
+            endlog "error"
+          else
+            endlog "error"
+          fi
         fi
+      else
+        endlog "error"
       fi
+    else
+      endlog "error"
     fi
   fi
   return $rc
