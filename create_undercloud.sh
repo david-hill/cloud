@@ -287,7 +287,10 @@ function copy_image {
 
 function resize_base_disk {
   startlog "Resizing base disk"
-  sudo qemu-img resize $jenkinspath/VMs/${vmname}.qcow2 30G 2>>$stderr 1>>$stdout
+  if [ -z "${disksize}" ]; then
+    disksize=30G
+  fi
+  sudo qemu-img resize $jenkinspath/VMs/${vmname}.qcow2 $disksize 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
