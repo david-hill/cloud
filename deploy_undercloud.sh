@@ -312,7 +312,7 @@ function create_local_docker_registry {
         if [ $rc -eq 0 ]; then
           endlog "done"
           startlog "Preparing local container image registry"
-          openstack overcloud container image prepare --namespace=192.168.122.2:8787/${releasever} --prefix=openstack- --tag=$tag --output-env-file=/home/stack/${releasever}/overcloud_images.yaml 2>>$stderr 1>>$stdout
+          openstack overcloud container image prepare --namespace=192.0.2.1:8787/${releasever} --prefix=openstack- --tag=$tag --output-env-file=/home/stack/${releasever}/overcloud_images.yaml 2>>$stderr 1>>$stdout
           rc=$?
           if [ $rc -eq 0 ]; then
             endlog "done"
