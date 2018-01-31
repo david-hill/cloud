@@ -125,27 +125,45 @@ function create_vm {
 }
 
 function send_images {
-  startlog "Sending overcloud images to undercloud"
-  ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
-  if [ -z $rdorelease ]; then
-    cd images/$imagereleasever/$minorver
-  else
-    cd images/rdo-$rdorelease
-  fi
-  for file in *.tar; do
-    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
-    if [[ ! "$rc" =~ present ]] ; then
-      scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/ > /dev/null
-      ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
-      rc=$?
-    else
-      rc=0
+  skip=0
+  if [[ "$installtype" =~ internal ]]; then
+    subfolder="-$installtype"
+    if [ ! -d images/$imagereleasever/${minorver}${subfolder} ]; then
+      mkdir -p images/$imagereleasever/${minorver}${subfolder}
+      skip=1
     fi
-  done
-  if [ -z $rdorelease ]; then
-    cd ../../../
   else
-    cd ../../
+    subfolder=
+  fi
+
+  if [ $skip -eq 0 ]; then
+    startlog "Sending overcloud images to undercloud"
+    ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip 'if [ ! -e images ]; then mkdir images; fi' > /dev/null
+    if [ -z $rdorelease ]; then
+      cd images/$imagereleasever/${minorver}${subfolder}
+      if [ -e rhosp-director-images.latest ]; then
+        scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no rhosp-director-images.latest stack@$undercloudip:rhosp-director-images.previous 2>>$stderr 1>>$stdout
+      fi
+    else
+      cd images/rdo-$rdorelease
+    fi
+    for file in *.tar; do
+      if [ ! -z "${file}" ]; then
+        rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e images/$file ]; then echo present; fi")
+        if [[ ! "$rc" =~ present ]] ; then
+          scp -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no $file stack@$undercloudip:images/ > /dev/null
+          ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "cd images; tar xf $file" > /dev/null
+          rc=$?
+        else
+          rc=0
+        fi
+      fi
+    done
+    if [ -z $rdorelease ]; then
+      cd ../../../
+    else
+      cd ../../
+    fi
   fi
   if [[ "$installtype" =~ rdo ]]; then
     rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
