@@ -19,12 +19,12 @@ function wait_for_reboot {
   timeout=600
   inc=0
   while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]] && [[ $inc -lt $timeout ]]; do
-    rc=$(ssh -o LogLevel=quiet -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi" 2>>$stderr)
-    rcf=$(ssh -o LogLevel=quiet -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi" 2>>$stderr)
+    rc=$(timeout 10 ssh -o LogLevel=quiet -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi" 2>>$stderr)
+    rcf=$(timeout 10 ssh -o LogLevel=quiet -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo present; fi" 2>>$stderr)
     sleep 1
     inc=`expr $inc + 1`
   done
-  if [[ "$rcf" =~ present ]]; then
+  if [[ "$rcf" =~ present ]] || [[ $inc -ge $timeout ]]; then
    rc=255
   else
    rc=0
@@ -124,6 +124,9 @@ function openstack_oc_deploy {
       libvirttype=kvm
     else
       libvirttype=qemu
+    fi
+    if [ $use_docker -eq 1 ]; then
+      deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
     fi
     startlog "Deploying overcloud"
     openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
@@ -241,6 +244,19 @@ function start_domain {
     return $?
 }
 
+function verify_domain {
+  while [ $try -lt 3 ]; do
+    sleep 1
+    sudo virsh list | grep -q $vmname
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      start_domain
+      rc=$?
+    fi
+    try=$(( $try + 1 ))
+  done
+  return $rc
+}
 function cleanup {
     rm -rf $tmpfile
 }
@@ -283,8 +299,14 @@ function startlog {
 }
 
 function endlog {
+  message=$1
   final=$(date "+%s")
   elapsed=$(( $final - $initial ))
   printf "%-15s\n" "$1 (${elapsed}s)"
+  if [[ $message =~ error ]]; then
+    if [ -d /home/stack ]; then
+      touch /home/stack/failed
+    fi
+  fi
 }
 
