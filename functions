@@ -130,12 +130,9 @@ function openstack_oc_deploy {
         libvirttype=qemu
       else
       fi
-<<<<<<< HEAD
     fi
     if [ $use_docker -eq 1 ]; then
       deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
-=======
->>>>>>> ab15f37... Use nested virtualisation if it's enabled.
     fi
     startlog "Deploying overcloud"
     openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
