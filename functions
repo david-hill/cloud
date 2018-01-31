@@ -134,9 +134,6 @@ function openstack_oc_deploy {
     if [ $use_docker -eq 1 ]; then
       deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
     fi
-    if [ $use_docker -eq 1 ]; then
-      deploymentargs="$deploymentargs -e /home/stack/templates/overcloud_images.yaml"
-    fi
     startlog "Deploying overcloud"
     openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
     rc=$?
