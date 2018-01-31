@@ -128,7 +128,6 @@ function openstack_oc_deploy {
         libvirttype=kvm
       else
         libvirttype=qemu
-      else
       fi
     fi
     if [ $use_docker -eq 1 ]; then
