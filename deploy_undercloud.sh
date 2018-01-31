@@ -293,6 +293,44 @@ function delete_nodes {
   endlog "done"
 }
 
+function create_local_docker_registry {
+  rc=0
+  if [ $use_docker -eq 1 ]; then
+    rc=255
+    startlog "Discover latest container image tag"
+    tag=$(sudo openstack overcloud container image tag discover --image registry.access.redhat.com/${releasever}/openstack-base:latest --tag-from-label version-release)
+    if [ ! -z $tag ]; then
+      endlog "done"
+      startlog "Preparing local image registry"
+      openstack overcloud container image prepare --namespace=registry.access.redhat.com/${releasever} --prefix=openstack- --tag=$tag --output-images-file /home/stack/${releasever}/local_registry_images.yaml 2>>$stderr 1>>$stdout
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+        startlog "Uploading local image registry"
+        sudo openstack overcloud container image upload --config-file  /home/stack/${releasever}/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          endlog "done"
+          startlog "Preparing local container image registry"
+          openstack overcloud container image prepare --namespace=192.0.2.1:8787/${releasever} --prefix=openstack- --tag=$tag --output-env-file=/home/stack/${releasever}/overcloud_images.yaml 2>>$stderr 1>>$stdout
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            endlog "done"
+          else
+            endlog "error"
+          fi
+        fi
+      else
+        endlog "error"
+      fi
+    else
+      endlog "error"
+    fi
+  fi
+  return $rc
+}
+
+
 function create_overcloud_route {
   sudo ip addr add 10.1.2.1 dev br-ctlplane
   sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
@@ -311,14 +349,18 @@ if [ $rc -eq 0 ]; then
   validate_network_environment
   rc=$?
   if [ $rc -eq 0 ]; then
-    create_overcloud_route
-    deploy_overcloud
+    create_local_docker_registry
     rc=$?
-    if [ $rc -eq 0 ]; then 
-      test_overcloud
+    if [ $rc -eq 0 ]; then
+      create_overcloud_route
+      deploy_overcloud
       rc=$?
-      if [ $rc -eq 0 ]; then
-        touch /home/stack/deployment_state/tested
+      if [ $rc -eq 0 ]; then 
+        test_overcloud
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          touch /home/stack/deployment_state/tested
+        fi
       fi
     fi
   fi
