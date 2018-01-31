@@ -123,7 +123,13 @@ function openstack_oc_deploy {
     if [ -z "$kvmhost" ]; then
       libvirttype=kvm
     else
-      libvirttype=qemu
+      cat /proc/cpuinfo | grep -q vmx
+      if [ $? -eq 0 ]; then
+        libvirttype=kvm
+      else
+        libvirttype=qemu
+      else
+      fi
     fi
     startlog "Deploying overcloud"
     openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
