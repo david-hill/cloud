@@ -123,7 +123,7 @@ function openstack_oc_deploy {
     if [ -z "$kvmhost" ]; then
       libvirttype=kvm
     else
-      cat /proc/cpuinfo | grep -q vmx
+      grep -q vmx /proc/cpuinfo
       if [ $? -eq 0 ]; then
         libvirttype=kvm
       else
@@ -134,6 +134,7 @@ function openstack_oc_deploy {
       deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
     fi
     startlog "Deploying overcloud"
+    echo "openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype" 2>>$stderr 1>>$stdout
     openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
