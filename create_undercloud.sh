@@ -115,7 +115,7 @@ function get_new_images {
           backupfolder=$( date +'%Y%m%d%H' )
         fi
       else
-        cmp -s images/$releasever/${minorver}/rhosp-director-images.previous images/$releasever/${minorver}${subfolder}/rhosp-director-images.latest
+        cmp -s images/$releasever/${minorver}${subfolder}/rhosp-director-images.previous images/$releasever/${minorver}${subfolder}/rhosp-director-images.latest
         if [ $? -ne 0 ]; then
           diff=1
         fi
