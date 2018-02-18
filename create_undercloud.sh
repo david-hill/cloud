@@ -306,6 +306,10 @@ function create_base_image {
   if [ $rc -eq 0 ]; then
     resize_base_disk
     rc=$?
+    if [ $rc -eq 0 ]; then
+      restore_permissions $jenkinspath/VMs/${vmname}.qcow2
+      rc=$?
+    fi
   fi
   return $rc
 }
