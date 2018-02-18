@@ -27,7 +27,13 @@ else
 fi
 
 function gen_disks {
-    sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
+  sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    restore_permissions $tpath/$type-$inc-$releasever.qcow2
+    rc=$?
+  fi
+  return $rc
 }
 function update_instackenv {
   if [ ! -z "${vbmc}" ]; then
