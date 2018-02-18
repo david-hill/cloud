@@ -1,3 +1,30 @@
+function restore_permissions {
+  file=$1
+  sudo chmod 660 $file
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    sudo chown qemu:jenkins $file
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      sudo chmod 770 /var/lib/jenkins/VMs
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        sudo chown qemu:jenkins /var/lib/jenkins/VMs
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          sudo chmod 770 /var/lib/jenkins
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            sudo chown qemu:jenkins /var/lib/jenkins
+            rc=$?
+          fi
+        fi
+      fi
+    fi
+  fi
+  return $rc
+}
+
 function source_rc {
   file=$1
   rc=255
