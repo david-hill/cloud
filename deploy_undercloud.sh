@@ -298,11 +298,11 @@ function create_local_docker_registry {
   if [ $use_docker -eq 1 ]; then
     rc=255
     startlog "Discover latest container image tag"
-    tag=$(sudo openstack overcloud container image tag discover --image registry.access.redhat.com/${releasever}/openstack-base:latest --tag-from-label version-release)
+    tag=$(sudo openstack overcloud container image tag discover --image ${url}/${releasever}/openstack-base:latest --tag-from-label version-release)
     if [ ! -z $tag ]; then
       endlog "done"
       startlog "Preparing local image registry"
-      openstack overcloud container image prepare --namespace=registry.access.redhat.com/${releasever} --prefix=openstack- --tag=$tag --output-images-file /home/stack/${releasever}/local_registry_images.yaml 2>>$stderr 1>>$stdout
+      openstack overcloud container image prepare --namespace=${url}/${releasever} --prefix=openstack- --tag=$tag --output-images-file /home/stack/${releasever}/local_registry_images.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
