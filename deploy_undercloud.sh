@@ -295,6 +295,13 @@ function delete_nodes {
 
 function create_local_docker_registry {
   rc=0
+  if [ -e /home/stack/internal ]; then
+    url=docker-registry.engineering.redhat.com
+    sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
+    sudo systemctl reload docker
+  else
+    url=registry.access.redhat.com
+  fi
   if [ $use_docker -eq 1 ]; then
     rc=255
     startlog "Discover latest container image tag"
