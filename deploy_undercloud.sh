@@ -295,37 +295,46 @@ function delete_nodes {
 
 function create_local_docker_registry {
   rc=0
-  if [ -e /home/stack/internal ]; then
-    url=docker-registry.engineering.redhat.com
-    sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
-    sudo systemctl restart docker
-  else
-    url=registry.access.redhat.com
-  fi
   if [ $use_docker -eq 1 ]; then
-    rc=255
-    startlog "Discover latest container image tag"
-    tag=$(sudo openstack overcloud container image tag discover --image ${url}/${releasever}/openstack-base:latest --tag-from-label version-release)
-    if [ ! -z $tag ]; then
-      endlog "done"
-      startlog "Preparing local image registry"
-      openstack overcloud container image prepare --namespace=${url}/${releasever} --prefix=openstack- --tag=$tag --output-images-file /home/stack/${releasever}/local_registry_images.yaml 2>>$stderr 1>>$stdout
+    if [ -e /home/stack/internal ]; then
+      url=docker-registry.engineering.redhat.com
+      sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
       rc=$?
       if [ $rc -eq 0 ]; then
+        sudo systemctl restart docker
+        rc=$?
+      fi
+    else
+      url=registry.access.redhat.com
+    fi
+    if [ $rc -eq 0 ]; then
+      startlog "Discover latest container image tag"
+      tag=$(sudo openstack overcloud container image tag discover --image ${url}/${releasever}/openstack-base:latest --tag-from-label version-release)
+      if [ ! -z $tag ]; then
         endlog "done"
-        startlog "Uploading local image registry"
-        sudo openstack overcloud container image upload --config-file  /home/stack/${releasever}/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
+        startlog "Preparing local image registry"
+        openstack overcloud container image prepare --namespace=${url}/${releasever} --prefix=openstack- --tag=$tag --output-images-file /home/stack/${releasever}/local_registry_images.yaml 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
           endlog "done"
-          startlog "Preparing local container image registry"
-          openstack overcloud container image prepare --namespace=192.0.2.1:8787/${releasever} --prefix=openstack- --tag=$tag --output-env-file=/home/stack/${releasever}/overcloud_images.yaml 2>>$stderr 1>>$stdout
+          startlog "Uploading local image registry"
+          sudo openstack overcloud container image upload --config-file  /home/stack/${releasever}/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
           rc=$?
           if [ $rc -eq 0 ]; then
             endlog "done"
+            startlog "Preparing local container image registry"
+            openstack overcloud container image prepare --namespace=192.0.2.1:8787/${releasever} --prefix=openstack- --tag=$tag --output-env-file=/home/stack/${releasever}/overcloud_images.yaml 2>>$stderr 1>>$stdout
+            rc=$?
+            if [ $rc -eq 0 ]; then
+              endlog "done"
+            else
+              endlog "error"
+            fi
           else
             endlog "error"
           fi
+        else
+          endlog "error"
         fi
       else
         endlog "error"
