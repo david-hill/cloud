@@ -90,8 +90,9 @@ function get_new_images {
     startlog "Getting new images"
     while [ $continue -eq 1 ] && [ $ttimeout -gt 0 ]; do
       rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.latest ]; then echo present; fi")
-      rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.missing ]; then echo missing; fi")
-      if [[ $rc =~ present ]] || [[ $rcf =~ missing ]]; then
+      rcm=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.missing ]; then echo missing; fi")
+      rce=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e failed ]; then echo failed; fi")
+      if [[ $rc =~ present ]] || [[ $rcm =~ missing ]] || [[ $rce =~ failed ]]; then
         continue=0
       fi
       ttimeout=$(( $ttimeout - 1 ))
