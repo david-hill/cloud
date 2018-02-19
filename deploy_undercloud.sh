@@ -297,6 +297,8 @@ function create_local_docker_registry {
   rc=0
   if [ -e /home/stack/internal ]; then
     url=docker-registry.engineering.redhat.com
+    sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
+    sudo systemctl restart docker
   else
     url=registry.access.redhat.com
   fi
