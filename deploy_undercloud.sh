@@ -158,14 +158,56 @@ function clear_arp_table {
   sudo ip neighbor flush dev eth0
   sudo ip neighbor flush dev br-ctlplane
 }
+
+function import_instackenv {
+  openstack baremetal import --json /home/stack/instackenv.json 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    openstack overcloud node import /home/stack/instackenv.json 2>>$stderr 1>>$stdout
+    rc=$?
+  fi
+  return $rc
+}
+
+function configure_boot {
+  inc=0
+  openstack baremetal configure boot 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    rc=0
+    for p in $( openstack baremetal node list | grep False | awk '{ print $2 }' ); do
+      openstack overcloud node configure $p 2>>$stderr 1>>$stdout
+      trc=$?
+      if [ $trc -ne 0 ]; then
+        rc=$?
+      else
+        inc=$(( $inc + 1))
+      fi
+    done
+  fi
+  if [ $inc -eq 0 ]; then
+    rc=255
+  fi
+  return $rc
+}
+
+function introspect {
+  openstack baremetal introspection bulk start 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    openstack overcloud node introspect --all-manageable 2>>$stderr 1>>$stdout
+    rc=$?
+  fi
+  return $rc
+}
 function baremetal_setup {
   startlog "Importing instackenv.json"
-  openstack baremetal import --json /home/stack/instackenv.json 2>>$stderr 1>>$stdout
+  import_instackenv
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
     startlog "Configure node boot"
-    openstack baremetal configure boot 2>>$stderr 1>>$stdout
+    configure_boot
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
@@ -174,7 +216,7 @@ function baremetal_setup {
       ironic node-list | grep False | awk '{ print $2 }' | xargs -I% ironic node-show % 2>>$stderr 1>>$stdout
       endlog "done"
       startlog "Starting introspection"
-      openstack baremetal introspection bulk start 2>>$stderr 1>>$stdout
+      introspect
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
