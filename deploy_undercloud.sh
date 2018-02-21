@@ -92,10 +92,19 @@ function tag_hosts {
   for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
     if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
       ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+      if [ $? -ne 0 ]; then
+        openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+      fi
     elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
       ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+      if [ $? -ne 0 ]; then
+        openstack baremetal node set --property capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+      fi
     else
       ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+      if [ $? -ne 0 ]; then
+        openstack baremetal node set --property capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+      fi
     fi
     inc=$( expr $inc + 1)
   done
