@@ -195,7 +195,7 @@ function introspect {
   openstack baremetal introspection bulk start 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -ne 0 ]; then
-    openstack overcloud node introspect --all-manageable 2>>$stderr 1>>$stdout
+    openstack overcloud node introspect --all-manageable --provide 2>>$stderr 1>>$stdout
     rc=$?
   fi
   return $rc
