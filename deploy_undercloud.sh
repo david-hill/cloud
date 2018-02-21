@@ -90,7 +90,13 @@ function tag_hosts {
     ironic node-list | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
   fi
   openstack overcloud profiles list 2>>$stderr 1>>$stdout
-  for p in $(ironic node-list | grep available | awk '{ print $2 }'); do
+  ironic node-list 2>>$stderr 1>>$stdout
+  if [ $? -eq 0 ]; then
+    output=$(ironic node-list 2>>$stderr | grep available | awk '{ print $2 }')
+  else
+    output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
+  fi
+  for p in $output; do
     if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
       ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
       if [ $? -ne 0 ]; then
@@ -109,7 +115,12 @@ function tag_hosts {
     fi
     inc=$( expr $inc + 1)
   done
-  endlog "done"
+  if [ $inc -eq 0 ]; then
+    endlog "error"
+    rc=1
+  else
+    endlog "done"
+  fi
   return $rc
 }
 
