@@ -287,6 +287,16 @@ function deploy_overcloud {
   return $rc
 }
 
+function disable_selinux {
+  sudo sestatus | grep Current | grep -q permissive
+  if [ $? -ne 0 ]; then
+    sudo setenforce 0
+  fi
+  grep -q permissive /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
+  if [ $? -eq 0 ]; then
+    sudo sed -i 's/tripleo::selinux::mode:.*/tripleo::selinux::mode: permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
+  fi
+}
 function install_undercloud {
   startlog "Installing undercloud"
   sudo yum install -y python-rdomanager-oscplugin openstack-utils 2>>$stderr 1>>$stdout
@@ -419,6 +429,7 @@ if [ -e "/home/stack/stackrc" ]; then
   source_rc /home/stack/stackrc
 fi
 conformance
+disable_selinux
 install_undercloud
 rc=$?
 if [ $rc -eq 0 ]; then
