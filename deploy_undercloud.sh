@@ -292,7 +292,7 @@ function install_undercloud {
   sudo yum install -y python-rdomanager-oscplugin openstack-utils 2>>$stderr 1>>$stdout
   openstack undercloud install 2>>$stderr 1>>$stdout
   rc=$?
-  if [ $? -eq 0 ]; then
+  if [ $rc -eq 0 ]; then
     endlog "done"
   else
     endlog "error"
