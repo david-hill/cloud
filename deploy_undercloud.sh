@@ -293,7 +293,7 @@ function disable_selinux {
     sudo setenforce 0
   fi
   grep -q permissive /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
-  if [ $? -eq 0 ]; then
+  if [ $? -ne 0 ]; then
     sudo sed -i 's/tripleo::selinux::mode:.*/tripleo::selinux::mode: permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
   fi
 }
