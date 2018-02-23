@@ -288,14 +288,20 @@ function deploy_overcloud {
 }
 
 function disable_selinux {
+  startlog "Disabling selinux"
   sudo sestatus | grep Current | grep -q permissive
   if [ $? -ne 0 ]; then
     sudo setenforce 0
   fi
   grep -q permissive /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
-  if [ $? -ne 0 ]; then
+  iaf [ $? -ne 0 ]; then
     sudo sed -i 's/tripleo::selinux::mode:.*/tripleo::selinux::mode: permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
   fi
+  grep -q SELINUX=enforcing /etc/selinux/config
+  if [ $? -eq 0 ]; then
+    sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
+  fi
+  endlog "done"
 }
 function install_undercloud {
   startlog "Installing undercloud"
@@ -308,13 +314,6 @@ function install_undercloud {
     endlog "error"
   fi
   return $rc
-}
-
-function disable_selinux {
-  startlog "Disabling selinux"
-  sudo /sbin/setenforce 0 2>>$stderr 1>>$stdout
-  sudo sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
-  endlog "done"
 }
 
 function validate_network_environment {
@@ -434,7 +433,6 @@ install_undercloud
 rc=$?
 if [ $rc -eq 0 ]; then
   enable_nfs
-  disable_selinux
   source_rc /home/stack/stackrc
   validate_network_environment
   rc=$?
