@@ -191,10 +191,11 @@ function import_instackenv {
 }
 
 function configure_boot {
-  inc=0
+  inc=1
   openstack baremetal configure boot 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -ne 0 ]; then
+    inc=0
     rc=0
     for p in $( openstack baremetal node list | grep False | awk '{ print $2 }' ); do
       openstack overcloud node configure $p 2>>$stderr 1>>$stdout
