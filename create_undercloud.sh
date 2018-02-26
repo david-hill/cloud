@@ -353,12 +353,14 @@ function fetch_internal_images {
       cd ../../
       endlog "done"
     fi
-    if [ -e images/$releasever/${minorver}/update_images.sh ]; then
-      startlog "Fetching RHOSP image"
-      cd images/$releasever/${minorver}/
-      bash update_images.sh
-      cd ../../../  
-      endlog "done"
+    if [ $fetchrhospimages -eq 1 ]; then
+      if [ -e images/$releasever/${minorver}/update_images.sh ]; then
+        startlog "Fetching RHOSP image"
+        cd images/$releasever/${minorver}/
+        bash update_images.sh
+        cd ../../../  
+        endlog "done"
+      fi
     fi
   fi
 }
