@@ -381,6 +381,7 @@ function create_local_docker_registry {
       url=registry.access.redhat.com
     fi
     if [ $rc -eq 0 ]; then
+      rc=255
       startlog "Discover latest container image tag"
       tag=$(sudo openstack overcloud container image tag discover --image ${url}/${releasever}/openstack-base:latest --tag-from-label version-release)
       if [ ! -z $tag ]; then
