@@ -43,7 +43,7 @@ function source_rc {
 
 function wait_for_reboot {
   rc='error'
-  timeout=600
+  timeout=900
   inc=0
   while [[ ! "$rc" =~ present ]] && [[ ! "$rcf" =~ present ]] && [[ $inc -lt $timeout ]]; do
     rc=$(timeout 10 ssh -o LogLevel=quiet -o ConnectTimeout=10 -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rebooted ]; then echo present; fi" 2>>$stderr)
