@@ -164,19 +164,32 @@ function add_secgroup_rule {
 }
 function create_floating_ip {
   startlog "Creating a floating IP"
-  nova floating-ip-create ext-net 2>>$stderr 1>>$stdout
-  rc=$?
-  if [ $rc -ne 0 ]; then
-    openstack floating ip create ext-net 2>>$stderr 1>>$stdout
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' )
+  ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }')
+  if [ -z $ip ]; then
+    ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' )
+    if [ -z $ip ]; then
+      nova floating-ip-create ext-net 2>>$stderr 1>>$stdout
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        openstack floating ip create ext-net 2>>$stderr 1>>$stdout
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' )
+        fi
+      else
+        ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }')
+      fi
+    else
+      rc=3
     fi
   else
-    ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }')
-  fi 
+    rc=3
+  fi
   if [ $rc -eq 0 ]; then
     endlog "done"
+  elif [ $rc -eq 3 ]; then
+    endlog "skip"
+    rc=0
   else
     endlog "error"
   fi
