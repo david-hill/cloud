@@ -210,6 +210,22 @@ function ping_floating_ip {
   return $rc
 }
 
+function validate_floating_ip {
+  startlog "Validating $ip is attached to the VM"
+  nova list | grep -q $ip
+  rc=$?
+  if [ $? -ne 0 ]; then
+    openstack server list | grep -q $ip
+    rc=$?
+  fi
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
+
 function provision_vm {
   create_flavor
   rc=$?
@@ -230,8 +246,12 @@ function provision_vm {
               attach_floating_ip
               rc=$?
               if [ $rc -eq 0 ]; then
-                ping_floating_ip
+                validate_floating_ip
                 rc=$?
+                if [ $rc -eq 0 ]; then
+                  ping_floating_ip
+                  rc=$?
+                fi
               fi
             fi
           fi
