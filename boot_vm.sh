@@ -100,6 +100,52 @@ function create_flavor {
   return $rc
 }
 
+function create_volume {
+  delete_volume
+  volid=$(cinder create --image-id $image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
+}
+
+function wait_for_volume {
+  inc=0
+  while ! $( cinder list | grep $volid | egrep -q "available|error") && [ $inc -lt 10 ]; do
+    inc=$(( $inc +1 ))
+    sleep 1
+  done
+}
+
+function create_boot_from_volume_test_vm {
+  nova list 2>>$stderr | grep -q test-vm
+  rc=$?
+  if [ $rc -eq 1 ]; then
+    startlog "Creating test VM"
+    create_volume
+
+    if [ ! -z $volid ]; then
+      wait_for_volume
+      if $( cinder list | grep $volid | grep -q available ); then
+        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=preserve,bootindex=0  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
+        rc=$?
+      else
+        rc=252
+      fi
+    fi
+
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  else
+    delete_vm
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      create_test_vm
+      rc=$?
+    fi
+  fi
+  return $rc
+}
+
 function create_test_vm {
   nova list 2>>$stderr | grep -q test-vm
   rc=$?
