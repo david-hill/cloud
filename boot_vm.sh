@@ -139,7 +139,7 @@ function create_boot_from_volume_test_vm {
     delete_vm
     rc=$?
     if [ $rc -eq 0 ]; then
-      create_test_vm
+      create_boot_from_volume_test_vm
       rc=$?
     fi
   fi
