@@ -244,7 +244,14 @@ function add_secgroup_rule {
       if [ $rc -eq 1 ]; then
         openstack security group rule create --protocol icmp ${groupid} 2>>$stderr 1>>$stdout
         rc=$?
+        if [ $rc -eq 0 ]; then
+          openstack security group rule create --protocol tcp ${groupid} 2>>$stderr 1>>$stdout
+          rc=$?
+        fi
       fi
+    else
+      nova secgroup-add-rule default tcp 22 22 0/0 2>>$stderr 1>>$stdout
+      rc=$?
     fi
   fi
   if [ $rc -eq 0 ]; then
