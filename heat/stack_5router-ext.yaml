@@ -1,0 +1,64 @@
+description: HOT Template
+heat_template_version: '2013-05-23'
+parameters:
+  publicExtnet: {description: external routable network, type: string}
+resources:
+  ext-chrg1_router:
+    properties:
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R1
+    type: OS::Neutron::Router
+  ext-cp1_router:
+    properties:
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R2
+    type: OS::Neutron::Router
+  ext-cp2_router:
+    properties:
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R3
+    type: OS::Neutron::Router
+  ext-cp3_router:
+    properties:
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R4
+    type: OS::Neutron::Router
+  ext-oam_router:
+    properties:
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R5
+    type: OS::Neutron::Router
+  external_router:
+    properties:
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-EXTERNAL-router
+    type: OS::Neutron::Router
+  external_router_routerGw:
+    properties:
+      network: {get_param: publicExtnet}
+      router_id: {get_resource: external_router}
+    type: OS::Neutron::RouterGateway

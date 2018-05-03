@@ -1,0 +1,161 @@
+description: HOT Template
+heat_template_version: '2013-05-23'
+parameters:
+  image_id:
+    type: string
+    description: ID of the image to use for the WordPress server
+    default: cirros-0.3.5-x86_64-disk.img
+    constraints:
+      - allowed_values: [ cirros, cirros-0.3.5-x86_64-disk.img ]
+        description: >
+          Image ID must be either F18-i386-cfntools or F18-x86_64-cfntools
+resources:
+  ext-chrg1_router:
+    depends_on: [ public_net, public ]
+    properties:
+      ha: false
+      external_gateway_info: { network: public_net }
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R1
+    type: OS::Neutron::Router
+
+  private_net:
+    type: OS::Neutron::Net
+    properties:
+      name: private_net
+      shared: false
+
+#  private_net:
+#    type: OS::Neutron::ProviderNet
+#    properties:
+#      name: private_net
+#      network_type: vxlan
+#      shared: false
+
+  private_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      name: private_subnet
+      network_id: { get_resource: private_net }
+      cidr: "10.254.0.0/24"
+      allocation_pools: [ { "start": "10.254.0.130", "end": "10.254.0.250" } ]
+      ip_version: 4
+#      dns_nameservers: [ "8.8.8.8", "8.8.4.4" ]
+
+  public_net:
+    type: OS::Neutron::ProviderNet
+    properties:
+      name: public_net
+      physical_network: datacentre
+      router_external: true
+      network_type: flat
+      shared: false
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_resource: public_net }
+    depends_on: public
+
+  public:
+    type: OS::Neutron::Subnet
+    depends_on: public_net
+    properties:
+      name: public
+      network_id: { get_resource: public_net }
+      cidr: "192.168.122.0/24"
+      allocation_pools: [ { "start": "192.168.122.201", "end": "192.168.122.254" } ]
+      dns_nameservers: [ "8.8.8.8", "8.8.4.4" ]
+      gateway_ip: "192.168.122.1"
+      ip_version: 4
+      enable_dhcp: false
+
+  #public_interface:
+  #  type: OS::Neutron::RouterInterface
+  #  properties:
+  #    router_id: { get_resource: ext-chrg1_router }
+  #    port: { get_resource: public_port }
+
+  internal_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: ext-chrg1_router }
+      subnet: { get_resource: private_subnet }
+
+#  private_port:
+#    type: OS::Neutron::Port
+#    properties:
+#      name: private_port
+#      network: { get_resource: private_net }
+#      fixed_ips:
+#        - subnet_id: { get_resource: private_subnet }
+
+  public_port:
+    type: OS::Neutron::Port
+    properties:
+      name: public_port
+      network: { get_resource: public_net }
+      fixed_ips:
+        - subnet_id: { get_resource: public }
+
+  test_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: test_secgroup
+      rules:
+        - protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: icmp
+          remote_ip_prefix: 0.0.0.0/0
+
+  instance_port:
+    type: OS::Neutron::Port
+    properties:
+      name: instance_port
+      security_groups:
+        - { get_resource: test_secgroup }
+      network: { get_resource: private_net }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet }
+
+  flavor:
+    type: OS::Nova::Flavor
+    properties:
+      name: flavor
+      ram: 256
+      vcpus: 1
+
+  my_key:
+    type: OS::Nova::KeyPair
+    properties:
+      save_private_key: true
+      name: my_key
+
+  test_vm:
+    type: OS::Nova::Server
+    depends_on: [ my_key, flavor, instance_port ]
+    properties:
+      name: test_vm
+      image: { get_param: image_id }
+      flavor: { get_resource: flavor }
+      key_name: { get_resource: my_key }
+      user_data: ""
+      user_data_format: "RAW"
+      security_groups: 
+        - { get_resource: test_secgroup }
+      networks:
+         - network: { get_resource: private_net }
+#        - port: { get_resource: instance_port }
+
+  association:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: test_vm }
+    depends_on: floating_ip
