@@ -1,0 +1,183 @@
+description: HOT Template
+heat_template_version: '2013-05-23'
+parameters:
+  image_id:
+    type: string
+    description: ID of the image to use for the WordPress server
+    default: cirros-0.3.5-x86_64-disk.img
+    constraints:
+      - allowed_values: [ cirros, cirros-0.3.5-x86_64-disk.img ]
+        description: >
+          Image ID must be either F18-i386-cfntools or F18-x86_64-cfntools
+resources:
+  ext-chrg1_router:
+    depends_on: public_net
+    properties:
+      external_gateway_info: { network: public_net }
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R1
+    type: OS::Neutron::Router
+  ext-cp1_router:
+    depends_on: public_net
+    properties:
+      external_gateway_info: { network: public_net }
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R2
+    type: OS::Neutron::Router
+  ext-cp2_router:
+    depends_on: public_net
+    properties:
+      external_gateway_info: { network: public_net }
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R3
+    type: OS::Neutron::Router
+  ext-cp3_router:
+    depends_on: public_net
+    properties:
+      external_gateway_info: { network: public_net }
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R4
+
+    type: OS::Neutron::Router
+  ext-oam_router:
+    depends_on: public_net
+    properties:
+      external_gateway_info: { network: public_net }
+      admin_state_up: 'true'
+      name:
+        str_replace:
+          params:
+            $prefix: {get_param: 'OS::stack_name'}
+          template: $prefix-R5
+    type: OS::Neutron::Router
+
+
+  private:
+    type: OS::Neutron::Net
+
+  private_subnet:
+    type: OS::Neutron::Subnet
+    properties:
+      network_id: { get_resource: private }
+      cidr: "10.0.0.128/25"
+      allocation_pools: [ { "start": "10.0.0.130", "end": "10.0.0.250" } ]
+      dns_nameservers: [ "8.8.8.8", "8.8.4.4" ]
+      ip_version: 4
+
+  public_net:
+    type: OS::Neutron::ProviderNet
+    properties:
+      name: public_net
+      physical_network: datacentre
+      router_external: true
+      network_type: flat
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_resource: public_net }
+    depends_on: public
+
+  public:
+    type: OS::Neutron::Subnet
+    depends_on: public_net
+    properties:
+      name: public
+      network_id: { get_resource: public_net }
+      cidr: "192.168.122.0/24"
+      allocation_pools: [ { "start": "192.168.122.150", "end": "192.168.122.160" } ]
+      dns_nameservers: [ "8.8.8.8", "8.8.4.4" ]
+      gateway_ip: "192.168.122.1"
+      ip_version: 4
+
+  public_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: ext-chrg1_router }
+      port: { get_resource: public_port }
+#      subnet: { get_resource: public }
+
+  internal_interface:
+    type: OS::Neutron::RouterInterface
+    properties:
+      router_id: { get_resource: ext-chrg1_router }
+      port: { get_resource: private_port }
+#      subnet: { get_resource: private_subnet }
+
+  private_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_resource: private }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet }
+  public_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_resource: public_net }
+      fixed_ips:
+        - subnet_id: { get_resource: public }
+
+  test_secgroup:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      rules:
+        - protocol: tcp
+          remote_ip_prefix: 0.0.0.0/0
+          port_range_min: 22
+          port_range_max: 22
+        - protocol: icmp
+          remote_ip_prefix: 0.0.0.0/0
+
+  instance_port:
+    type: OS::Neutron::Port
+    properties:
+      security_groups:
+        - default
+        - { get_resource: test_secgroup }
+      network: { get_resource: private }
+      fixed_ips:
+        - subnet_id: { get_resource: private_subnet }
+
+  flavor:
+    type: OS::Nova::Flavor
+    properties:
+      ram: 256
+      vcpus: 1
+
+  my_key:
+    type: OS::Nova::KeyPair
+    properties:
+      save_private_key: true
+      name: my_key
+
+  test_vm:
+    type: OS::Nova::Server
+    properties:
+      image: { get_param: image_id }
+      flavor: { get_resource: flavor }
+      key_name: { get_resource: my_key }
+      networks:
+        - port: { get_resource: instance_port }
+
+  association:
+    type: OS::Nova::FloatingIPAssociation
+    properties:
+      floating_ip: { get_resource: floating_ip }
+      server_id: { get_resource: test_vm }
+    depends_on: floating_ip
