@@ -5,7 +5,7 @@ source_rc setup.cfg
 source_rc overcloudrc
 rc=0
 
-version="0.3.5"
+version="0.4.0"
 imagename="cirros-${version}-x86_64-disk.img"
 primaryurl="http://download.cirros-cloud.net/$version/$imagename"
 alternateurl="https://github.com/sshnaidm/cirros-mirror/raw/master/$imagename"
