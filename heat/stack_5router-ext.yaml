@@ -1,7 +1,7 @@
 description: HOT Template
 heat_template_version: '2013-05-23'
 parameters:
-  publicExtnet: {description: external routable network, type: string}
+  publicExtnet: {description: external routable network, type: string, default: provider1}
 resources:
   ext-chrg1_router:
     properties:
