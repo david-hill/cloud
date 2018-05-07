@@ -8,7 +8,7 @@ parameters:
         type: string
         label: Server Image 
         description: Image
-        default: CentOS-7
+        default: cirros-0.3.5-x86_64-disk.img
 
   secgroup_id:
         type: string
@@ -20,13 +20,7 @@ parameters:
         type: string
         label: Flavor
         description: Name
-        default: small
-        
-  volume_type:
-        type: string
-        label: VolumeType
-        description: Name
-        default: scaleio-totp-ssd
+        default: m1.small
         
   v_size_boot:
         type: number
@@ -38,7 +32,7 @@ parameters:
         type: string
         label: External Network
         description: Name of the security group
-        default: Floating1
+        default: provider1
 
  
 resources:
@@ -200,7 +194,6 @@ resources:
           name: server-frontend-01-volume-boot
           size: { get_param: v_size_boot }
           image: { get_param: image_server }
-          volume_type: { get_param: volume_type }
 
   server_frontend_01:
         type: OS::Nova::Server
@@ -225,7 +218,6 @@ resources:
           name: server-frontend-02-volume-boot
           size: { get_param: v_size_boot }
           image: { get_param: image_server }
-          volume_type: { get_param: volume_type }
 
   server_frontend_02:
         type: OS::Nova::Server
@@ -249,7 +241,6 @@ resources:
           name: server-backend-01-volume-boot
           size: { get_param: v_size_boot }
           image: { get_param: image_server }
-          volume_type: { get_param: volume_type }
               
   server_backend_01:
         type: OS::Nova::Server
@@ -273,7 +264,6 @@ resources:
           name: server-backend-02-volume-boot
           size: { get_param: v_size_boot }
           image: { get_param: image_server }
-          volume_type: { get_param: volume_type }
                         
   server_backend_02:
         type: OS::Nova::Server
