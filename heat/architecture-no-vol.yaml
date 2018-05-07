@@ -20,7 +20,7 @@ parameters:
         type: string
         label: Flavor
         description: Name
-        default: m1.tiny
+        default: m1.micro
         
   v_size_boot:
         type: number
