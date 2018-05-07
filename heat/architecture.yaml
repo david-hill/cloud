@@ -1,0 +1,292 @@
+heat_template_version: 2013-05-23
+
+description: HOT template for creating 3 Tier Architecture
+
+parameters:
+
+  image_server:
+        type: string
+        label: Server Image 
+        description: Image
+        default: CentOS-7
+
+  secgroup_id:
+        type: string
+        label: Security Group
+        description: Name
+        default: default
+        
+  flavor:
+        type: string
+        label: Flavor
+        description: Name
+        default: small
+        
+  volume_type:
+        type: string
+        label: VolumeType
+        description: Name
+        default: scaleio-totp-ssd
+        
+  v_size_boot:
+        type: number
+        label: Volume Size
+        description: Volume size
+        default: 16
+        
+  external_net:
+        type: string
+        label: External Network
+        description: Name of the security group
+        default: Floating1
+
+ 
+resources:
+  net_mgt:
+        type: OS::Neutron::Net
+        properties:
+          name: net-mgt
+
+  subnet_mgt:
+        type: OS::Neutron::Subnet
+        properties:
+          name: subnet-mgt
+          network_id: { get_resource: net_mgt }
+          cidr: 10.0.100.0/24
+          gateway_ip: 10.0.100.1
+
+  net_erog_app:
+        type: OS::Neutron::Net
+        properties:
+          name: net-erog-app
+          
+  subnet_erog_app:
+        type: OS::Neutron::Subnet
+        properties:
+          name: subnet-erog-app
+          network_id: { get_resource: net_erog_app }
+          cidr: 10.0.51.0/24
+          gateway_ip: 10.0.51.1
+
+  net_erog_data:
+        type: OS::Neutron::Net
+        properties:
+          name: net-erog-data
+          
+  subnet_erog_data:
+        type: OS::Neutron::Subnet
+        properties:
+          name: subnet-erog-data
+          network_id: { get_resource: net_erog_data }
+          cidr: 10.0.52.0/24
+          gateway_ip: 10.0.52.1
+
+  router1:
+        type: OS::Neutron::Router
+        properties:
+          external_gateway_info:
+                network: { get_param: external_net}
+
+  router_interface1:
+        type: OS::Neutron::RouterInterface
+        depends_on: subnet_mgt
+        properties:
+          router_id: { get_resource: router1 }
+          subnet_id: { get_resource: subnet_mgt }
+  
+  router_interface2:
+        type: OS::Neutron::RouterInterface
+        depends_on: subnet_erog_app
+        properties:
+          router_id: { get_resource: router1 }
+          subnet_id: { get_resource: subnet_erog_app }
+  
+  router_interface3:
+        type: OS::Neutron::RouterInterface
+        depends_on: subnet_erog_data
+        properties:
+          router_id: { get_resource: router1 }
+          subnet_id: { get_resource: subnet_erog_data }
+          
+#PORTE
+
+  port_frontend_01_erog_app:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_erog_app
+        - subnet_erog_app
+        properties:
+          network_id: { get_resource: net_erog_app }
+          fixed_ips: 
+          - ip_address: 10.0.51.10
+          
+  port_frontend_02_erog_app:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_erog_app
+        - subnet_erog_app
+        properties:
+          network_id: { get_resource: net_erog_app }
+          fixed_ips: 
+          - ip_address: 10.0.51.11
+      
+  port_frontend_01_mgt:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_mgt
+        - subnet_mgt
+        properties:
+          network_id: { get_resource: net_mgt }
+          fixed_ips: 
+          - ip_address: 10.0.100.10
+         
+  port_frontend_02_mgt:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_mgt
+        - subnet_mgt
+        properties:
+          network_id: { get_resource: net_mgt }
+          fixed_ips:
+          - ip_address: 10.0.100.11
+          
+  port_backend_01_erog_data:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_erog_data
+        - subnet_erog_data
+        properties:
+          network_id: { get_resource: net_erog_data }
+          fixed_ips:
+          - ip_address: 10.0.52.10
+          
+  port_backend_02_erog_data:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_erog_data
+        - subnet_erog_data
+        properties:
+          network_id: { get_resource: net_erog_data }
+          fixed_ips:
+          - ip_address: 10.0.52.11
+      
+  port_backend_01_mgt:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_mgt
+        - subnet_mgt
+        properties:
+          network_id: { get_resource: net_mgt }
+          fixed_ips:
+          - ip_address: 10.0.100.12
+      
+  port_backend_02_mgt:
+        type: OS::Neutron::Port
+        depends_on:
+        - net_mgt
+        - subnet_mgt
+        properties:
+          network_id: { get_resource: net_mgt }
+          fixed_ips: 
+          - ip_address: 10.0.100.13
+          
+
+
+#SERVER
+
+  server_frontend_01_volume_boot:
+        type: OS::Cinder::Volume
+        properties:
+          name: server-frontend-01-volume-boot
+          size: { get_param: v_size_boot }
+          image: { get_param: image_server }
+          volume_type: { get_param: volume_type }
+
+  server_frontend_01:
+        type: OS::Nova::Server
+        depends_on:
+        - server_frontend_01_volume_boot
+        - net_erog_app
+        - port_frontend_01_mgt
+        - port_frontend_01_erog_app
+        properties:
+          name: server-frontend-01
+          image: { get_param: image_server }
+          flavor: { get_param: flavor }
+          availability_zone: nova
+          networks:
+              - port : { get_resource : port_frontend_01_erog_app }
+              - port : { get_resource : port_frontend_01_mgt }
+          block_device_mapping: [{ device_name: "vda", volume_id : { get_resource : server_frontend_01_volume_boot }, delete_on_termination : "false" }]
+
+  server_frontend_02_volume_boot:
+        type: OS::Cinder::Volume
+        properties:
+          name: server-frontend-02-volume-boot
+          size: { get_param: v_size_boot }
+          image: { get_param: image_server }
+          volume_type: { get_param: volume_type }
+
+  server_frontend_02:
+        type: OS::Nova::Server
+        depends_on:
+        - server_frontend_02_volume_boot
+        - port_frontend_02_mgt
+        - port_frontend_02_erog_app
+        properties:
+          name: server-frontend-02
+          image: { get_param: image_server }
+          flavor: { get_param: flavor }
+          availability_zone: nova
+          networks:
+              - port : { get_resource : port_frontend_02_erog_app }
+              - port : { get_resource : port_frontend_02_mgt }
+          block_device_mapping: [{ device_name: "vda", volume_id : { get_resource : server_frontend_02_volume_boot }, delete_on_termination : "false" }]
+          
+  server_backend_01_volume_boot:
+        type: OS::Cinder::Volume
+        properties:
+          name: server-backend-01-volume-boot
+          size: { get_param: v_size_boot }
+          image: { get_param: image_server }
+          volume_type: { get_param: volume_type }
+              
+  server_backend_01:
+        type: OS::Nova::Server
+        depends_on:
+        - server_backend_01_volume_boot
+        - port_backend_01_mgt
+        - port_backend_01_erog_data
+        properties:
+          name: server-backend-01
+          image: { get_param: image_server }
+          flavor: { get_param: flavor }
+          availability_zone: nova
+          networks:
+              - port : { get_resource : port_backend_01_erog_data }
+              - port : { get_resource : port_backend_01_mgt }
+          block_device_mapping: [{ device_name: "vda", volume_id : { get_resource : server_backend_01_volume_boot }, delete_on_termination : "false" }]
+          
+  server_backend_02_volume_boot:
+        type: OS::Cinder::Volume
+        properties:
+          name: server-backend-02-volume-boot
+          size: { get_param: v_size_boot }
+          image: { get_param: image_server }
+          volume_type: { get_param: volume_type }
+                        
+  server_backend_02:
+        type: OS::Nova::Server
+        depends_on:
+        - server_backend_01_volume_boot
+        - port_backend_01_mgt
+        - port_backend_01_erog_data
+        properties:
+          name: server-backend-02
+          image: { get_param: image_server }
+          flavor: { get_param: flavor }
+          availability_zone: nova
+          networks:
+              - port : { get_resource : port_backend_02_erog_data }
+              - port : { get_resource : port_backend_02_mgt }
+          block_device_mapping: [{ device_name: "vda", volume_id : { get_resource : server_backend_02_volume_boot }, delete_on_termination : "false" }] 
