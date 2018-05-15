@@ -229,13 +229,17 @@ function enable_nfs {
     iptables -I INPUT -p tcp --dport 111  -j ACCEPT
     mkdir -p /exports/cinder
     mkdir -p /exports/glance
+    mkdir -p /exports/nova
     cat<<EOF>/etc/exports
-/exports/cinder *(rw,sync)
-/exports/glance *(rw,sync)
+/exports/cinder *(rw,sync,no_root_squash)
+/exports/glance *(rw,sync,no_root_squash)
+/exports/nova *(rw,sync,no_root_squash)
 EOF
     exportfs -r
     chown glance:glance /exports/glance
+    chown nova:nova /exports/nova
     chmod 777 /exports/cinder
+    chmod 777 /exports/nova
     endlog "done"
   fi
 }
