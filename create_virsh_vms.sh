@@ -32,6 +32,12 @@ function gen_disks {
   if [ $rc -eq 0 ]; then
     restore_permissions $tpath/$type-$inc-$releasever.qcow2
     rc=$?
+    sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever-vdb.qcow2 50G > /dev/null
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      restore_permissions $tpath/$type-$inc-$releasever-vdb.qcow2
+      rc=$?
+    fi
   fi
   return $rc
 }
