@@ -45,6 +45,14 @@ or other application using the libvirt API.
       <target dev='vda' bus='virtio'/>
       <boot order='2'/>
     </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='###PATH###/###DISK###-vdb.qcow2'/>
+      <backingStore/>
+      <target dev='vdb' bus='virtio'/>
+      <alias name='virtio-disk2'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0a' function='0x0'/>
+    </disk>
     <disk type='block' device='cdrom'>
       <driver name='qemu' type='raw'/>
       <target dev='hdb' bus='ide'/>
