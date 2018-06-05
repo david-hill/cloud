@@ -315,6 +315,16 @@ function create_base_image {
   return $rc
 }
 
+function create_vdb {
+  sudo qemu-img create -f qcow2 $jenkinspath/VMs/${vmname}-vdb.qcow2 50G > /dev/null
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    restore_permissions $jenkinspath/VMs/${vmname}-vdb.qcow2
+    rc=$?
+  fi
+  return $rc
+}
+ 
 function flush_arp_table {
   for arpentry in $( sudo arp -na | grep virbr | awk '{ print $2 }' | sed -e 's/(//g' -e 's/)//g' ); do
     sudo arp -i virbr0 -d $arpentry
@@ -508,42 +518,46 @@ if [ $rc -eq 0 ]; then
         customize_image
         rc=$?
         if [ $rc -eq 0 ]; then
-          spawn_undercloud_vm
-          wait_for_vm
+          create_vdb
           rc=$?
           if [ $rc -eq 0 ]; then
-            wait_for_ssh
+            spawn_undercloud_vm
+            wait_for_vm
             rc=$?
             if [ $rc -eq 0 ]; then
-              if [ ! -z $rdorelease ]; then
-                wait_for_reboot
-                if [ $? -eq 0 ]; then
-                  customize_rhel_image
-                  upload_rhel_image
-                  generate_images
-                  rc=$?
-                else
-                  endlog "error"
-                fi
-              fi
+              wait_for_ssh
+              rc=$?
               if [ $rc -eq 0 ]; then
-                bash create_virsh_vms.sh $installtype $rdorelease
-                rc=$?
+                if [ ! -z $rdorelease ]; then
+                  wait_for_reboot
+                  if [ $? -eq 0 ]; then
+                    customize_rhel_image
+                    upload_rhel_image
+                    generate_images
+                    rc=$?
+                  else
+                    endlog "error"
+                  fi
+                fi
                 if [ $rc -eq 0 ]; then
-                  wait_for_undercloud_deployment
+                  bash create_virsh_vms.sh $installtype $rdorelease
                   rc=$?
                   if [ $rc -eq 0 ]; then
-                    if [ -z $rdorelease ]; then
-                      get_new_images
-                    fi
-                    wait_for_introspection
+                    wait_for_undercloud_deployment
                     rc=$?
                     if [ $rc -eq 0 ]; then
-                      wait_for_overcloud_deployment
+                      if [ -z $rdorelease ]; then
+                        get_new_images
+                      fi
+                      wait_for_introspection
                       rc=$?
                       if [ $rc -eq 0 ]; then
-                        wait_for_overcloud_test
+                        wait_for_overcloud_deployment
                         rc=$?
+                        if [ $rc -eq 0 ]; then
+                          wait_for_overcloud_test
+                          rc=$?
+                        fi
                       fi
                     fi
                   fi
