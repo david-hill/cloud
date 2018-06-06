@@ -58,6 +58,11 @@ import rbd
 import unittest
 import sys
 
+if nx.__version__ > 1.9:
+  print "ERROR : Please use networx 1.9 or earlier"
+  print("ERROR : Version %s was detected" % nx.__version__)
+  exit(255)
+
 
 DELETE_PATTERN = 'to_be_deleted_by_glance'
 
