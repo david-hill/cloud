@@ -328,7 +328,7 @@ if __name__ == "__main__":
                         image = rbd.Image(ioctx, n)
                         for snap in image.list_snaps():
                             image.unprotect_snap(snap)
-                            image.remove_snap(snap)
+                            image.remove_snap(snap['name'])
                         del image
                         rbd_inst.remove(ioctx, n)
                     else:
