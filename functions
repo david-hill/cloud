@@ -219,27 +219,27 @@ function gen_macs {
 function enable_nfs {
   if [ "$enablenfs" -eq 1 ]; then
     startlog "Enabling NFS"
-    systemctl enable nfs-server
-    systemctl start nfs-server
-    iptables -I INPUT -p udp --dport 20048  -j ACCEPT
-    iptables -I INPUT -p tcp --dport 20048  -j ACCEPT
-    iptables -I INPUT -p udp --dport 2049  -j ACCEPT
-    iptables -I INPUT -p tcp --dport 2049 -j ACCEPT
-    iptables -I INPUT -p udp --dport 111  -j ACCEPT
-    iptables -I INPUT -p tcp --dport 111  -j ACCEPT
-    mkdir -p /exports/cinder
-    mkdir -p /exports/glance
-    mkdir -p /exports/nova
-    cat<<EOF>/etc/exports
+    sudo systemctl enable nfs-server
+    sudo systemctl start nfs-server
+    sudo iptables -I INPUT -p udp --dport 20048  -j ACCEPT
+    sudo iptables -I INPUT -p tcp --dport 20048  -j ACCEPT
+    sudo iptables -I INPUT -p udp --dport 2049  -j ACCEPT
+    sudo iptables -I INPUT -p tcp --dport 2049 -j ACCEPT
+    sudo iptables -I INPUT -p udp --dport 111  -j ACCEPT
+    sudo iptables -I INPUT -p tcp --dport 111  -j ACCEPT
+    sudo mkdir -p /exports/cinder
+    sudo mkdir -p /exports/glance
+    sudo mkdir -p /exports/nova
+    sudo cat<<EOF>/etc/exports
 /exports/cinder *(rw,sync,no_root_squash)
 /exports/glance *(rw,sync,no_root_squash)
 /exports/nova *(rw,sync,no_root_squash)
 EOF
-    exportfs -r
-    chown glance:glance /exports/glance
-    chown nova:nova /exports/nova
-    chmod 777 /exports/cinder
-    chmod 777 /exports/nova
+    sudo exportfs -r
+    sudo chown glance:glance /exports/glance
+    sudo chown nova:nova /exports/nova
+    sudo chmod 777 /exports/cinder
+    sudo chmod 777 /exports/nova
     endlog "done"
   fi
 }
