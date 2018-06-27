@@ -28,7 +28,11 @@ function deleteimages {
 function deletemanifests {
 
   sha=$( curl -v ${dockerurl}/v2/$p/manifests/$tag -H "Accept: application/vnd.docker.distribution.manifest.v2+json" 2>&1 | grep Docker-Content-Digest | awk -F: '{ print $3 }' | sed -e 's/\r//g' )
-  curl -s -X DELETE -v ${dockerurl}/v2/$p/manifests/sha256:$sha
+  if [ $doit -eq 1 ]; then
+    curl -s -X DELETE -v ${dockerurl}/v2/$p/manifests/sha256:$sha
+  else
+    echo curl -s -X DELETE -v ${dockerurl}/v2/$p/manifests/sha256:$sha
+  fi
 }
 
 catalog=$( curl -s $dockerurl/v2/_catalog )
