@@ -389,7 +389,10 @@ function create_local_docker_registry {
       startlog "Discover latest container image tag"
       tag=$(sudo openstack overcloud container image tag discover --image ${url}/${releasever}/openstack-base:latest --tag-from-label version-release)
       if [ -z "$tag" ]; then
-        tag=latest
+        tag=$(sudo openstack overcloud container image tag discover --image ${url}/${releasever}/openstack-base:latest --tag-from-label {version}-{release})
+        if [ -z "$tag" ]; then
+          tag=latest
+        fi
       fi
       endlog "done"
       startlog "Preparing local image registry"
