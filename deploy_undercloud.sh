@@ -429,11 +429,12 @@ function create_local_docker_registry {
       openstack overcloud container image prepare --namespace=registry.access.redhat.com/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
+        endlog "done"
         startlog "Uploading images"
         sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
-          echo "done"
+          endlog "done"
         else
           endlog "error"
         fi
