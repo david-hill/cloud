@@ -12,8 +12,8 @@ results = cursor.fetchall()
 for row in results:
    metadata = row[0]
    url = row[1]
-   json_md = jsonutils.dumps(metadata)
-   print "metadata=%s url=%s"% ( json_md, url )
-   resp = requests.put(url, json_md)
+#   json_md = jsonutils.dumps(metadata)
+   print "metadata=%s url=%s"% ( metadata, url )
+   resp = requests.put(url, metadata)
    resp.raise_for_status()
 db.close()
