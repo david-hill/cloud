@@ -23,6 +23,13 @@ function delete_secgroup_rule {
     neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
     rc=$?
   fi
+  nova secgroup-delete-rule default tcp 22 22 0.0.0.0/0 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -ne 0 ]; then
+    ruleid=$( neutron security-group-rule-list 2>>$stderr | grep tcp\/22 | awk -F\| '{ print $2 }' )
+    neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
+    rc=$?
+  fi
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
