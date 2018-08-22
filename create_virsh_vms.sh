@@ -98,7 +98,7 @@ function set_bmc_ip {
       if [ $rc -ne 0 ]; then
         sudo ${vbmc} add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
       fi
-      sudo ${vbmc} list 2>>$stderr | grep -q $type-$inc-$localtype
+      sudo ${vbmc} list 2>>$stderr | grep down | grep -q $type-$inc-$localtype
       if [ $? -eq 0 ]; then 
         sudo ${vbmc} start $type-$inc-$localtype 2>>$stderr 1>>$stdout
         rc=$?
