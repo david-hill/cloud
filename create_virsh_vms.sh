@@ -81,6 +81,20 @@ function get_next_ip {
   pm_ip="192.168.122.$suffix"
 }
 
+function start_vbmc_instance {
+  break=3
+  while [ $rc -ne 0 ] && [ $break -gt 0 ]; do
+    sudo ${vbmc} start $type-$inc-$localtype 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      break=$(( $break - 1))
+      sleep $break
+    fi
+  done
+  return $rc
+}
+
+
 function set_bmc_ip {
   rc=255
   if [[ $installtype =~ rdo ]]; then
@@ -99,11 +113,17 @@ function set_bmc_ip {
         sudo ${vbmc} add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
         rc=$?
       fi
-      sudo ${vbmc} list 2>>$stderr | grep down | grep -q $type-$inc-$localtype
-      rc=$?
-      if [ $rc -eq 0 ]; then 
-        sudo ${vbmc} start $type-$inc-$localtype 2>>$stderr 1>>$stdout
+      if [ $rc -eq 0 ]; then
+        sudo ${vbmc} list 2>>$stderr | grep running | grep -q $type-$inc-$localtype
         rc=$?
+        if [ $rc -ne 0 ]; then
+          sudo ${vbmc} list 2>>$stderr | grep down | grep -q $type-$inc-$localtype
+          rc=$?
+          if [ $rc -eq 0 ]; then 
+            start_vbmc_instance
+            rc=$?
+          fi
+        fi
       fi
     fi
   else
@@ -138,6 +158,10 @@ function create_vm {
     fi
     cleanup
     set_bmc_ip
+    rc=$?
+    if [ $rc -ne 0 ]; then
+      break
+    fi
     update_instackenv
     inc=$(expr $inc + 1)
   done
