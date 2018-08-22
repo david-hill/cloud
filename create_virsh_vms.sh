@@ -93,7 +93,11 @@ function set_bmc_ip {
     if [ -z "${pm_ip}" ]; then
       get_next_ip
       sudo ip addr add $pm_ip dev virbr0 2>>$stderr 1>>$stdout
-      sudo ${vbmc} add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
+      sudo vbmc list | grep -q $type-$inc-$localtype
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        sudo ${vbmc} add --address $pm_ip --username root --password root $type-$inc-$localtype 2>>$stderr 1>>$stdout
+      fi
       sudo ${vbmc} list 2>>$stderr | grep -q $type-$inc-$localtype
       if [ $? -eq 0 ]; then 
         sudo ${vbmc} start $type-$inc-$localtype 2>>$stderr 1>>$stdout
