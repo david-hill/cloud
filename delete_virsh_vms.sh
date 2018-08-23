@@ -18,8 +18,9 @@ function wait_for_vbmc_stop {
   server=$1
   rc=0
   while [ $rc -eq 0 ]; do
-    sudo vbmc list | grep "$server.*running"
+    sudo vbmc list | grep -q "$server.*running"
     rc=$?
+    sleep 1
   done
 }
 function delete_bmc {
