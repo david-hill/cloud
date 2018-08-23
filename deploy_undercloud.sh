@@ -448,8 +448,8 @@ function create_local_docker_registry {
 
 
 function create_overcloud_route {
-  sudo ip addr add 10.1.2.1 dev br-ctlplane
-  sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
+  sudo ip addr add 10.1.2.1 dev br-ctlplane 2>>$stderr 1>>$stdout
+  sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane 2>>$stderr 1>>$stdout
 }
 
 if [ -e "/home/stack/stackrc" ]; then
