@@ -85,9 +85,9 @@ function tag_hosts {
   rc=0
   startlog "Tagging hosts"
   inc=0
-  ironic node-list | grep -q manag
+  ironic node-list 2>>$stderr | grep -q manag
   if [ $? -eq 0 ]; then
-    ironic node-list | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
+    ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
   fi
   openstack overcloud profiles list 2>>$stderr 1>>$stdout
   ironic node-list 2>>$stderr 1>>$stdout
