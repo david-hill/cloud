@@ -246,6 +246,9 @@ if [ $? -eq 0 ]; then
       create_vm ceph
       if [ $? -eq 0 ]; then
         endlog "done"
+        startlog "Resuming stopped vbmc engines"
+        sudo bash resume_vbmc.sh 2>>$stderr 1>>$stdout
+        endlog "done"
         startlog "Waiting for VM to reboot"
         wait_for_reboot
         rc=$?
