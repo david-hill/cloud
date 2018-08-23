@@ -235,7 +235,7 @@ function baremetal_setup {
       endlog "done"
       startlog "Getting nodes information"
       ironic node-list 2>>$stderr 1>>$stdout
-      ironic node-list | grep False | awk '{ print $2 }' | xargs -I% ironic node-show % 2>>$stderr 1>>$stdout
+      ironic node-list 2>>$stderr | grep False | awk '{ print $2 }' | xargs -I% ironic node-show % 2>>$stderr 1>>$stdout
       endlog "done"
       startlog "Starting introspection"
       introspect
