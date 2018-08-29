@@ -85,9 +85,9 @@ function tag_hosts {
   rc=0
   startlog "Tagging hosts"
   inc=0
-  ironic node-list | grep -q manag
+  ironic node-list 2>>$stderr | grep -q manag
   if [ $? -eq 0 ]; then
-    ironic node-list | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
+    ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
   fi
   openstack overcloud profiles list 2>>$stderr 1>>$stdout
   ironic node-list 2>>$stderr 1>>$stdout
@@ -235,7 +235,7 @@ function baremetal_setup {
       endlog "done"
       startlog "Getting nodes information"
       ironic node-list 2>>$stderr 1>>$stdout
-      ironic node-list | grep False | awk '{ print $2 }' | xargs -I% ironic node-show % 2>>$stderr 1>>$stdout
+      ironic node-list 2>>$stderr | grep False | awk '{ print $2 }' | xargs -I% ironic node-show % 2>>$stderr 1>>$stdout
       endlog "done"
       startlog "Starting introspection"
       introspect
@@ -448,8 +448,8 @@ function create_local_docker_registry {
 
 
 function create_overcloud_route {
-  sudo ip addr add 10.1.2.1 dev br-ctlplane
-  sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane
+  sudo ip addr add 10.1.2.1 dev br-ctlplane 2>>$stderr 1>>$stdout
+  sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane 2>>$stderr 1>>$stdout
 }
 
 if [ -e "/home/stack/stackrc" ]; then
