@@ -14,6 +14,15 @@ if [[ "$installtype" =~ all ]]; then
   releasever='*'
 fi
 
+function wait_for_vbmc_stop {
+  server=$1
+  rc=0
+  while [ $rc -eq 0 ]; do
+    sudo vbmc list | grep -q "$server.*running"
+    rc=$?
+    sleep 1
+  done
+}
 function delete_bmc {
   type=$1
   which vbmc 2>>$stderr 1>>$stdout
@@ -33,6 +42,7 @@ function delete_bmc {
           pm_ip=$(sudo vbmc list | grep $server | awk '{ print $6 }')
           sudo ip addr del $pm_ip dev virbr0 2>>$stderr 1>>$stdout
           sudo vbmc stop $server 2>>$stderr 1>>$stdout
+          wait_for_vbmc_stop $server
           sudo vbmc delete $server  2>>$stderr 1>>$stdout
         else
           ip=$(ip addr)

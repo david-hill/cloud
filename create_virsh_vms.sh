@@ -86,6 +86,10 @@ function start_vbmc_instance {
   while [ $rc -ne 0 ] && [ $break -gt 0 ]; do
     sudo ${vbmc} start $type-$inc-$localtype 2>>$stderr 1>>$stdout
     rc=$?
+    if [ $rc -eq 0 ]; then
+      sudo ${vbmc} list 2>>$stderr | grep running | grep -q $type-$inc-$localtype
+      rc=$?
+    fi
     if [ $rc -ne 0 ]; then
       break=$(( $break - 1))
       sleep $break
