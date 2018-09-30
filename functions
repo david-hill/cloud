@@ -182,7 +182,7 @@ function delete_overcloud {
   inc=0
   rc=0
   startlog "Deleting overcloud"
-  heat=$( heat stack-list | grep overcloud 2>>$stderr )
+  heat=$( heat stack-list 2>>$stderr | grep overcloud )
   if [ ! -z "$heat" ]; then
     heat stack-delete -y overcloud 2>>$stderr 1>>$stdout
     while [ ! -z "$heat" ]; do
