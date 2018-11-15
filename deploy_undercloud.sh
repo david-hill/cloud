@@ -369,22 +369,6 @@ function delete_nodes {
 function create_local_docker_registry {
   rc=0
   if [ $use_docker -eq 1 ]; then
-    vernum=$( echo $releasever | sed -e 's/rhosp//' )
-    if [ -e /home/stack/internal ]; then
-      url=docker-registry.engineering.redhat.com
-      grep -q $url /etc/sysconfig/docker
-      rc=$?
-      if [ $rc -ne 0 ]; then
-        sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
-        rc=$?
-        if [ $rc -eq 0 ]; then
-          sudo systemctl restart docker
-          rc=$?
-        fi
-      fi
-    else
-      url=registry.access.redhat.com
-    fi
     if [[ $vernum -lt 13 ]]; then
       if [ $rc -eq 0 ]; then
         rc=255
@@ -452,30 +436,78 @@ function create_overcloud_route {
   sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane 2>>$stderr 1>>$stdout
 }
 
+function prepare_docker {
+  rc=0
+  if [ $use_docker -eq 1 ]; then
+    if [ -e /home/stack/internal ]; then
+      url=docker-registry.engineering.redhat.com
+      grep -q $url /etc/sysconfig/docker
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
+        rc=$?
+        if [ $rc -eq 0 ]; then
+          sudo systemctl restart docker
+          rc=$?
+        fi
+      fi
+    else
+      url=registry.access.redhat.com
+    fi
+  fi
+  return $rc
+}
+function prepare_tripleo_docker_images {
+  rc=0
+  if [ $use_docker -eq 1 ]; then
+    if [ $vernum -ge 14 ]; then
+      openstack tripleo container image prepare default --output-env-file containers-prepare-parameter.yaml
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        sed -i -e 's/registry.access/docker-registry.engineering/g' containers-prepare-parameter.yaml
+        rc=$?
+      fi
+    fi
+  fi
+  return $rc
+}
+
 if [ -e "/home/stack/stackrc" ]; then
   source_rc /home/stack/stackrc
 fi
+
+if [[ $releasever =~ rhosp ]]; then
+  vernum=$( echo $releasever | sed -e 's/rhosp//' )
+fi
 conformance
 disable_selinux
-install_undercloud
+prepare_docker
 rc=$?
 if [ $rc -eq 0 ]; then
-  enable_nfs
-  source_rc /home/stack/stackrc
-  validate_network_environment
+  prepare_tripleo_docker_images
   rc=$?
   if [ $rc -eq 0 ]; then
-    create_local_docker_registry
+    install_undercloud
     rc=$?
     if [ $rc -eq 0 ]; then
-      create_overcloud_route
-      deploy_overcloud
+      enable_nfs
+      source_rc /home/stack/stackrc
+      validate_network_environment
       rc=$?
-      if [ $rc -eq 0 ]; then 
-        test_overcloud
+      if [ $rc -eq 0 ]; then
+        create_local_docker_registry
         rc=$?
         if [ $rc -eq 0 ]; then
-          touch /home/stack/deployment_state/tested
+          create_overcloud_route
+          deploy_overcloud
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            test_overcloud
+            rc=$?
+            if [ $rc -eq 0 ]; then
+              touch /home/stack/deployment_state/tested
+            fi
+          fi
         fi
       fi
     fi
