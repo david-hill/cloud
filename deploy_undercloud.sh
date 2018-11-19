@@ -464,8 +464,12 @@ function prepare_tripleo_docker_images {
       openstack tripleo container image prepare default --output-env-file /home/stack/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
-        sed -i -e 's/registry.access/docker-registry.engineering/g' /home/stack/containers-prepare-parameter.yaml
-        rc=$?
+        if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
+          sed -i -e 's/registry.access/docker-registry.engineering/g' /home/stack/containers-prepare-parameter.yaml
+          rc=$?
+        else
+          rc=255
+        fi
       fi
     fi
   fi
