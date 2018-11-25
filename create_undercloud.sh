@@ -548,6 +548,7 @@ if [ $rc -eq 0 ]; then
                     if [ $rc -eq 0 ]; then
                       if [ -z $rdorelease ]; then
                         get_new_images
+                        upload_rhel_image
                       fi
                       wait_for_introspection
                       rc=$?
