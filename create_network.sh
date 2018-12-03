@@ -126,7 +126,7 @@ fi
 
 if [ $rc -eq 0 ]; then
   neutron router-show test-router | grep gateway | grep -q ip_address
-  if [ $? -ne 0 ] then
+  if [ $? -ne 0 ]; then
     set_external_gateway
     rc=$?
   fi
