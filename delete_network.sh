@@ -4,7 +4,7 @@ source_rc setup.cfg
 source_rc overcloudrc
 
 neutron router-port-list test-router 2>>$stderr | grep -q 10.254.
-if [ $? -eq 0]; then
+if [ $? -eq 0 ]; then
   startlog "Removing interface from router"
   neutron router-interface-delete test-router test-subnet 2>>$stderr 1>>$stdout
   rc=$?
