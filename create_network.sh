@@ -141,7 +141,7 @@ fi
 
 if [ $rc -eq 0 ]; then
   neutron subnet-list | grep -q test-subnet
-  if [ $? -eq 0 ]; then
+  if [ $? -ne 0 ]; then
     create_test_subnet
     rc=$?
   fi
