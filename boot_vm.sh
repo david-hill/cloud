@@ -299,7 +299,7 @@ function validate_floating_ip {
   startlog "Validating $ip is attached to the VM"
   nova list | grep -q $ip
   rc=$?
-  if [ $? -ne 0 ]; then
+  if [ $rc -ne 0 ]; then
     openstack server list | grep -q $ip
     rc=$?
   fi
