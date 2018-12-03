@@ -56,7 +56,6 @@ function create_ext_subnet {
 
 function set_external_gateway {
   startlog "Setting external gateway"
-router-port-list test-router | grep 10.254.0neutron router-port-list test-router | grep 10.254.0
   neutron router-gateway-set test-router ext-net 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -eq 0 ]; then
