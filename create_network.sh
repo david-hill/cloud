@@ -18,52 +18,52 @@ function add_router_interface {
 }
 
 function create_router {
-    startlog "Creating router"
-    neutron router-create test-router 2>>$stderr 1>>$stdout
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      endlog "done"
-    else
-      endlog "error"
-    fi
-    return $rc
+  startlog "Creating router"
+  neutron router-create test-router 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
 }
 
 function create_ext_network {
-      startlog "Creating external network"
-      neutron net-create ext-net --router:external True --provider:physical_network datacentre --provider:network_type flat 2>>$stderr 1>>$stdout
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        endlog "done"
-      else
-        endlog "error"
-      fi
-      return $rc
+  startlog "Creating external network"
+  neutron net-create ext-net --router:external True --provider:physical_network datacentre --provider:network_type flat 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
 }
 
 function create_ext_subnet {
-        startlog "Creating external subnet"
-        neutron subnet-create --name ext-subnet --allocation-pool start=192.168.122.201,end=192.168.122.254 --dns-nameserver 8.8.8.8 --disable-dhcp $gwarg ext-net 192.168.122.0/24 2>>$stderr 1>>$stdout
-        rc=$?
-        if [ $rc -eq 0 ]; then
-          endlog "done"
-        else
-          endlog "error"
-        fi
+  startlog "Creating external subnet"
+  neutron subnet-create --name ext-subnet --allocation-pool start=192.168.122.201,end=192.168.122.254 --dns-nameserver 8.8.8.8 --disable-dhcp $gwarg ext-net 192.168.122.0/24 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
 	return $rc
 }
 
 function set_external_gateway {
-    startlog "Setting external gateway"
-n router-port-list test-router | grep 10.254.0neutron router-port-list test-router | grep 10.254.0
-    neutron router-gateway-set test-router ext-net 2>>$stderr 1>>$stdout
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      endlog "done"
-    else
-      endlog "error"
-      rc=255
-    fi
+  startlog "Setting external gateway"
+router-port-list test-router | grep 10.254.0neutron router-port-list test-router | grep 10.254.0
+  neutron router-gateway-set test-router ext-net 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+    rc=255
+  fi
   return $rc
 }
 
@@ -154,4 +154,5 @@ if [ $rc -eq 0 ]; then
     rc=$?
   fi
 fi
+
 exit $rc
