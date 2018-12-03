@@ -45,11 +45,15 @@ if [ $rc -eq 0 ]; then
     if [ $rc -ne 0 ]; then
       glance image-create --name "$imagename" --file images/$imagename --disk-format qcow2 --container-format bare --visibility public --progress 2>>$stderr 1>>$stdout
       rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+      else
+        endlog "error"
+      fi
+    else
+      endlog "done"
     fi
   fi
 fi
 
-if [ $rc -ne 0 ]; then
-  endlog "error"
-fi
 exit $rc
