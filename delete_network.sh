@@ -31,6 +31,13 @@ if [ $? -eq 0 ]; then
             op=$( neutron net-list 2>>$stderr | grep test )
           done
           endlog "done"
+          startlog "Deleting floating ips"
+          uuid=$( neutron floatingip-list 2>>$stderr | grep 192.168.122 | awk '{ print $2 }'  )
+          if [ ! -z $uuid ]; then
+            neutron floatingip-delete $uuid 2>>$stderr 1>>$stdout
+            rc=$?
+          fi
+          endlog "done"
           startlog "Deleting external subnet"
           neutron subnet-delete ext-subnet 2>>$stderr 1>>$stdout
           rc=$?
