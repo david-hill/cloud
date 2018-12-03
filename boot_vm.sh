@@ -30,6 +30,18 @@ function delete_secgroup_rule {
     neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
     rc=$?
   fi
+  if [ $rc -ne 0 ]; then
+    groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }' | sed -e 's/Id //')
+    openstack security group show ${groupid} 2>>$stderr | grep -q icmp
+    if [ $rc -eq 0 ]; then
+      openstack security group rule delete  --protocol icmp ${groupid} 2>>$stderr 1>>$stdout
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        openstack security group rule delete  --protocol tcp ${groupid} 2>>$stderr 1>>$stdout
+        rc=$?
+      fi
+    fi
+  fi
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
