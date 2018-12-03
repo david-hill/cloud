@@ -124,7 +124,7 @@ if [ $rc -eq 0 ]; then
 fi
 
 if [ $rc -eq 0 ]; then
-  neutron router-show test-router | grep gateway | grep -q ip_address
+  neutron router-show test-router 2>>$stderr | grep gateway | grep -q ip_address
   if [ $? -ne 0 ]; then
     set_external_gateway
     rc=$?
@@ -132,7 +132,7 @@ if [ $rc -eq 0 ]; then
 fi
 
 if [ $rc -eq 0 ]; then
-  neutron net-list | grep -q test
+  neutron net-list 2>>$stderr | grep -q test
   if [ $? -ne 0 ]; then
     create_test_network
     rc=$?
@@ -140,7 +140,7 @@ if [ $rc -eq 0 ]; then
 fi
 
 if [ $rc -eq 0 ]; then
-  neutron subnet-list | grep -q test-subnet
+  neutron subnet-list 2>>$stderr | grep -q test-subnet
   if [ $? -ne 0 ]; then
     create_test_subnet
     rc=$?
@@ -148,7 +148,7 @@ if [ $rc -eq 0 ]; then
 fi
 
 if [ $rc -eq 0 ]; then
-  neutron router-port-list test-router | grep -q10.254.
+  neutron router-port-list test-router 2>>$stderr | grep -q 10.254.
   if [ $? -ne 0 ]; then
     add_router_interface
     rc=$?
