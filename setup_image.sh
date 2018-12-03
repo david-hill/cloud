@@ -51,7 +51,5 @@ fi
 
 if [ $rc -ne 0 ]; then
   endlog "error"
-else
-  endlog "done"
 fi
 exit $rc
