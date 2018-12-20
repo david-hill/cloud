@@ -41,7 +41,7 @@ function delete_secgroup_rule {
         rc=$?
       fi
     else
-      for secgroup in $( openstack security group rule list 2>>$stderr| ${groupid} | awk '{ print $2 }' ); do
+      for secgroup in $( openstack security group rule list 2>>$stderr| grep ${groupid} | awk '{ print $2 }' ); do
         openstack security group rule delete  $secgroup 2>>$stderr 1>>$stdout
         trc=$?
         if [ $rc -eq 0 ] && [ $trc -ne 0 ]; then
