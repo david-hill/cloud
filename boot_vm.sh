@@ -26,7 +26,7 @@ function delete_secgroup_rule {
   nova secgroup-delete-rule default tcp 22 22 0.0.0.0/0 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -ne 0 ]; then
-    ruleid=$( neutron security-group-rule-list 2>>$stderr | grep tcp\/22 | awk -F\| '{ print $2 }' )
+    ruleid=$( neutron security-group-rule-list 2>>$stderr | grep tcp | awk -F\| '{ print $2 }' )
     neutron security-group-rule-delete ${ruleid} 2>>$stderr 1>>$stdout
     rc=$?
   fi
@@ -40,14 +40,6 @@ function delete_secgroup_rule {
         openstack security group rule delete  --protocol tcp ${groupid} 2>>$stderr 1>>$stdout
         rc=$?
       fi
-    else
-      for secgroup in $( openstack security group rule list 2>>$stderr| grep ${groupid} | awk '{ print $2 }' ); do
-        openstack security group rule delete  $secgroup 2>>$stderr 1>>$stdout
-        trc=$?
-        if [ $rc -eq 0 ] && [ $trc -ne 0 ]; then
-          rc=$trc
-        fi
-      done
     fi
   fi
   if [ $rc -eq 0 ]; then
