@@ -272,15 +272,23 @@ function generate_overcloud_images {
 }
 
 function wait_for_cloudinit {
+  return 0
   startlog "Waiting for cloud-init to complete"
   grep -q final /var/log/cloud-init.log
   return=$?
-  while [ $return -ne 0 ]; do
+  ttimeout=300
+  while [ $return -ne 0 ] && [ $ttimeout -ge 0 ]; do
     grep -q final /var/log/cloud-init.log
     return=$?
     sleep 1
+    ttimeout=$(( $ttimeout - 1 ))
   done
-  endlog "done"
+  if [ $return -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return  $return
 }
 
 function set_hostname {
@@ -767,10 +775,18 @@ function deploy_undercloud {
   su - stack -c "cd /home/stack/cloud; source ../stackrc; bash deploy_undercloud.sh"
   return $?
 }
+function grow_part {
+  growpart /dev/vda 1 -u auto
+  mount | grep vda1 | grep -q xfs
+  if [ $? -eq 0 ]; then
+    xfs_growfs /dev/vda1
+  fi
+}
 function prepare_for_undercloud {
   clone_repositories
   configure_local_ntp
   wait_for_cloudinit
+  grow_part
   set_hostname
   create_swap_files
   chown stack:stack -R /home/stack
