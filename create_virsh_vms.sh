@@ -153,6 +153,7 @@ function create_vm {
     uuid=$(uuidgen)
     tpath=$jenkinspath/VMs
     gen_macs
+    pxeenabled=on
     gen_xml
     gen_disks
     create_domain
