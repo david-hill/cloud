@@ -275,7 +275,7 @@ function wait_for_overcloud_test {
 
 function copy_image {
   startlog "Copying base image"
-  image=$(ls -1 images/rhel | grep qcow2 | grep $rhel | tail -1)
+  image=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
   sudo cp images/rhel/${image} $jenkinspath/VMs/${vmname}.qcow2
   rc=$?
   if [ $rc -eq 0 ]; then
