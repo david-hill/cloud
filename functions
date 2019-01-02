@@ -259,6 +259,9 @@ function gen_xml {
       localtype=$releasever
     fi
     model=$(virsh capabilities | grep '<model>'   | head -1 | awk -F\> '{ print $2 }' | awk -F\< '{ print $1 }')
+    if [[ $pxeenabled =~ off ]]; then
+      sed -i "/<boot order='1'\/>/d" $tmpfile
+    fi
     sed -i "s/###MACHINE###/$machine/" $tmpfile
     sed -i "s/###MODEL###/$model/" $tmpfile
     sed -i "s/###MAC1###/$mac1/" $tmpfile
