@@ -75,7 +75,7 @@ function upload_rhel_image {
 }
 function customize_rhel_image {
   startlog "Customizing RHEL image"
-  rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
+  rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep "\-$rhel" | tail -1)
   sudo cp images/rhel/$rhelimage tmp/rhel-guest-image-local.qcow2
   sudo chown qemu tmp/rhel-guest-image-local.qcow2
   sudo virt-customize -v -a tmp/rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
@@ -276,7 +276,7 @@ function wait_for_overcloud_test {
 
 function copy_image {
   startlog "Copying base image"
-  image=$(ls -atr images/rhel/ | grep qcow2 | grep $rhel | tail -1)
+  image=$(ls -atr images/rhel/ | grep qcow2 | grep "\-$rhel" | tail -1)
   sudo cp images/rhel/${image} $jenkinspath/VMs/${vmname}.qcow2
   rc=$?
   if [ $rc -eq 0 ]; then
