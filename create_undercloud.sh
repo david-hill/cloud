@@ -172,6 +172,7 @@ function spawn_undercloud_vm {
       uuid=$(uuidgen)
       tpath=$jenkinspath/VMs
       vcpus=4
+      pxeenabled=off
       gen_macs
       gen_xml
       create_domain
