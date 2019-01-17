@@ -440,6 +440,9 @@ function prepare_docker {
   rc=0
   if [ $use_docker -eq 1 ]; then
     if [ -e /home/stack/internal ]; then
+      if [ ! -e /etc/sysconfig/docker ]; then
+        yum install -y docker-common 2>>$stderr 1>>$stdout
+      fi
       url=docker-registry.engineering.redhat.com
       grep -q $url /etc/sysconfig/docker
       rc=$?
