@@ -436,14 +436,19 @@ function create_overcloud_route {
   sudo route add -net 10.1.2.0 netmask 255.255.255.0 dev br-ctlplane 2>>$stderr 1>>$stdout
 }
 
+function get_docker_url {
+  if [ $use_docker -eq 1 ]; then
+    if [ -e /home/stack/internal ]; then
+      url=docker-registry.engineering.redhat.com
+    else
+      url=registry.access.redhat.com
+    fi
+  fi
+}
 function prepare_docker {
   rc=0
   if [ $use_docker -eq 1 ]; then
     if [ -e /home/stack/internal ]; then
-      if [ ! -e /etc/sysconfig/docker ]; then
-        sudo yum install -y docker 2>>$stderr 1>>$stdout
-      fi
-      url=docker-registry.engineering.redhat.com
       grep -q $url /etc/sysconfig/docker
       rc=$?
       if [ $rc -ne 0 ]; then
@@ -454,8 +459,6 @@ function prepare_docker {
           rc=$?
         fi
       fi
-    else
-      url=registry.access.redhat.com
     fi
   fi
   return $rc
@@ -488,37 +491,36 @@ if [[ $releasever =~ rhosp ]]; then
 fi
 conformance
 disable_selinux
-prepare_docker
+get_docker_url
+prepare_tripleo_docker_images
 rc=$?
 if [ $rc -eq 0 ]; then
-  prepare_tripleo_docker_images
+  install_undercloud
   rc=$?
   if [ $rc -eq 0 ]; then
-    install_undercloud
+    prepare_docker
+    enable_nfs
+    source_rc /home/stack/stackrc
+    validate_network_environment
     rc=$?
     if [ $rc -eq 0 ]; then
-      enable_nfs
-      source_rc /home/stack/stackrc
-      validate_network_environment
+      create_local_docker_registry
       rc=$?
       if [ $rc -eq 0 ]; then
-        create_local_docker_registry
+        create_overcloud_route
+        deploy_overcloud
         rc=$?
         if [ $rc -eq 0 ]; then
-          create_overcloud_route
-          deploy_overcloud
+          test_overcloud
           rc=$?
           if [ $rc -eq 0 ]; then
-            test_overcloud
-            rc=$?
-            if [ $rc -eq 0 ]; then
-              touch /home/stack/deployment_state/tested
-            fi
+            touch /home/stack/deployment_state/tested
           fi
         fi
       fi
     fi
   fi
 fi
+
 
 exit $rc
