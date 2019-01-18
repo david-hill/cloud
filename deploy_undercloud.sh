@@ -471,8 +471,10 @@ function prepare_tripleo_docker_images {
       rc=$?
       if [ $rc -eq 0 ]; then
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
-          sed -i -e 's/registry.access/docker-registry.engineering/g' /home/stack/containers-prepare-parameter.yaml
-          rc=$?
+          if [ -e /home/stack/internal ]; then
+            sed -i -e 's/registry.access/docker-registry.engineering/g' /home/stack/containers-prepare-parameter.yaml
+            rc=$?
+          fi
         else
           rc=255
         fi
