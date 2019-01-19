@@ -86,7 +86,7 @@ function get_new_images {
   if [[ ! $installtype =~ rdo ]]; then
     diff=0
     continue=1
-    ttimeout=1200
+    ttimeout=1800
     startlog "Getting new images"
     while [ $continue -eq 1 ] && [ $ttimeout -gt 0 ]; do
       rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no stack@$undercloudip "if [ -e rhosp-director-images.latest ]; then echo present; fi")
