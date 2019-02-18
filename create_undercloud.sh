@@ -431,16 +431,16 @@ function stop_vm_if_running {
 function prepare_hypervisor {
   grep -q "^options kvm_intel nested=1" /etc/modprobe.d/kvm.conf
   if [ $? -ne 0 ]; then
-    lsmod | grep -q kvm_intel
+    sudo lsmod | grep -q kvm_intel
     if [ $? -eq 0 ]; then
-      rmmod kvm_intel
+      sudo rmmod kvm_intel
     fi
-    lsmod | grep -q kvm
+    sudo lsmod | grep -q kvm
     if [ $? -eq 0 ]; then
-      rmmod kvm
+      sudo rmmod kvm
     fi
     echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
-    modprobe kvm_intel
+    sudo modprobe kvm_intel
   fi
 
 #      sudo ip addr show dev virbr0 2>>$stderr| grep -q "169.254.169.254"
