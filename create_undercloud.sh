@@ -429,7 +429,7 @@ function stop_vm_if_running {
 }
 
 function prepare_hypervisor {
-  grep -q "^options kvm_intel nested=1" /etc/modprobe.d/kvm.conf
+  sudo grep -q "^options kvm_intel nested=1" /etc/modprobe.d/kvm.conf
   if [ $? -ne 0 ]; then
     sudo lsmod | grep -q kvm_intel
     if [ $? -eq 0 ]; then
@@ -439,7 +439,7 @@ function prepare_hypervisor {
     if [ $? -eq 0 ]; then
       sudo rmmod kvm
     fi
-    echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf
+    sudo bash -c 'echo "options kvm_intel nested=1" >> /etc/modprobe.d/kvm.conf'
     sudo modprobe kvm_intel
   fi
 
