@@ -429,6 +429,19 @@ function stop_vm_if_running {
 }
 
 function prepare_hypervisor {
+  ps aufxg | grep -q "[f]irewalld"
+  if [ $? -eq 0 ]; then
+    sudo firewall-cmd --permanent  --direct --get-all-rules | grep -q 123
+    if [ $? -ne 0 ]; then
+      sudo firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT_direct 0 -i virbr0 -m udp -p udp --dport 123 -j ACCEPT
+      sudo firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT_direct 0 -i virbr0 -m tcp -p tcp --dport 123 -j ACCEPT
+      sudo firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT_direct 0 -i virbr0 -o tun0 -m udp -p udp --dport 123 -j ACCEPT
+      sudo firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT_direct 0 -i virbr0 -o tun0 -m tcp -p tcp --dport 123 -j ACCEPT
+      sudo firewall-cmd --permanent --zone=internal --add-port=123/udp
+      sudo firewall-cmd --permanent --zone=internal --add-port=123/tcp
+      sudo firewall-cmd --reload
+    fi
+  fi
   sudo grep -q "^options kvm_intel nested=1" /etc/modprobe.d/kvm.conf
   if [ $? -ne 0 ]; then
     sudo lsmod | grep -q kvm_intel
