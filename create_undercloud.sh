@@ -447,6 +447,7 @@ function prepare_hypervisor {
       sudo firewall-cmd --permanent --direct --add-rule ipv4 filter INPUT_direct 0 -i virbr0 -m udp -p udp --dport 623 -j ACCEPT 
       sudo firewall-cmd --permanent --zone=internal --add-port=623/udp
       sudo firewall-cmd --permanent --zone=internal --add-port=623/tcp
+      sudo firewall-cmd --reload
     fi
   fi
   sudo grep -q "^options kvm_intel nested=1" /etc/modprobe.d/kvm.conf
