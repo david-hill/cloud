@@ -162,6 +162,11 @@ function wait_for_dnsmasq {
     return $rc
 }
 
+function restart_vbmcd {
+  sudo systemctl restart vbmcd
+  return $?
+}
+
 function restart_libvirtd {
   sudo systemctl restart libvirtd
   return $?
@@ -512,6 +517,7 @@ if [ $rc -eq 0 ]; then
       cp S01customize tmp/S01customize
     fi
     restart_libvirtd
+    restart_vbmcd
     wait_for_dnsmasq
     rc=$?
     if [ $? -eq 0 ]; then
