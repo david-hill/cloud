@@ -1,0 +1,73 @@
+heat_template_version: 2015-10-15
+
+resources:
+  server_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Add security group rules for server
+      name: security-group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+  iport_0_ipv4:
+    type: OS::Neutron::Port
+    properties:
+      admin_state_up: true
+      name: port
+      network: test
+      security_groups: [{ get_resource: server_security_group }]
+  smapp_data_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: data
+  smapp_kafka_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: kafka 
+  smapp_log_volume:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: log
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext-net
+      port_id: { get_resource: iport_0_ipv4 }
+  server:
+    type: OS::Nova::Server
+    depends_on: [
+                iport_0_ipv4,
+                smapp_data_volume,
+                smapp_kafka_volume,
+                smapp_log_volume,
+                ]
+    properties:
+      flavor: m1.nano
+      config_drive: false
+      name: stack_vm
+#      image: 0fe4ca0b-c153-4506-8e18-534e63afea95
+      image: 495bc3eb-b687-449f-adb4-42a8f5441826
+      block_device_mapping_v2:
+        - volume_id: { get_resource: smapp_data_volume }
+          device_name: vdb
+          boot_index: 1
+          delete_on_termination: false
+        - volume_id: { get_resource: smapp_kafka_volume }
+          device_name: vdc
+          boot_index: 2
+          delete_on_termination: false
+        - volume_id: { get_resource: smapp_log_volume }
+          device_name: vdd
+          boot_index: 3
+          delete_on_termination: false
+      key_name: test_key
+      networks: [
+            { "port": { get_resource: iport_0_ipv4 } },
+                ]
