@@ -1,0 +1,370 @@
+heat_template_version: 2015-10-15
+parameters:
+  image_id:
+    type: string
+    description: image_id 
+    default: 495bc3eb-b687-449f-adb4-42a8f5441826
+#    default: 0fe4ca0b-c153-4506-8e18-534e63afea95
+#      image: 0fe4ca0b-c153-4506-8e18-534e63afea95
+#      image: 495bc3eb-b687-449f-adb4-42a8f5441826
+resources:
+  server_security_group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      description: Add security group rules for server
+      name: security-group
+      rules:
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: tcp
+          port_range_min: 22
+          port_range_max: 22
+        - remote_ip_prefix: 0.0.0.0/0
+          protocol: icmp
+  port_0:
+    type: OS::Neutron::Port
+    properties:
+      admin_state_up: true
+      name: port_0
+      network: test
+      security_groups: [{ get_resource: server_security_group }]
+  dv_0:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: dv_0
+  kv_0:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: kv_0 
+  lv_0:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: lv_0
+  fip_0:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext-net
+      port_id: { get_resource: port_0 }
+
+  port_1:
+    type: OS::Neutron::Port
+    properties:
+      admin_state_up: true
+      name: port_1
+      network: test
+      security_groups: [{ get_resource: server_security_group }]
+  dv_1:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: dv_1
+  kv_1:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: kv_1 
+  lv_1:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: lv_1
+  fip_1:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext-net
+      port_id: { get_resource: port_1 }
+
+  port_2:
+    type: OS::Neutron::Port
+    properties: 
+      admin_state_up: true
+      name: port_2
+      network: test
+      security_groups: [{ get_resource: server_security_group }]
+  dv_2:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: dv_2
+  kv_2:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: kv_2
+  lv_2:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: lv_2
+  fip_2:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext-net
+      port_id: { get_resource: port_2 }
+
+  port_3:
+    type: OS::Neutron::Port
+    properties: 
+      admin_state_up: true
+      name: port_3
+      network: test
+      security_groups: [{ get_resource: server_security_group }]
+  dv_3:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: dv_3
+  kv_3:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: kv_3
+  lv_3:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: lv_3
+  fip_3:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext-net
+      port_id: { get_resource: port_3 }
+
+  port_4:
+    type: OS::Neutron::Port
+    properties: 
+      admin_state_up: true
+      name: port_4
+      network: test
+      security_groups: [{ get_resource: server_security_group }]
+  dv_4:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: dv_4
+  kv_4:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: kv_4
+  lv_4:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: lv_4
+  fip_4:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext-net
+      port_id: { get_resource: port_4 }
+
+  port_5:
+    type: OS::Neutron::Port
+    properties: 
+      admin_state_up: true
+      name: port_5
+      network: test
+      security_groups: [{ get_resource: server_security_group }]
+  dv_5:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: dv_5
+  kv_5:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: kv_5
+  lv_5:
+    type: OS::Cinder::Volume
+    properties:
+      size: 1
+      name: lv_5
+  fip_5:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: ext-net
+      port_id: { get_resource: port_5 }
+
+  server_0:
+    type: OS::Nova::Server
+    depends_on: [
+                port_0,
+                dv_0,
+                kv_0,
+                lv_0,
+                ]
+    properties:
+      flavor: m1.nano
+      config_drive: false
+      name: vm_0
+      image: { get_param: image_id } 
+      block_device_mapping_v2:
+        - volume_id: { get_resource: dv_0 }
+          device_name: vdb
+          boot_index: 1
+          delete_on_termination: false
+        - volume_id: { get_resource: kv_0 }
+          device_name: vdc
+          boot_index: 2
+          delete_on_termination: false
+        - volume_id: { get_resource: lv_0 }
+          device_name: vdd
+          boot_index: 3
+          delete_on_termination: false
+      key_name: test_key
+      networks: [
+            { "port": { get_resource: port_0 } },
+                ]
+  server_1:
+    type: OS::Nova::Server
+    depends_on: [
+                port_1,
+                dv_1,
+                kv_1,
+                lv_1,
+                ]
+    properties:
+      flavor: m1.nano
+      config_drive: false
+      name: vm_1
+      image: { get_param: image_id } 
+      block_device_mapping_v2:
+        - volume_id: { get_resource: dv_1 }
+          device_name: vdb
+          boot_index: 1
+          delete_on_termination: false
+        - volume_id: { get_resource: kv_1 }
+          device_name: vdc
+          boot_index: 2
+          delete_on_termination: false
+        - volume_id: { get_resource: lv_1 }
+          device_name: vdd
+          boot_index: 3
+          delete_on_termination: false
+      key_name: test_key
+      networks: [
+            { "port": { get_resource: port_1 } },
+                ]
+  server_2:
+    type: OS::Nova::Server
+    depends_on: [
+                port_2,
+                dv_2,
+                kv_2,
+                lv_2,
+                ]
+    properties:
+      flavor: m1.nano
+      config_drive: false
+      name: vm_2
+      image: { get_param: image_id } 
+      block_device_mapping_v2:
+        - volume_id: { get_resource: dv_2 }
+          device_name: vdb
+          boot_index: 1
+          delete_on_termination: false
+        - volume_id: { get_resource: kv_2 }
+          device_name: vdc
+          boot_index: 2
+          delete_on_termination: false
+        - volume_id: { get_resource: lv_2 }
+          device_name: vdd
+          boot_index: 3
+          delete_on_termination: false
+      key_name: test_key
+      networks: [
+            { "port": { get_resource: port_2 } },
+                ]
+  server_3:
+    type: OS::Nova::Server
+    depends_on: [
+                port_3,
+                dv_3,
+                kv_3,
+                lv_3,
+                ]
+    properties:
+      flavor: m1.nano
+      config_drive: false
+      name: vm_3
+      image: { get_param: image_id } 
+      block_device_mapping_v2:
+        - volume_id: { get_resource: dv_3 }
+          device_name: vdb
+          boot_index: 1
+          delete_on_termination: false
+        - volume_id: { get_resource: kv_3 }
+          device_name: vdc
+          boot_index: 2
+          delete_on_termination: false
+        - volume_id: { get_resource: lv_3 }
+          device_name: vdd
+          boot_index: 3
+          delete_on_termination: false
+      key_name: test_key
+      networks: [
+            { "port": { get_resource: port_3 } },
+                ]
+  server_4:
+    type: OS::Nova::Server
+    depends_on: [
+                port_4,
+                dv_4,
+                kv_4,
+                lv_4,
+                ]
+    properties:
+      flavor: m1.nano
+      config_drive: false
+      name: vm_4
+      image: { get_param: image_id } 
+      block_device_mapping_v2:
+        - volume_id: { get_resource: dv_4 }
+          device_name: vdb
+          boot_index: 1
+          delete_on_termination: false
+        - volume_id: { get_resource: kv_4 }
+          device_name: vdc
+          boot_index: 2
+          delete_on_termination: false
+        - volume_id: { get_resource: lv_4 }
+          device_name: vdd
+          boot_index: 3
+          delete_on_termination: false
+      key_name: test_key
+      networks: [
+            { "port": { get_resource: port_4 } },
+                ]
+  server_5:
+    type: OS::Nova::Server
+    depends_on: [
+                port_5,
+                dv_5,
+                kv_5,
+                lv_5,
+                ]
+    properties:
+      flavor: m1.nano
+      config_drive: false
+      name: vm_5
+      image: { get_param: image_id } 
+      block_device_mapping_v2:
+        - volume_id: { get_resource: dv_5 }
+          device_name: vdb
+          boot_index: 1
+          delete_on_termination: false
+        - volume_id: { get_resource: kv_5 }
+          device_name: vdc
+          boot_index: 2
+          delete_on_termination: false
+        - volume_id: { get_resource: lv_5 }
+          device_name: vdd
+          boot_index: 3
+          delete_on_termination: false
+      key_name: test_key
+      networks: [
+            { "port": { get_resource: port_5 } },
+                ]
