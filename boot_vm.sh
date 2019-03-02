@@ -170,7 +170,7 @@ function create_test_vm {
   rc=$?
   if [ $rc -eq 1 ]; then
     startlog "Creating test VM"
-    nova boot --flavor m1.micro --image $image  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
+    nova boot --key-name test --flavor m1.micro --image $image  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
@@ -288,6 +288,18 @@ function ping_floating_ip {
   return $rc
 }
 
+function create_keypair {
+  startlog "Creating keypair"
+  nova keypair-add test 2>>$stderr > id_rsa
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
+
 function validate_floating_ip {
   startlog "Validating $ip is attached to the VM"
   nova list | grep -q $ip
@@ -308,27 +320,31 @@ function provision_vm {
   create_flavor
   rc=$?
   if [ $rc -eq 0 ]; then
-    create_test_vm
+    create_keypair
     rc=$?
     if [ $rc -eq 0 ]; then
-      wait_for_vm
+      create_test_vm
       rc=$?
       if [ $rc -eq 0 ]; then
-        add_secgroup_rule
+        wait_for_vm
         rc=$?
         if [ $rc -eq 0 ]; then
-          create_floating_ip
+          add_secgroup_rule
           rc=$?
           if [ $rc -eq 0 ]; then
-            if [ ! -z "$ip" ]; then
-              attach_floating_ip
-              rc=$?
-              if [ $rc -eq 0 ]; then
-                validate_floating_ip
+            create_floating_ip
+            rc=$?
+            if [ $rc -eq 0 ]; then
+              if [ ! -z "$ip" ]; then
+                attach_floating_ip
                 rc=$?
                 if [ $rc -eq 0 ]; then
-                  ping_floating_ip
+                  validate_floating_ip
                   rc=$?
+                  if [ $rc -eq 0 ]; then
+                    ping_floating_ip
+                    rc=$?
+                  fi
                 fi
               fi
             fi
