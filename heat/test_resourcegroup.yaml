@@ -32,7 +32,7 @@ parameters:
         - test
 
 resources:
- test-sec-group:
+  test-sec-group:
     type: OS::Neutron::SecurityGroup
     properties:
       name: test-sec-group
@@ -46,7 +46,7 @@ resources:
   tests:
     type: OS::Heat::ResourceGroup
     properties:
-      count: 3
+      count: 2
       resource_def:
         type: OS::Nova::Server
         properties:
@@ -55,3 +55,13 @@ resources:
           flavor: { get_param: flavor }
           networks: [ "network": { get_param: network } ]
           key_name: { get_param: ssh_key }
+
+
+  tests_resource:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: 2
+      resource_def:  
+        type: test_resources.yaml 
+        properties:
+          index: "%index%"
