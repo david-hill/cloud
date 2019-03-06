@@ -1,0 +1,32 @@
+heat_template_version: 2016-04-08
+
+parameters:
+  index:
+    type: string
+  ssh_key:
+    description: SSH public key used to access runners
+    type: string
+    default: test
+  image:
+    description: Image used to create instances
+    type: string
+    default: cirros-0.4.0-x86_64-disk.img
+  network:
+    description: Network
+    type: string
+    default: test
+  flavor:
+    description: Flavor
+    type: string
+    default: m1.tiny
+
+resources:
+  instance:
+    type: OS::Nova::Server
+    properties:
+      name: 
+        list_join: ["-", [ "testrg",  {get_param: index} ] ]
+      image: { get_param: image }
+      flavor: { get_param: flavor }
+      networks: [ "network": { get_param: network } ]
+      key_name: { get_param: ssh_key }
