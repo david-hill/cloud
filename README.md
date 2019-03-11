@@ -8,7 +8,9 @@ delete_snapshots.sh : Delete VMs snapshots<BR>
 delete_overcloud.sh : Delete overcloud<BR>
 delete_undercloud.sh : Delete undercloud VM<BR>
 generate_image.sh : Generate a Linux image<BR>
+generate_fencing_yaml.sh : Generate a fencing.yaml file from the instackenv.json file<BR>
 glance_database_cleanup.sh : Delete queued image entries from glance database<BR>
+inject_rpms_to_image.sh : Inject /home/stack/images/rpms/ content to /home/stack/images/overcloud-full.qcow2<BR>
 watch.sh : Watch an overcloud deployment status<BR>
 redeploy_undercloud.sh : Redeploy undercloud<BR>
 setup_image.sh : Download cirros and send it to glance<BR>
