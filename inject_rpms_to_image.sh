@@ -1,6 +1,6 @@
-virt-copy-in -a ../images/overcloud-full.qcow2 ../images/rpms /root/
+sudo virt-copy-in -a ../images/overcloud-full.qcow2 ../images/rpms /root/
 if [ $? -eq 0 ]; then 
-  virt-customize -v -a ../images/overcloud-full.qcow2 --run-command 'rpm -Fvh /root/rpms/*rpm; rm -rf /root/rpms' --selinux-relabel
+  sudo virt-customize -v -a ../images/overcloud-full.qcow2 --run-command 'rpm -Fvh /root/rpms/*rpm; rm -rf /root/rpms' --selinux-relabel
   if [ $? -eq 0 ]; then
     source ../stackrc
     openstack overcloud image upload --update-existing
