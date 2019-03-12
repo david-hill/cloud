@@ -160,6 +160,9 @@ function openstack_oc_deploy {
     if [ $use_docker -eq 1 ]; then
       deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
     fi
+    if [[ $deploymentargs =~ fencing.yaml ]]; then
+      bash generate_fencing_yaml.sh 2>>$stderr 1>>$stdout
+    fi
     startlog "Deploying overcloud"
     echo "openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype" 2>>$stderr 1>>$stdout
     openstack overcloud deploy $deploymentargs --libvirt-type $libvirttype 2>>$stderr 1>>$stdout
