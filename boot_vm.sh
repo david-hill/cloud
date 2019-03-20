@@ -288,13 +288,17 @@ function ping_floating_ip {
 }
 
 function create_keypair {
-  startlog "Creating keypair"
-  nova keypair-add test 2>>$stderr > id_rsa
+  nova keypair-list 2>>$stderr | grep -q test
   rc=$?
-  if [ $rc -eq 0 ]; then
-    endlog "done"
-  else
-    endlog "error"
+  if [ $rc -ne 0 ]; then
+    startlog "Creating keypair"
+    nova keypair-add test 2>>$stderr > id_rsa
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
   fi
   return $rc
 }
