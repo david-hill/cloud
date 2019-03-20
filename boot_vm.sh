@@ -120,8 +120,7 @@ function create_flavor {
 }
 
 function create_volume {
-  delete_volume
-  volid=$(cinder create --image-id $image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
+  volid=$(cinder create --image-id=$image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
 }
 
 function wait_for_volume {
