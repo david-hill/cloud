@@ -326,6 +326,22 @@ function delete_keypair {
   return $rc
 }
 
+function delete_keypair {
+  nova keypair-list 2>>$stderr | grep -q test
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    startlog "Deleting keypair"
+    nova keypair-delete test 2>>$stderr > id_rsa
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  fi
+  return $rc
+}
+
 function validate_floating_ip {
   startlog "Validating $ip is attached to the VM"
   nova list | grep -q $ip
