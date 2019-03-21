@@ -96,11 +96,10 @@ function unprovision_vm {
       delete_flavor
       rc=$?
       if [ $rc -eq 0 ]; then
-        delete_volume
+        delete_keypair
         rc=$?
-	if [ $rc -eq 0 ]; then
-      
-          delete_keypair
+        if [ $rc -eq 0 ]; then
+          delete_volume
           rc=$?
         fi
       fi
