@@ -98,8 +98,12 @@ function unprovision_vm {
       if [ $rc -eq 0 ]; then
         delete_volume
         rc=$?
-      fi
+	if [ $rc -eq 0 ]; then
       
+          delete_keypair
+          rc=$?
+        fi
+      fi
     fi
   fi
   return $rc
@@ -325,6 +329,22 @@ function create_keypair {
   if [ $rc -ne 0 ]; then
     startlog "Creating keypair"
     nova keypair-add test 2>>$stderr > id_rsa
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  fi
+  return $rc
+}
+
+function delete_keypair {
+  nova keypair-list 2>>$stderr | grep -q test
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    startlog "Deleting keypair"
+    nova keypair-delete test 2>>$stderr > id_rsa
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
