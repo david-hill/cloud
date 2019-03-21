@@ -95,6 +95,11 @@ function unprovision_vm {
     if [ $rc -eq 0 ]; then
       delete_flavor
       rc=$?
+      if [ $rc -eq 0 ]; then
+        delete_volume
+        rc=$?
+      fi
+      
     fi
   fi
   return $rc
@@ -120,9 +125,29 @@ function create_flavor {
 }
 
 function create_volume {
-  volid=$(cinder create --image-id=$image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
+  startlog "Creating volume test-boot-volume"
+  volid=$(cinder list | grep test-boot-volume | awk '{ print $2 }')
+  if [ -z "${volid}" ]; then
+    volid=$(cinder create --image-id=$image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
+  fi
+  if [ ! -z "${volid}"]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
 }
 
+function delete_volume {
+  startlog "Deleting volume $volid"
+  cinder delete $volid 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
 function wait_for_volume {
   inc=0
   while ! $( cinder list | grep $volid | egrep -q "available|error") && [ $inc -lt 10 ]; do
@@ -135,13 +160,13 @@ function create_boot_from_volume_test_vm {
   nova list 2>>$stderr | grep -q test-vm
   rc=$?
   if [ $rc -eq 1 ]; then
-    startlog "Creating test VM"
     create_volume
-
+    startlog "Creating test VM"
     if [ ! -z $volid ]; then
       wait_for_volume
       if $( cinder list | grep $volid | grep -q available ); then
-        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=preserve,bootindex=0  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
+#        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=preserve,bootindex=0  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
+        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=remove,bootindex=0  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
         rc=$?
       else
         rc=252
@@ -333,7 +358,8 @@ function provision_vm {
     create_keypair
     rc=$?
     if [ $rc -eq 0 ]; then
-      create_test_vm
+#      create_test_vm
+      create_boot_from_volume_test_vm
       rc=$?
       if [ $rc -eq 0 ]; then
         wait_for_vm
