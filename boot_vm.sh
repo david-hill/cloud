@@ -133,7 +133,7 @@ function create_volume {
   if [ -z "${volid}" ]; then
     volid=$(cinder create --image-id=$image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
   fi
-  if [ ! -z "${volid}"]; then
+  if [ ! -z "${volid}" ]; then
     endlog "done"
   else
     endlog "error"
