@@ -124,7 +124,16 @@ function create_flavor {
 }
 
 function create_volume {
-  volid=$(cinder create --image-id=$image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
+  startlog "Creating volume test-boot-volume"
+  volid=$(cinder list | grep test-boot-volume | awk '{ print $2 }')
+  if [ -z "${volid}" ]; then
+    volid=$(cinder create --image-id=$image --display_name=test-boot-volume 1 | grep "\ id\ " | awk '{ print $4 }')
+  fi
+  if [ ! -z "${volid}" ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
 }
 
 function wait_for_volume {
