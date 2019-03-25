@@ -489,14 +489,19 @@ function prepare_tripleo_docker_images {
 
 function configure_ironic_cleaning_network {
   rc=255
-  cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
-  if [ ! -z "$cnu" ]; then
-    sudo sed -i "s/^#cleaning_network_uuid = .*/cleaning_network_uuid = $cnu/" /etc/ironic/ironic.conf
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      sudo systemctl restart openstack-ironic-conductor
+  sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf
+  if [ $? -eq 0 ]; then
+    cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
+    if [ ! -z "$cnu" ]; then
+      sudo sed -i "s/^#cleaning_network_uuid = .*/cleaning_network_uuid = $cnu/" /etc/ironic/ironic.conf
       rc=$?
+      if [ $rc -eq 0 ]; then
+        sudo systemctl restart openstack-ironic-conductor
+        rc=$?
+      fi
     fi
+  else
+    rc=0
   fi
   return $rc
 }
