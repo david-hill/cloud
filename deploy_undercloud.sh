@@ -484,6 +484,20 @@ function prepare_tripleo_docker_images {
   return $rc
 }
 
+function configure_ironic_cleaning_network {
+  rc=255
+  cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
+  if [ ! -z "$cnu" ]; then
+    sed -i "s/^#cleaning_network_uuid = .*/cleaning_network_uuid = $cnu/" /etc/ironic/ironic.conf
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      systemctl restart openstack-ironic-conductor
+      rc=$?
+    fi
+  fi
+  return $rc
+}
+
 if [ -e "/home/stack/stackrc" ]; then
   source_rc /home/stack/stackrc
 fi
@@ -506,6 +520,7 @@ if [ $rc -eq 0 ]; then
     validate_network_environment
     rc=$?
     if [ $rc -eq 0 ]; then
+      configure_ironic_cleaning_network
       create_local_docker_registry
       rc=$?
       if [ $rc -eq 0 ]; then
