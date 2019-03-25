@@ -491,10 +491,10 @@ function configure_ironic_cleaning_network {
   rc=255
   cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
   if [ ! -z "$cnu" ]; then
-    sed -i "s/^#cleaning_network_uuid = .*/cleaning_network_uuid = $cnu/" /etc/ironic/ironic.conf
+    sudo sed -i "s/^#cleaning_network_uuid = .*/cleaning_network_uuid = $cnu/" /etc/ironic/ironic.conf
     rc=$?
     if [ $rc -eq 0 ]; then
-      systemctl restart openstack-ironic-conductor
+      sudo systemctl restart openstack-ironic-conductor
       rc=$?
     fi
   fi
