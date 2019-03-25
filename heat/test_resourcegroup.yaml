@@ -1,0 +1,67 @@
+heat_template_version: 2016-04-08
+
+description: FreeIPA PR-CI - Upstream test cluster
+
+parameters:
+  ssh_key:
+    description: SSH public key used to access runners
+    type: string
+    default: test
+
+  image:
+    description: Image used to create instances
+    type: string
+    default: cirros-0.4.0-x86_64-disk.img
+
+  flavor:
+    description: Flavor used in small runners
+    type: string
+    default: m1.tiny
+
+  network:
+    description: Network used by runners
+    type: string
+    default: test
+
+  sec_group:
+    description: Security Group used by runners
+    type: string
+    default: test
+    constraints:
+      - allowed_values:
+        - test
+
+resources:
+  test-sec-group:
+    type: OS::Neutron::SecurityGroup
+    properties:
+      name: test-sec-group
+      description: Security Group
+      rules: [
+        { direction: ingress, ethertype: IPv4, port_range_max: 22, port_range_min: 22, protocol: tcp, remote_ip_prefix: 10.0.0.0/8},
+        { direction: egress, ethertype: IPv4, port_range_max: 22, port_range_min: 22, protocol: tcp, remote_ip_prefix: 10.0.0.0/8},
+        { direction: ingress, ethertype: IPv4, protocol: icmp, remote_ip_prefix: 0.0.0.0/0},
+        ]
+  
+  tests:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: 2
+      resource_def:
+        type: OS::Nova::Server
+        properties:
+          name: test-%index%
+          image: { get_param: image }
+          flavor: { get_param: flavor }
+          networks: [ "network": { get_param: network } ]
+          key_name: { get_param: ssh_key }
+
+
+  tests_resource:
+    type: OS::Heat::ResourceGroup
+    properties:
+      count: 2
+      resource_def:  
+        type: test_resources.yaml 
+        properties:
+          index: "%index%"
