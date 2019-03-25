@@ -488,6 +488,7 @@ function prepare_tripleo_docker_images {
 }
 
 function configure_ironic_cleaning_network {
+  startlog "Configuring cleaning_network_uuid"
   rc=255
   sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf
   if [ $? -eq 0 ]; then
@@ -502,6 +503,11 @@ function configure_ironic_cleaning_network {
     fi
   else
     rc=0
+  fi
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
   fi
   return $rc
 }
