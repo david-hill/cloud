@@ -488,6 +488,7 @@ function prepare_tripleo_docker_images {
 }
 
 function configure_ironic_cleaning_network {
+  startlog "Configuring cleaning_network_uuid"
   rc=255
   cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
   if [ ! -z "$cnu" ]; then
@@ -497,6 +498,11 @@ function configure_ironic_cleaning_network {
       sudo systemctl restart openstack-ironic-conductor
       rc=$?
     fi
+  fi
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
   fi
   return $rc
 }
