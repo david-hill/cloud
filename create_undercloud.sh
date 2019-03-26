@@ -433,7 +433,6 @@ function stop_vm_if_running {
   fi
 }
 
-
 function prepare_hypervisor {
   ps aufxg | grep -q "[f]irewalld"
   if [ $? -eq 0 ]; then
