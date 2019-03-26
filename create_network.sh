@@ -4,7 +4,6 @@ source functions
 source_rc setup.cfg
 source_rc overcloudrc
 
-
 function add_router_interface {
   startlog "Adding interface to router"
   neutron router-interface-add test-router test-subnet 2>>$stderr 1>>$stdout
