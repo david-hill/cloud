@@ -97,7 +97,7 @@ function tag_hosts {
     output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
   fi
   for p in $output; do
-    if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
+    if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $inc -lt 5 -a $controlscale -eq 5 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
       ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
       if [ $? -ne 0 ]; then
         openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
