@@ -422,6 +422,14 @@ function create_local_docker_registry {
         rc=$?
         if [ $rc -eq 0 ]; then
           endlog "done"
+          if [[ $vernum -ge 14 ]] ; then
+            if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
+              openstack tripleo container image prepare default --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml
+              if [[ $deploymentargs =~ ovn ]]; then
+                sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
+              fi
+            fi
+          fi
         else
           endlog "error"
         fi
