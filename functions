@@ -157,9 +157,16 @@ function openstack_oc_deploy {
         libvirttype=qemu
       fi
     fi
-    if [ $use_docker -eq 1 ]; then
-      deploymentargs="$deploymentargs -e /home/stack/${releasever}/containers-prepare-parameter.yaml"
+
+
+     if [ $use_docker -eq 1 ]; then
+       if [ -e "/home/stack/$releasever/containers-prepare-parameter.yaml" ]; then
+         deploymentargs="$deploymentargs -e /home/stack/$releasever/containers-prepare-parameter.yaml"
+       elif [ -e "/home/stack/${releasever}/overcloud_images.yaml" ]; then
+         deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
+       fi
     fi
+
     if [[ $deploymentargs =~ fencing.yaml ]]; then
       bash generate_fencing_yaml.sh 2>>$stderr 1>>$stdout
     fi
