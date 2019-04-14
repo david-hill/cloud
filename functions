@@ -158,7 +158,7 @@ function openstack_oc_deploy {
       fi
     fi
     if [ $use_docker -eq 1 ]; then
-      deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
+      deploymentargs="$deploymentargs -e /home/stack/${releasever}/containers-prepare-parameter.yaml"
     fi
     if [[ $deploymentargs =~ fencing.yaml ]]; then
       bash generate_fencing_yaml.sh 2>>$stderr 1>>$stdout
