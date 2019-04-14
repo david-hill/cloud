@@ -9,6 +9,8 @@ for p in $(git branch  | awk '{ print $1 }' | grep -v '\*'); do
     if [ $? -ne 0 ]; then
       git reset --hard
       git push
+    else
+      git push
     fi
   done
 done
