@@ -413,7 +413,7 @@ function create_local_docker_registry {
       if [ $cephscale -gt 0 ]; then
         cephargs="--set ceph_namespace=registry.access.redhat.com/rhceph --set ceph_image=rhceph-3-rhel7 "
       fi
-      openstack overcloud container image prepare ${extradockerimages} ${cephargs} --namespace=${url}/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
+      openstack overcloud container image prepare ${cephargs} ${extradockerimages} --namespace=${url}/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
