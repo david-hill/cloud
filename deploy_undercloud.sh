@@ -424,11 +424,7 @@ function create_local_docker_registry {
           endlog "done"
           if [[ $vernum -ge 14 ]] ; then
             if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
-              openstack tripleo container image prepare default --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml
-              grep -q "push_destination: true" /home/stack/${releasever}/containers-prepare-parameter.yaml
-              if [ $? -ne 0 ]; then
-                sed -i 's/set:/push_destination: true\n/set:/g' /home/stack/${releasever}/containers-prepare-parameter.yaml
-              fi
+              openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml
               if [[ $deploymentargs =~ ovn ]]; then
                 sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
               fi
@@ -482,14 +478,10 @@ function prepare_tripleo_docker_images {
   rc=0
   if [ $use_docker -eq 1 ]; then
     if [ $vernum -ge 14 ]; then
-      openstack tripleo container image prepare default --output-env-file /home/stack/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
+      openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
-          grep -q "push_destination: true" /home/stack/containers-prepare-parameter.yaml
-          if [ $? -ne 0 ]; then
-            sed -i 's/set:/push_destination: true\n/set:/g' /home/stack/containers-prepare-parameter.yaml
-          fi
           if [ -e /home/stack/internal ]; then
             sed -i -e 's/registry.access/docker-registry.engineering/g' /home/stack/containers-prepare-parameter.yaml
             rc=$?
