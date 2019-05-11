@@ -328,8 +328,12 @@ function prepare_environment {
   endlog "done"
   startlog "Configuring network"
   echo "192.0.2.1 local_ip" >> /etc/hosts
-  cat<<EOF>/etc/sysconfig/network-scripts/ifcfg-eth0
-DEVICE="eth0"
+  interface=$( ip a  | grep ens | awk '{ print $2 }' | sed -e 's/://g' | head -1 )
+  if [ -z "$interface" ]; then
+    interface=eth0
+  fi
+  cat<<EOF>/etc/sysconfig/network-scripts/ifcfg-$interface
+DEVICE="$interface"
 BOOTPROTO="static"
 BOOTPROTOv6="dhcp"
 ONBOOT="yes"
@@ -342,13 +346,13 @@ IPADDR="192.168.122.2"
 GATEWAY="192.168.122.1"
 EOF
   if [[ "${installtype}" =~ internal ]]; then
-      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-eth0
+      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-$interface
 DNS1="10.11.5.19"
 DNS2="10.5.30.160"
 #  DNS2="8.8.8.8"
 EOF
   else
-      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-eth0
+      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-$interface
 DNS1="8.8.4.4"
 DNS2="8.8.8.8"
 EOF
@@ -366,14 +370,14 @@ EOF
   fi
   endlog "done"
   startlog "Reloading network"
-  /sbin/ifdown eth0 2>>$stderr 1>>$stdout
-  /sbin/ifup eth0 2>>$stderr 1>>$stdout
-  if ! $( ifconfig eth0 | grep -q 192.168.122.2 ); then
+  /sbin/ifdown $interface 2>>$stderr 1>>$stdout
+  /sbin/ifup $interface 2>>$stderr 1>>$stdout
+  if ! $( ip a s $interface | grep -q 192.168.122.2 ); then
     endlog "failed"
     startlog "Reloading network"
-    /sbin/ifdown eth0 2>>$stderr 1>>$stdout
-    /sbin/ifup eth0 2>>$stderr 1>>$stdout
-    if ! $( ifconfig eth0 | grep -q 192.168.122.2 ); then
+    /sbin/ifdown $interface 2>>$stderr 1>>$stdout
+    /sbin/ifup $interface 2>>$stderr 1>>$stdout
+    if ! $( ip a s $interface | grep -q 192.168.122.2 ); then
       endlog "error"
     else
       endlog "done"
