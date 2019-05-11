@@ -662,7 +662,7 @@ function register_system {
               enable_repository rhel-${rhelrelease}-server-rhceph-3-tools-rpms
               rc=$?
             else
-              enable_repository rhceph-4-tools-for-rhel-${rhelrelease}-x86_64_rpms
+              enable_repository rhceph-4-tools-for-rhel-${rhelrelease}-x86_64-rpms
               rc=$?
             fi
           fi
