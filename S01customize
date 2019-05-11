@@ -823,7 +823,7 @@ function install_debuginfo {
   else
     qemupackage=qemu-kvm
   fi
-  debuginfo-install $qemupackage 2>>$stderr 1>>$stdout
+  debuginfo-install -y $qemupackage 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
