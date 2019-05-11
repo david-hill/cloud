@@ -657,6 +657,15 @@ function register_system {
             enable_internal_repositories
             rc=$?
           fi
+          if [ $vernum -ge 13 ]; then
+            if [ $rhelrelease -eq 7 ]; then
+              enable_repository rhel-${rhelrelease}-server-rhceph-3-tools-rpms
+              rc=$?
+            else
+              enable_repository rhceph-4-tools-for-rhel-${rhelrelease}-x86_64_rpms
+              rc=$?
+            fi
+          fi
         fi
       fi
     fi
