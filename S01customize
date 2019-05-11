@@ -835,7 +835,12 @@ function install_debuginfo {
 
 function install_packages {
   startlog "Installing some packages"
-  yum install -y ansible yum-plugin-priorities python-rdomanager-oscplugin git deltarpm sysstat python-tripleoclient python2-passlib.noarch gcc postgresql python-pip python-devel openssl-devel postgresql-devel selinux-policy-devel vim-enhanced ntp tmux 2>>$stderr 1>>$stdout
+  cp -pr /etc/yum.repos.d/* /root/
+  if [ $rhelrelease -eq 7 ]; then
+    yum install --disablerepo rhel-${rhelrelease}-server-htb-rpms -y ansible yum-plugin-priorities python-rdomanager-oscplugin git deltarpm sysstat python-tripleoclient python2-passlib.noarch gcc postgresql python-pip python-devel openssl-devel postgresql-devel selinux-policy-devel vim-enhanced ntp tmux gdb instack-undercloud ceph-ansible 2>>$stderr 1>>$stdout
+  else 
+    yum install --disablerepo rhel-${rhelrelease}-server-htb-rpms -y ansible python-rdomanager-oscplugin git sysstat gcc postgresql openssl-devel postgresql-devel selinux-policy-devel vim-enhanced tmux gdb ceph-ansible python3-tripleoclient.noarch 2>>$stderr 1>>$stdout
+  fi
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
