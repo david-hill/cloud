@@ -414,13 +414,13 @@ IPADDR="192.168.122.2"
 GATEWAY="192.168.122.1"
 EOF
   if [[ "${installtype}" =~ internal ]]; then
-      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-eth0
+      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-$interface
 DNS1="10.11.5.19"
 DNS2="10.5.30.160"
 #  DNS2="8.8.8.8"
 EOF
   else
-      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-eth0
+      cat<<EOF>>/etc/sysconfig/network-scripts/ifcfg-$interface
 DNS1="8.8.4.4"
 DNS2="8.8.8.8"
 EOF
@@ -438,14 +438,14 @@ EOF
   fi
   endlog "done"
   startlog "Reloading network"
-  /sbin/ifdown eth0 2>>$stderr 1>>$stdout
-  /sbin/ifup eth0 2>>$stderr 1>>$stdout
-  if ! $( ifconfig eth0 | grep -q 192.168.122.2 ); then
+  /sbin/ifdown $interface 2>>$stderr 1>>$stdout
+  /sbin/ifup $interface 2>>$stderr 1>>$stdout
+  if ! $( ip a s $interface | grep -q 192.168.122.2 ); then
     endlog "failed"
     startlog "Reloading network"
-    /sbin/ifdown eth0 2>>$stderr 1>>$stdout
-    /sbin/ifup eth0 2>>$stderr 1>>$stdout
-    if ! $( ifconfig eth0 | grep -q 192.168.122.2 ); then
+    /sbin/ifdown $interface 2>>$stderr 1>>$stdout
+    /sbin/ifup $interface 2>>$stderr 1>>$stdout
+    if ! $( ip a s $interface | grep -q 192.168.122.2 ); then
       endlog "error"
     else
       endlog "done"
