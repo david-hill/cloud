@@ -816,6 +816,23 @@ function log_rotate {
   touch /var/log/cloud-init.log
 }
 
+function install_debuginfo {
+  startlog "Installing debuginfo  packages"
+  if [ $rhelrelease -eq 7 ]; then
+    qemupackage=qemu-kvm-rhev
+  else
+    qemupackage=qemu-kvm
+  fi
+  debuginfo-install $qemupackage 2>>$stderr 1>>$stdout
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+  return $rc
+}
+
 function install_packages {
   startlog "Installing some packages"
   yum install -y ansible yum-plugin-priorities python-rdomanager-oscplugin git deltarpm sysstat python-tripleoclient python2-passlib.noarch gcc postgresql python-pip python-devel openssl-devel postgresql-devel selinux-policy-devel vim-enhanced ntp tmux 2>>$stderr 1>>$stdout
