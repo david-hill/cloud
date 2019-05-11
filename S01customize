@@ -502,24 +502,34 @@ function enable_repository {
   return $rc
 }
 function enable_required_repositories {
-  enable_repository rhel-${rhelrelease}-server-rpms
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    enable_repository rhel-${rhelrelease}-server-eus-rpms
+  if [ $rhelrelease -eq 7 ]; then
+    enable_repository rhel-${rhelrelease}-server-rpms
     rc=$?
     if [ $rc -eq 0 ]; then
-      enable_repository rhel-${rhelrelease}-server-optional-rpms
+      enable_repository rhel-${rhelrelease}-server-eus-rpms
       rc=$?
       if [ $rc -eq 0 ]; then
-        enable_repository rhel-${rhelrelease}-server-extras-rpms
+        enable_repository rhel-${rhelrelease}-server-optional-rpms
         rc=$?
         if [ $rc -eq 0 ]; then
-          enable_repository rhel-${rhelrelease}-server-rh-common-rpms
+          enable_repository rhel-${rhelrelease}-server-extras-rpms
           rc=$?
+          if [ $rc -eq 0 ]; then
+            enable_repository rhel-${rhelrelease}-server-rh-common-rpms
+            rc=$?
+          fi
         fi
       fi
     fi
+  else
+    enable_repository rhel-${rhelrelease}-for-x86_64-appstream-rpms
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      enable_repository rhel-${rhelrelease}-for-x86_64-baseos-rpms
+      rc=$?
+    fi
   fi
+
   return $rc
 }
 function enable_official_repositories {
