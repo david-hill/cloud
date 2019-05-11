@@ -13,6 +13,14 @@ fullname=###FULLNAME###
 rhnusername=###RHNUSERNAME###
 rhnpassword=###RHNPASSWORD###
 eol="liberty mitaka"
+
+cat /etc/redhat-release  | grep -q "release 8"
+if [ $? -eq 0 ]; then
+  rhelrelease=8
+else
+  rhelrelease=7
+fi
+
 if [[ ! "${installtype}" =~ rdo ]]; then
   vernum=$( echo $releasever | sed -e 's/rhosp//' )
 fi
@@ -223,9 +231,9 @@ function generate_overcloud_images {
         export RDO_RELEASE=$rdorelease
         export OS_YAML="/usr/share/openstack-tripleo-common/image-yaml/overcloud-images-rhel7.yaml"
         if [[ $rdorelease =~ liberty ]]; then
-          export REG_REPOS="rhel-7-server-rpms rhel-7-server-extras-rpms rhel-ha-for-rhel-7-server-rpms rhel-7-server-optional-rpms rhel-7-server-rh-common-rpms rhel-7-server-rhceph-1.3-tools-rpms rhel-7-server-rhceph-1.3-osd-rpms rhel-7-server-rhceph-1.3-mon-rpms"
+          export REG_REPOS="rhel-${rhelrelease}-server-rpms rhel-${rhelrelease}-server-extras-rpms rhel-ha-for-rhel-${rhelrelease}-server-rpms rhel-${rhelrelease}-server-optional-rpms rhel-${rhelrelease}-server-rh-common-rpms rhel-${rhelrelease}-server-rhceph-1.3-tools-rpms rhel-${rhelrelease}-server-rhceph-1.3-osd-rpms rhel-${rhelrelease}-server-rhceph-1.3-mon-rpms"
         else
-          export REG_REPOS="rhel-7-server-rpms rhel-7-server-extras-rpms rhel-ha-for-rhel-7-server-rpms rhel-7-server-optional-rpms rhel-7-server-rh-common-rpms rhel-7-server-rhceph-2-tools-rpms rhel-7-server-rhceph-2-osd-rpms rhel-7-server-rhceph-2-mon-rpms"
+          export REG_REPOS="rhel-${rhelrelease}-server-rpms rhel-${rhelrelease}-server-extras-rpms rhel-ha-for-rhel-${rhelrelease}-server-rpms rhel-${rhelrelease}-server-optional-rpms rhel-${rhelrelease}-server-rh-common-rpms rhel-${rhelrelease}-server-rhceph-2-tools-rpms rhel-${rhelrelease}-server-rhceph-2-osd-rpms rhel-${rhelrelease}-server-rhceph-2-mon-rpms"
         fi
         export DIB_PYTHON_VERSION=2
 
@@ -491,19 +499,19 @@ function enable_repository {
 }
 
 function enable_required_repositories {
-  enable_repository rhel-7-server-rpms
+  enable_repository rhel-${rhelrelease}-server-rpms
   rc=$?
   if [ $rc -eq 0 ]; then
-    enable_repository rhel-7-server-eus-rpms
+    enable_repository rhel-${rhelrelease}-server-eus-rpms
     rc=$?
     if [ $rc -eq 0 ]; then
-      enable_repository rhel-7-server-optional-rpms
+      enable_repository rhel-${rhelrelease}-server-optional-rpms
       rc=$?
       if [ $rc -eq 0 ]; then
-        enable_repository rhel-7-server-extras-rpms
+        enable_repository rhel-${rhelrelease}-server-extras-rpms
         rc=$?
         if [ $rc -eq 0 ]; then
-          enable_repository rhel-7-server-rh-common-rpms
+          enable_repository rhel-${rhelrelease}-server-rh-common-rpms
           rc=$?
         fi
       fi
@@ -514,20 +522,20 @@ function enable_required_repositories {
 
 function enable_official_repositories {
   if [[ "$releasever" =~ rhosp7 ]]; then
-    enable_repository rhel-7-server-openstack-7.0-director-rpms
+    enable_repository rhel-${rhelrelease}-server-openstack-7.0-director-rpms
     rc=$?
     if [ $rc -eq 0 ]; then
-      enable_repository rhel-7-server-openstack-7.0-rpms
+      enable_repository rhel-${rhelrelease}-server-openstack-7.0-rpms
     fi
   elif [[ "$releasever" =~ rhosp8 ]] || [[ "$releasever" =~ rhosp9 ]]; then
-    enable_repository rhel-7-server-openstack-${vernum}-director-rpms
+    enable_repository rhel-${rhelrelease}-server-openstack-${vernum}-director-rpms
     rc=$?
     if [ $rc -eq 0 ]; then
-      enable_repository rhel-7-server-openstack-${vernum}-rpms
+      enable_repository rhel-${rhelrelease}-server-openstack-${vernum}-rpms
       rc=$?
     fi
   elif [[ "$releasever" =~ rhosp10 ]] || [[ "$releasever" =~ rhosp11 ]] || [[ "$releasever" =~ rhosp12 ]]; then
-    enable_repository rhel-7-server-openstack-${vernum}-rpms
+    enable_repository rhel-${rhelrelease}-server-openstack-${vernum}-rpms
     rc=$?
   else
     rc=255
