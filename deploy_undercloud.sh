@@ -47,6 +47,7 @@ function conformance {
       sudo service chronyd stop 2>>$stderr 1>>$stdout
       sudo chronyd -q 2>>$stderr 1>>$stdout
       sudo service chronyd start 2>>$stderr 1>>$stdout
+      endlog "done"
     else
       endlog "error"
     fi
