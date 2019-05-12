@@ -45,6 +45,8 @@ function conformance {
       endlog "done"
       startlog "Synching time"
       sudo service chronyd stop 2>>$stderr 1>>$stdout
+      sudo chronyd -q 2>>$stderr 1>>$stdout
+      sudo service chronyd start 2>>$stderr 1>>$stdout
     else
       endlog "error"
     fi
