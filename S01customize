@@ -825,7 +825,7 @@ function deploy_undercloud {
 }
 
 function grow_part {
-  devid=$( df / | awk '{ print $1 }' | grep vda | sed -e 's/vda//g' )
+  devid=$( df / | awk '{ print $1 }' | grep vda | sed -e 's/\/dev\/vda//g' )
   growpart /dev/vda ${devid} -u auto 2>>$stderr 1>>$stdout
   mount | grep vda${devid} | grep -q xfs
   if [ $? -eq 0 ]; then
