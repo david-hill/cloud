@@ -859,12 +859,19 @@ function grow_part {
   fi
 }
 
+function configure_ssl {
+  sudo update-ca-trust enable
+  sudo curl -k https://password.corp.redhat.com/RH-IT-Root-CA.crt -o /etc/pki/ca-trust/source/anchors/2015-RH-IT-Root-CA.pem;
+  sudo update-ca-trust extract
+}
+
 function prepare_for_undercloud {
   clone_repositories
   configure_local_ntp
   wait_for_cloudinit
   grow_part
   set_hostname
+  configure_ca_cert
   create_swap_files
   chown stack:stack -R /home/stack
   inject_merge_script
