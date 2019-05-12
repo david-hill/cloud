@@ -526,7 +526,7 @@ function prepare_tripleo_docker_images {
 function configure_ironic_cleaning_network {
   startlog "Configuring cleaning_network_uuid"
   rc=255
-  sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf
+  sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf 2>>$stderr
   if [ $? -eq 0 ]; then
     cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
     if [ ! -z "$cnu" ]; then
