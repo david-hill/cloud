@@ -118,8 +118,10 @@ function create_swap_files {
   endlog "done"
 }
 function create_undercloud_conf {
+  get_interfaces_name
   cat<<EOF>/home/stack/undercloud.conf
 [DEFAULT]
+local_interface = $lastinterface
 undercloud_debug=false
 local_ip = 192.0.2.1/24
 network_gateway = 192.0.2.1
@@ -366,6 +368,18 @@ function disable_selinux {
   sed -i 's/SELINUX=enforcing/SELINUX=permissive/g' /etc/selinux/config
   endlog "done"
 }
+
+function get_interfaces_name {
+  interface=$( ip a  | grep ens | awk '{ print $2 }' | sed -e 's/://g' | head -1 )
+  if [ -z "$interface" ]; then
+    interface=eth0
+  fi
+  lastinterface=$( ip a  | grep ens | awk '{ print $2 }' | sed -e 's/://g' | tail -1 )
+  if [ -z "$interface" ]; then
+    lastinterface=eth1
+  fi
+}
+
 function prepare_environment {
   rc=0
   startlog "Adding stack user"
@@ -380,8 +394,9 @@ function prepare_environment {
   endlog "done"
   startlog "Configuring network"
   echo "192.0.2.1 local_ip" >> /etc/hosts
-  cat<<EOF>/etc/sysconfig/network-scripts/ifcfg-eth0
-DEVICE="eth0"
+  get_interfaces_name
+  cat<<EOF>/etc/sysconfig/network-scripts/ifcfg-$interface
+DEVICE="$interface"
 BOOTPROTO="static"
 BOOTPROTOv6="dhcp"
 ONBOOT="yes"
