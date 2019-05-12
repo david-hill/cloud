@@ -345,11 +345,18 @@ function install_undercloud {
 }
 
 function validate_network_environment {
-  startlog "Validating network environment"
-  git clone https://github.com/rthallisey/clapper 2>>$stderr 1>>$stdout
-  python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml 2>>$stderr 1>>$stdout
-  endlog "done"
-  rc=$?
+  rhel_release
+  if [ $rc -eq 7 ]; then
+    startlog "Validating network environment"
+    git clone https://github.com/rthallisey/clapper 2>>$stderr 1>>$stdout
+    python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  fi
   return $rc
 }
 
