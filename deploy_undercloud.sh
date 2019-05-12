@@ -47,6 +47,7 @@ function conformance {
       sudo service chronyd stop 2>>$stderr 1>>$stdout
       sudo chronyd -q 2>>$stderr 1>>$stdout
       sudo service chronyd start 2>>$stderr 1>>$stdout
+      endlog "done"
     else
       endlog "error"
     fi
@@ -321,9 +322,9 @@ function disable_selinux {
   if [ $? -ne 0 ]; then
     sudo setenforce 0
   fi
-  grep -q permissive /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
+  grep -q permissive /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml 2>>$stderr
   if [ $? -ne 0 ]; then
-    sudo sed -i 's/tripleo::selinux::mode:.*/tripleo::selinux::mode: permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
+    sudo sed -i 's/tripleo::selinux::mode:.*/tripleo::selinux::mode: permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml 2>>$stderr
   fi
   grep -q SELINUX=enforcing /etc/selinux/config
   if [ $? -eq 0 ]; then
@@ -532,7 +533,7 @@ function prepare_tripleo_docker_images {
 function configure_ironic_cleaning_network {
   startlog "Configuring cleaning_network_uuid"
   rc=255
-  sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf
+  sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf 2>>$stderr
   if [ $? -eq 0 ]; then
     cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
     if [ ! -z "$cnu" ]; then
