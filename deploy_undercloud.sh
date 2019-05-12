@@ -16,17 +16,42 @@ function cleanup_logs {
 }
 
 function conformance {
+  rc=0
   startlog "Updating system"
   sudo yum update -y 2>>$stderr 1>>$stdout
+  rc=$?
   endlog "done"
-  startlog "Installing various packages"
-  sudo yum install -y ntpdate ntp screen libguestfs-tools wget vim 2>>$stderr 1>>$stdout
-  endlog "done"
-  startlog "Synching time"
-  sudo service ntpd stop 2>>$stderr 1>>$stdout
-  sudo ntpdate $ntpserver 2>>$stderr 1>>$stdout
-  sudo service ntpd start 2>>$stderr 1>>$stdout
-  endlog "done"
+  rhel_release
+  rc=$?
+  if [ $rc -eq 7 ]; then
+    startlog "Installing various packages"
+    sudo yum install -y ntpdate ntp screen libguestfs-tools wget vim 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+      startlog "Synching time"
+      sudo service ntpd stop 2>>$stderr 1>>$stdout
+      sudo ntpdate $ntpserver 2>>$stderr 1>>$stdout
+      sudo service ntpd start 2>>$stderr 1>>$stdout
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  elif [ $rc -eq 8 ]; then
+    startlog "Installing various packages"
+    sudo yum install -y tmux libguestfs-tools wget vim 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+      startlog "Synching time"
+      sudo service chronyd stop 2>>$stderr 1>>$stdout
+    else
+      endlog "error"
+    fi
+  else
+    rc=255
+  fi
+  return $rc
 }
 
 function create_flavors {
