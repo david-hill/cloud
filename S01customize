@@ -823,13 +823,18 @@ function deploy_undercloud {
   su - stack -c "cd /home/stack/cloud; source ../stackrc; bash deploy_undercloud.sh"
   return $?
 }
+
 function grow_part {
-  growpart /dev/vda 1 -u auto
-  mount | grep vda1 | grep -q xfs
+  devid=$( df / | awk '{ print $1 }' | grep vda | sed -e 's/vda//g' )
+  growpart /dev/vda ${devid} -u auto 2>>$stderr 1>>$stdout
+  mount | grep vda${devid} | grep -q xfs
   if [ $? -eq 0 ]; then
-    xfs_growfs /dev/vda1
+    xfs_growfs /dev/vda${devid} 2>>$stderr 1>>$stdout
+  else
+    resize2fs /dev/vda${devid} 2>>$stderr 1>>$stdout
   fi
 }
+
 function prepare_for_undercloud {
   clone_repositories
   configure_local_ntp
