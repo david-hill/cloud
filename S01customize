@@ -126,7 +126,13 @@ network_gateway = 192.0.2.1
 undercloud_public_host = 192.0.2.2
 undercloud_admin_host = 192.0.2.3
 network_cidr = 192.0.2.0/24
+EOF
+  if [ $vernum -lt 15 ]; then
+    cat<<EOF>>/home/stack/undercloud.conf
 masquerade_network = 192.0.2.0/24
+EOF
+  fi
+  cat<<EOF>>/home/stack/undercloud.conf
 dhcp_start = 192.0.2.5
 dhcp_end = 192.0.2.50
 inspection_iprange = 192.0.2.100,192.0.2.120
@@ -830,6 +836,9 @@ function grow_part {
   mount | grep vda${devid} | grep -q xfs
   if [ $? -eq 0 ]; then
     xfs_growfs /dev/vda${devid} 2>>$stderr 1>>$stdout
+    if [ $? -ne 0 ]; then
+      xfs_growfs / 2>>$stderr 1>>$stdout
+    fi
   else
     resize2fs /dev/vda${devid} 2>>$stderr 1>>$stdout
   fi
