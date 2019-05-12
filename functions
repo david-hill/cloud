@@ -1,3 +1,15 @@
+function rhel_release {
+  grep -q "release 7" /etc/redhat-release
+  if [ $? -eq 0 ]; then
+    rc=7
+  elif $( grep -q "release 8" /etc/redhat-release ); then
+    rc=8
+  else
+    rc=0
+  fi
+  return $rc
+}
+
 function restore_permissions {
   file=$1
   sudo chmod 660 $file
