@@ -485,7 +485,11 @@ function create_overcloud_route {
 function get_docker_url {
   if [ $use_docker -eq 1 ]; then
     if [ -e /home/stack/internal ]; then
-      url=docker-registry.engineering.redhat.com
+      if [ -z $dockerregistry ]; then
+        url=docker-registry.engineering.redhat.com
+      else
+        url=$dockerregistry
+      fi
     else
       url=registry.access.redhat.com
     fi
@@ -518,7 +522,10 @@ function prepare_tripleo_docker_images {
       if [ $rc -eq 0 ]; then
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
           if [ -e /home/stack/internal ]; then
-            sed -i -e 's/registry.access/docker-registry.engineering/g' /home/stack/containers-prepare-parameter.yaml
+            if [ -z "$dockerregistry" ]; then
+              dockerregistry=docker-registry.engineering.redhat.com
+	    fi
+            sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry:8888\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
             rc=$?
           fi
         else
