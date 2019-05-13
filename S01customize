@@ -134,6 +134,11 @@ EOF
 masquerade_network = 192.0.2.0/24
 EOF
   fi
+  if [ $vernum -ge 15 ]; then
+    cat<<EOF>>/home/stack/undercloud.conf
+undercloud_enable_selinux = false
+EOF
+  fi
   cat<<EOF>>/home/stack/undercloud.conf
 dhcp_start = 192.0.2.5
 dhcp_end = 192.0.2.50
