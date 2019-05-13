@@ -347,6 +347,7 @@ function install_undercloud {
 
 function validate_network_environment {
   rhel_release
+  rc=$?
   if [ $rc -eq 7 ]; then
     startlog "Validating network environment"
     git clone https://github.com/rthallisey/clapper 2>>$stderr 1>>$stdout
@@ -357,6 +358,8 @@ function validate_network_environment {
     else
       endlog "error"
     fi
+  else
+    rc=0
   fi
   return $rc
 }
