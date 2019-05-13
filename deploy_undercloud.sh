@@ -501,7 +501,7 @@ function prepare_docker {
     if [ -e /home/stack/internal ]; then
       rhel_release
       rc=$?
-      if [ $rhel_release -eq 7 ]; then
+      if [ $rc -eq 7 ]; then
         grep -q $url /etc/sysconfig/docker 2>>/dev/null
         rc=$?
         if [ $rc -ne 0 ]; then
