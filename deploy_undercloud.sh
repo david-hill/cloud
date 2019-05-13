@@ -499,15 +499,21 @@ function prepare_docker {
   rc=0
   if [ $use_docker -eq 1 ]; then
     if [ -e /home/stack/internal ]; then
-      grep -q $url /etc/sysconfig/docker
+      rhel_release
       rc=$?
-      if [ $rc -ne 0 ]; then
-        sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
+      if [ $rhel_release -eq 7 ]; then
+        grep -q $url /etc/sysconfig/docker 2>>/dev/null
         rc=$?
-        if [ $rc -eq 0 ]; then
-          sudo systemctl restart docker
+        if [ $rc -ne 0 ]; then
+          sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
           rc=$?
+          if [ $rc -eq 0 ]; then
+            sudo systemctl restart docker
+            rc=$?
+          fi
         fi
+      else
+        rc=0
       fi
     fi
   fi
