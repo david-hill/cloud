@@ -525,7 +525,7 @@ function prepare_tripleo_docker_images {
             if [ -z "$dockerregistry" ]; then
               dockerregistry=docker-registry.engineering.redhat.com
 	    fi
-            sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry:8888\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
+            sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
             rc=$?
           fi
         else
