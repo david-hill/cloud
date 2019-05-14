@@ -404,6 +404,13 @@ function delete_nodes {
   endlog "done"
 }
 
+
+function set_docker_namespace {
+  file=$1
+  sed -i -e "s/ namespace: registry.access.*/ namespace: $url\/$releasever/g" $file
+  return $?
+}
+
 function create_local_docker_registry {
   rc=0
   if [ $use_docker -eq 1 ]; then
@@ -423,6 +430,7 @@ function create_local_docker_registry {
         openstack overcloud container image prepare ${extradockerimages} --namespace=${url}/${releasever} --prefix=openstack- --tag=$tag --output-images-file /home/stack/${releasever}/local_registry_images.yaml 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
+          set_docker_namespace /home/stack/${releasever}/local_registry_images.yaml
           endlog "done"
           startlog "Uploading local image registry"
           sudo openstack overcloud container image upload --config-file  /home/stack/${releasever}/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
@@ -454,6 +462,7 @@ function create_local_docker_registry {
       openstack overcloud container image prepare ${cephargs} ${extradockerimages} --namespace=${url}/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
+	set_docker_namespace /home/stack/${releasever}/overcloud_images.yaml
         endlog "done"
         startlog "Uploading images"
         sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
@@ -463,6 +472,7 @@ function create_local_docker_registry {
           if [[ $vernum -ge 14 ]] ; then
             if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
               openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml
+	      set_docker_namespace /home/stack/$releasever/containers-prepare-parameter.yaml
               if [[ $deploymentargs =~ ovn ]]; then
                 sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
               fi
@@ -478,7 +488,6 @@ function create_local_docker_registry {
   fi
   return $rc
 }
-
 
 function create_overcloud_route {
   sudo ip addr add 10.1.2.1 dev br-ctlplane 2>>$stderr 1>>$stdout
