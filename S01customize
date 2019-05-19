@@ -380,7 +380,7 @@ function get_interfaces_name {
     interface=eth0
   fi
   lastinterface=$( ip a  | grep ens | awk '{ print $2 }' | sed -e 's/://g' | tail -1 )
-  if [ -z "$interface" ]; then
+  if [ -z "$lastinterface" ]; then
     lastinterface=eth1
   fi
 }
