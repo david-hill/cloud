@@ -204,8 +204,9 @@ function upload_oc_images {
 }
 
 function clear_arp_table {
-  sudo ip neighbor flush dev eth0
-  sudo ip neighbor flush dev br-ctlplane
+  for dev in $( /sbin/ip a | grep "^[0-9]*:" | awk -F: '{ print $2 }' ); do
+    sudo ip neighbor flush dev $dev
+  done
 }
 
 function import_instackenv {
