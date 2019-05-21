@@ -96,6 +96,10 @@ function create_flavors {
     if [ $? -ne 0 ]; then
       nova flavor-key $profile set "cpu_arch"="x86_64" "capabilities:boot_option"="local" "capabilities:profile"="$profile" "capabilities:boot_mode"="$boot_mode"2>>$stderr 1>>$stdout
     fi
+    openstack flavor set $profile --property resources:CUSTOM_BAREMETAL=1
+    openstack flavor set $profile --property resources:VCPU=0
+    openstack flavor set $profile --property resources:MEMORY_MB=0
+    openstack flavor set $profile --property resources:DISK_GB=0
   done
   openstack flavor delete baremetal 2>>$stderr 1>>$stdout
   if [ $? -ne 0 ]; then
@@ -105,6 +109,10 @@ function create_flavors {
   if [ $? -ne 0 ]; then
     nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus 2>>$stderr 1>>$stdout
   fi
+  openstack flavor set baremetal --property resources:CUSTOM_BAREMETAL=1
+  openstack flavor set baremetal --property resources:VCPU=0
+  openstack flavor set baremetal --property resources:MEMORY_MB=0
+  openstack flavor set baremetal --property resources:DISK_GB=0
   endlog "done"
   return $rc
 }
