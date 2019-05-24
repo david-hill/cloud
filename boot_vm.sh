@@ -319,7 +319,7 @@ function ping_floating_ip {
   startlog "Pinging $ip"
   rc=1
   cpt=0
-  while [ $rc -ne 0 && cpt -lt 10 ]; do
+  while [ $rc -ne 0 ] && [ $cpt -lt 10 ]; do
     ping -c1 $ip 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
