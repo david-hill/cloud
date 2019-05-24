@@ -317,13 +317,19 @@ function attach_floating_ip {
 }
 function ping_floating_ip {
   startlog "Pinging $ip"
-  ping -c1 $ip 2>>$stderr 1>>$stdout
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    endlog "done"
-  else
-    endlog "error"
-  fi
+  rc=1
+  cpt=0
+  while [ $rc -ne 0 && cpt -lt 10 ]; do
+    ping -c1 $ip 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
+    cpt=$(( $cpt + 1 ))
+    sleep 1
+  done
   return $rc
 }
 
