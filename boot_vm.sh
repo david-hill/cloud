@@ -268,9 +268,9 @@ function add_secgroup_rule {
 }
 function create_floating_ip {
   startlog "Creating a floating IP"
-  ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }')
+  ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }' | sed -e 's/ //g' )
   if [ -z $ip ]; then
-    ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' )
+    ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' | sed -e 's/ //g' )
     if [ -z $ip ]; then
       nova floating-ip-create ext-net 2>>$stderr 1>>$stdout
       rc=$?
@@ -278,10 +278,10 @@ function create_floating_ip {
         openstack floating ip create ext-net 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
-          ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' )
+          ip=$( openstack floating ip list | grep None | awk -F\| '{ print $3 }' | sed -e 's/ //g' )
         fi
       else
-        ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }')
+        ip=$( nova floating-ip-list 2>>$stderr | grep ext-net | awk -F\| '{print $3 }' | sed -e 's/ //g' )
       fi
     else
       rc=3
