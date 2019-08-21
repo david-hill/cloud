@@ -6,6 +6,8 @@ source_rc overcloudrc
 
 rc=255
 
+vmname=test-vm
+
 startlog "Getting image list"
 image=$( glance image-list | grep cirros | head -1 | awk '{ print $2 }')
 endlog "done"
@@ -31,7 +33,7 @@ function delete_secgroup_rule {
     rc=$?
   fi
   if [ $rc -ne 0 ]; then
-    groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }' | sed -e 's/Id //')
+    groupid=$(nova list-secgroup ${vmname} | awk -F\| '{ print $2 }' | sed -e 's/Id //')
     openstack security group show ${groupid} 2>>$stderr | grep -q icmp
     if [ $? -eq 0 ]; then
       openstack security group rule delete  --protocol icmp ${groupid} 2>>$stderr 1>>$stdout
@@ -51,10 +53,10 @@ function delete_secgroup_rule {
 }
 function delete_vm {
   startlog "Deleting test VM"
-  nova delete test-vm 2>>$stderr 1>>$stdout
-  state=$(nova list | grep test-vm  )
+  nova delete ${vmname} 2>>$stderr 1>>$stdout
+  state=$(nova list | grep ${vmname}  )
   while [ "$state" != "" ]; do
-    state=$(nova list | grep test-vm )
+    state=$(nova list | grep ${vmname} )
   done
   endlog "done"
 }
@@ -165,7 +167,7 @@ function wait_for_volume {
 }
 
 function create_boot_from_volume_test_vm {
-  nova list 2>>$stderr | grep -q test-vm
+  nova list 2>>$stderr | grep -q ${vmname}
   rc=$?
   if [ $rc -eq 1 ]; then
     create_volume
@@ -173,8 +175,8 @@ function create_boot_from_volume_test_vm {
     if [ ! -z $volid ]; then
       wait_for_volume
       if $( cinder list | grep $volid | grep -q available ); then
-#        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=preserve,bootindex=0  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
-        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=remove,bootindex=0  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
+#        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=preserve,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
+        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=remove,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
         rc=$?
       else
         rc=252
@@ -198,11 +200,11 @@ function create_boot_from_volume_test_vm {
 }
 
 function create_test_vm {
-  nova list 2>>$stderr | grep -q test-vm
+  nova list 2>>$stderr | grep -q ${vmname}
   rc=$?
   if [ $rc -eq 1 ]; then
     startlog "Creating test VM"
-    nova boot --key-name test --flavor m1.micro --image $image  --nic net-id=$neutron test-vm 2>>$stderr 1>>$stdout
+    nova boot --key-name test --flavor m1.micro --image $image  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
       endlog "done"
@@ -223,9 +225,9 @@ function create_test_vm {
 function wait_for_vm {
   rc=0
   startlog "Waiting for VM to come up"
-  state=$(nova list | grep test-vm | awk '{ print $6 }')
+  state=$(nova list | grep ${vmname} | awk '{ print $6 }')
   while [[ ! "$state" =~ ACTIVE ]] && [[ ! "$state" =~ ERROR ]]; do
-    state=$(nova list | grep test-vm | awk '{ print $6 }')
+    state=$(nova list | grep ${vmname} | awk '{ print $6 }')
   done
   if [[ "$state" =~ ACTIVE ]]; then
     endlog "done"
@@ -243,7 +245,7 @@ function add_secgroup_rule {
     nova secgroup-add-rule default icmp -1 -1 0/0 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -ne 0 ]; then
-      groupid=$(nova list-secgroup test-vm | awk -F\| '{ print $2 }' | sed -e 's/Id //')
+      groupid=$(nova list-secgroup ${vmname} | awk -F\| '{ print $2 }' | sed -e 's/Id //')
       openstack security group show ${groupid} 2>>$stderr | grep -q icmp
       rc=$?
       if [ $rc -eq 1 ]; then
@@ -302,10 +304,10 @@ function create_floating_ip {
 
 function attach_floating_ip {
   startlog "Attaching floating IP ${ip}"
-  nova floating-ip-associate test-vm $ip 2>>$stderr 1>>$stdout
+  nova floating-ip-associate ${vmname} $ip 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -ne 0 ]; then
-    openstack server add floating ip test-vm $ip 2>>$stderr 1>>$stdout
+    openstack server add floating ip ${vmname} $ip 2>>$stderr 1>>$stdout
     rc=$?
   fi
   if [ $rc -eq 0 ]; then
