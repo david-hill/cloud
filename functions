@@ -289,8 +289,25 @@ function gen_xml {
     sed -i "s/###MAC1###/$mac1/" $tmpfile
     sed -i "s/###MAC2###/$mac2/" $tmpfile
     sed -i "s/###MEM###/$memory/" $tmpfile
+    halfmem=$(( $mem / 2 ))
+    sed -i "s/###HALFMEM###/$halfmem/" $tmpfile
     sed -i "s/###UUID###/$uuid/" $tmpfile
     sed -i "s/###VCPUS###/$vcpus/" $tmpfile
+    lastcpunode0=$(( $vcpu / 2 - 1 ))
+    firstcpunode1=$(( $lastcpunode0 + 1 ))
+    lastcpunode1=$(( $vcpu - 1 ))
+    if [ $lastcpunode0 -gt 0 ]; then
+      cpunode0="0-$lastcpunode0"
+    else
+      cpunode0=0
+    fi
+    if [ $firstcpunode1 -ne $lastcpunode1 ]; then
+      cpunode1="$firstcpunode1-$lastcpunode1"
+    else
+      cpunode1=$lastcpunode1
+    fi
+    sed -i "s/###CPUNODE0###/$cpunode0/" $tmpfile
+    sed -i "s/###CPUNODE1###/$cpunode1/" $tmpfile
     sed -i "s/###TYPE-INC###/$type-$inc-$localtype/" $tmpfile
     sed -i "s/###DISK###/$type-$inc-$localtype/" $tmpfile
     sed -i "s|###PATH###|$tpath|" $tmpfile
