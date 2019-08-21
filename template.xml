@@ -9,6 +9,12 @@ or other application using the libvirt API.
   <name>###TYPE-INC###</name>
   <uuid>###UUID###</uuid>
   <memory unit='KiB'>###MEM###</memory>
+  <memoryBacking>
+    <hugepages>
+      <page size='1048576' unit='KiB' nodeset='0'/>
+      <page size='1048576' unit='KiB' nodeset='1'/>
+    </hugepages>
+  </memoryBacking>
   <currentMemory unit='KiB'>###MEM###</currentMemory>
   <vcpu placement='static'>###VCPUS###</vcpu>
   <os>
@@ -25,6 +31,10 @@ or other application using the libvirt API.
     <model fallback='allow'>###MODEL###</model>
     <feature policy='require' name='vmx'/>
     <feature policy='require' name='pdpe1gb'/>
+    <numa>
+      <cell id='0' cpus='###CPUNODE0###' memory='###HALFMEM###' unit='KiB'/>
+      <cell id='1' cpus='###CPUNODE1###' memory='###HALFMEM###' unit='KiB'/>
+    </numa>
   </cpu>
   <clock offset='utc'>
     <timer name='rtc' tickpolicy='catchup'/>
