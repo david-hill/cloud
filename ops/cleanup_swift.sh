@@ -3,7 +3,7 @@ source gnocchirc
 function delete_objects {
   container=$1
   ls=10
-  while [ $ls -gt 0 ]; do
+  while [ $ls -gt 1 ]; do
     timeout 300 swift list $container > output
     split -l1000 output
     ls=$( ls x* | wc -l )
@@ -27,7 +27,7 @@ function count_containers {
   var=$( swift list | wc -l )
 }
 
-delete_objects measure
+delete_objects measures
 count_containers
 while [ $var -gt 0 ]; do
   delete_containers
