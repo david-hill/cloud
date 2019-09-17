@@ -17,6 +17,6 @@ done
 
 for p in $(swift list | grep gnocchi ); do 
   echo $p
-  time swift delete $p
+  time swift delete $p > /dev/null
 done
 
