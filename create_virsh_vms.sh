@@ -27,18 +27,26 @@ else
 fi
 
 function gen_disks {
+  disk_list="vbd vdc vdd"
   sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
   rc=$?
   if [ $rc -eq 0 ]; then
     restore_permissions $tpath/$type-$inc-$releasever.qcow2
     rc=$?
     if [ $rc -eq 0 ]; then
-      sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever-vdb.qcow2 50G > /dev/null
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        restore_permissions $tpath/$type-$inc-$releasever-vdb.qcow2
+      for disk in $disk_list; do
+        sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever-${disk}.qcow2 50G > /dev/null
         rc=$?
-      fi
+        if [ $rc -eq 0 ]; then
+          restore_permissions $tpath/$type-$inc-$releasever-${disk}.qcow2
+          rc=$?
+          if [ $rc -ne 0 ]; then
+            break
+          fi
+        else
+          break
+        fi
+      done
     fi
   fi
   return $rc
