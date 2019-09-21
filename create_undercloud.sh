@@ -321,13 +321,21 @@ function create_base_image {
   return $rc
 }
 
-function create_vdb {
-  sudo qemu-img create -f qcow2 $jenkinspath/VMs/${vmname}-vdb.qcow2 50G > /dev/null
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    restore_permissions $jenkinspath/VMs/${vmname}-vdb.qcow2
+function create_disks {
+  disk_list="vbd vdc vdd"
+  for disk in $disk_list; do
+    sudo qemu-img create -f qcow2 $jenkinspath/VMs/${vmname}-${disk}.qcow2 50G > /dev/null
     rc=$?
-  fi
+    if [ $rc -eq 0 ]; then
+      restore_permissions $jenkinspath/VMs/${vmname}-${disk}.qcow2
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        break
+      fi
+    else
+      break
+    fi
+  done
   return $rc
 }
  
@@ -545,7 +553,7 @@ if [ $rc -eq 0 ]; then
         customize_image
         rc=$?
         if [ $rc -eq 0 ]; then
-          create_vdb
+          create_disks
           rc=$?
           if [ $rc -eq 0 ]; then
             spawn_undercloud_vm
