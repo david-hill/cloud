@@ -149,12 +149,15 @@ function create_vm {
   if [[ $type =~ control ]]; then
     max=$controlscale
     memory=$controlmemory
+    hugepages=0
   elif [[ $type =~ ceph ]]; then
     max=$cephscale
     memory=$cephmemory
+    hugepages=0
   else
     max=$computescale
     memory=$computememory
+    hugepages=1
   fi
   while [ $inc -lt $max ]; do
     tmpfile=$(mktemp)
