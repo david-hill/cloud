@@ -157,7 +157,7 @@ function create_vm {
   else
     max=$computescale
     memory=$computememory
-    hugepages=1
+    hugepages=$use_hugepages
   fi
   while [ $inc -lt $max ]; do
     tmpfile=$(mktemp)
