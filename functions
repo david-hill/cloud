@@ -370,7 +370,7 @@ function validate_rpm {
 
 function validate_hugepages {
   rc=0
-  if [ $hugepages -eq 1 ]; then
+  if [ "${use_hugepages}" -eq 1 ]; then
     nr_hugepages=$( sysctl -a 2>/dev/null | grep nr_hugepages\ =| awk -F= '{ print $2 }' | sed -e 's/ //g' )
     if [ $nr_hugepages -eq 0 ]; then
       rc=255
