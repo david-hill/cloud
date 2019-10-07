@@ -368,6 +368,16 @@ function validate_rpm {
   return $rc
 }
 
+function validate_hugepages {
+  rc=0
+  if [ $hugepages -eq 1 ]; then
+    nr_hugepages=$( sysctl -a 2>/dev/null | grep nr_hugepages\ =| awk -F= '{ print $2 }' | sed -e 's/ //g' )
+    if [ $nr_hugepages -eq 0 ]; then
+      rc=255
+    fi
+  fi
+  return $rc
+}
 function validate_env {
   rc=255
   sudo dmidecode 2>>$stderr |grep -iq QEMU
