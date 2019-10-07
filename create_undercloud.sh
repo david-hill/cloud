@@ -78,7 +78,7 @@ function customize_rhel_image {
   rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep "\-$rhel" | tail -1)
   sudo cp images/rhel/$rhelimage tmp/rhel-guest-image-local.qcow2
   sudo chown qemu tmp/rhel-guest-image-local.qcow2
-  sudo virt-customize -v -a tmp/rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
+  sudo virt-customize -x -v -a tmp/rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
   endlog "done"
 }
 function get_new_images {
@@ -178,6 +178,7 @@ function spawn_undercloud_vm {
       tpath=$jenkinspath/VMs
       vcpus=4
       pxeenabled=off
+      hugepages=0
       gen_macs
       gen_xml
       create_domain
