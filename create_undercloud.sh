@@ -506,94 +506,98 @@ if [ ! -d tmp ]; then
   mkdir tmp
 fi
 
-stop_vm_if_running
+validate_hugepages
+rc=$?
 
-rc=0
 if [ $rc -eq 0 ]; then
+  stop_vm_if_running
   rc=0
   if [ $rc -eq 0 ]; then
-    memory=$undercloudmemory
-    type=undercloud
-    inc=0
-    if [[ $installtype =~ rdo ]]; then
-      vmname="${type}-${inc}-${rdorelease}"
-    else
-      vmname="${type}-${inc}-${releasever}"
-    fi
-    if [ -e "S01customize.local" ]; then
-      cp S01customize.local tmp/S01customize
-    else    
-      cp S01customize tmp/S01customize
-    fi
-    restart_libvirtd
-    restart_vbmcd
-    wait_for_dnsmasq
-    rc=$?
-    if [ $? -eq 0 ]; then
-      kill_dnsmasq
-      rc=0
-    else
-      rc=0
-    fi
+    rc=0
     if [ $rc -eq 0 ]; then
-    #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
-      if [ ! -d $jenkinspath/VMs ]; then
-        mkdir -p $jenkinspath/VMs
-      fi
-      prepare_hypervisor
-      flush_arp_table
-      vpn_setup
-      if [ $? -eq 0 ]; then
-        fetch_internal_images
+      memory=$undercloudmemory
+      type=undercloud
+      inc=0
+      if [[ $installtype =~ rdo ]]; then
+        vmname="${type}-${inc}-${rdorelease}"
       else
-        echo "WARNING: No VPN IP found..."
+        vmname="${type}-${inc}-${releasever}"
       fi
-      create_base_image
+      if [ -e "S01customize.local" ]; then
+        cp S01customize.local tmp/S01customize
+      else    
+        cp S01customize tmp/S01customize
+      fi
+      restart_libvirtd
+      restart_vbmcd
+      wait_for_dnsmasq
       rc=$?
+      if [ $? -eq 0 ]; then
+        kill_dnsmasq
+        rc=0
+      else
+        rc=0
+      fi
       if [ $rc -eq 0 ]; then
-        customize_image
+      #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
+        if [ ! -d $jenkinspath/VMs ]; then
+          mkdir -p $jenkinspath/VMs
+        fi
+        prepare_hypervisor
+        flush_arp_table
+        vpn_setup
+        if [ $? -eq 0 ]; then
+          fetch_internal_images
+        else
+          echo "WARNING: No VPN IP found..."
+        fi
+        create_base_image
         rc=$?
         if [ $rc -eq 0 ]; then
-          create_disks
+          customize_image
           rc=$?
           if [ $rc -eq 0 ]; then
-            spawn_undercloud_vm
-            wait_for_vm
+            create_disks
             rc=$?
             if [ $rc -eq 0 ]; then
-              wait_for_ssh
+              spawn_undercloud_vm
+              wait_for_vm
               rc=$?
               if [ $rc -eq 0 ]; then
-                if [ ! -z $rdorelease ]; then
-                  wait_for_reboot
-                  if [ $? -eq 0 ]; then
-                    customize_rhel_image
-                    upload_rhel_image
-                    generate_images
-                    rc=$?
-                  else
-                    endlog "error"
-                  fi
-                fi
+                wait_for_ssh
+                rc=$?
                 if [ $rc -eq 0 ]; then
-                  bash create_virsh_vms.sh $installtype $rdorelease
-                  rc=$?
+                  if [ ! -z $rdorelease ]; then
+                    wait_for_reboot
+                    if [ $? -eq 0 ]; then
+                      customize_rhel_image
+                      upload_rhel_image
+                      generate_images
+                      rc=$?
+                    else
+                      endlog "error"
+                    fi
+                  fi
                   if [ $rc -eq 0 ]; then
-                    wait_for_undercloud_deployment
+                    bash create_virsh_vms.sh $installtype $rdorelease
                     rc=$?
                     if [ $rc -eq 0 ]; then
-                      if [ -z $rdorelease ]; then
-                        get_new_images
-                        upload_rhel_image
-                      fi
-                      wait_for_introspection
+                      wait_for_undercloud_deployment
                       rc=$?
                       if [ $rc -eq 0 ]; then
-                        wait_for_overcloud_deployment
+                        if [ -z $rdorelease ]; then
+                          get_new_images
+                          upload_rhel_image
+                        fi
+                        wait_for_introspection
                         rc=$?
                         if [ $rc -eq 0 ]; then
-                          wait_for_overcloud_test
+                          wait_for_overcloud_deployment
                           rc=$?
+                          if [ $rc -eq 0 ]; then
+                            wait_for_overcloud_test
+                            rc=$?
+                          fi
                         fi
                       fi
                     fi
@@ -606,6 +610,6 @@ if [ $rc -eq 0 ]; then
       fi
     fi
   fi
-fi
+fi 
 
 exit $rc
