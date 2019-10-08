@@ -464,34 +464,36 @@ function create_local_docker_registry {
         endlog "error"
       fi
     elif [[ $vernum -ge 13 ]]; then
-      startlog "Preparing container image configuration files"
-      if [ $cephscale -gt 0 ]; then
-        cephargs="--set ceph_namespace=registry.access.redhat.com/rhceph --set ceph_image=rhceph-3-rhel7 "
-      fi
-      openstack overcloud container image prepare ${cephargs} ${extradockerimages} --namespace=${url}/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        set_docker_namespace /home/stack/${releasever}/overcloud_images.yaml
-        endlog "done"
-        startlog "Uploading images"
-        sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
+      if [ ! -e /home/stack/containers-prepare-parameter.yaml ]; then
+        startlog "Preparing container image configuration files"
+        if [ $cephscale -gt 0 ]; then
+          cephargs="--set ceph_namespace=registry.access.redhat.com/rhceph --set ceph_image=rhceph-3-rhel7 "
+        fi
+        openstack overcloud container image prepare ${cephargs} ${extradockerimages} --namespace=${url}/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
+          set_docker_namespace /home/stack/${releasever}/overcloud_images.yaml
           endlog "done"
-          if [[ $vernum -ge 14 ]] ; then
-            if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
-              openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
-              set_docker_namespace /home/stack/$releasever/containers-prepare-parameter.yaml
-              if [[ $deploymentargs =~ ovn ]]; then
-                sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
+          startlog "Uploading images"
+          sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            endlog "done"
+            if [[ $vernum -ge 14 ]] ; then
+              if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
+                openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
+                set_docker_namespace /home/stack/$releasever/containers-prepare-parameter.yaml
+                if [[ $deploymentargs =~ ovn ]]; then
+                  sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
+                fi
               fi
             fi
+          else
+            endlog "error"
           fi
         else
           endlog "error"
         fi
-      else
-        endlog "error"
       fi
     fi
   fi
