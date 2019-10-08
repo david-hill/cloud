@@ -176,6 +176,8 @@ function openstack_oc_deploy {
          deploymentargs="$deploymentargs -e /home/stack/$releasever/containers-prepare-parameter.yaml"
        elif [ -e "/home/stack/${releasever}/overcloud_images.yaml" ]; then
          deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
+       elif [ -e "/home/stack/containers-prepare-parameter.yaml" ]; then
+         deploymentargs="$deploymentargs -e /home/stack/containers-prepare-parameter.yaml"
        fi
     fi
 
