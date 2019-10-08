@@ -553,7 +553,7 @@ function prepare_tripleo_docker_images {
             cat << EOF >> /home/stack/containers-prepare-parameter.yaml
   ContainerImageRegistryCredentials:
     registry.redhat.io:
-      ${rhnusername}: '$rhnpassword'
+      ${rhnusername}: "$rhnpassword"
 EOF
           fi
         fi
