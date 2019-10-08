@@ -544,12 +544,7 @@ function prepare_tripleo_docker_images {
   rc=0
   if [ $use_docker -eq 1 ]; then
     if [ $vernum -ge 14 ]; then
-      if [ $vernum -ge 15 ]; then
-	pushlocal=''
-      else
-	pushlocal='--local-push-destination'
-      fi
-      openstack tripleo container image prepare default $pushlocal --output-env-file /home/stack/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
+      openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         if [ $vernum -ge 15 ]; then
