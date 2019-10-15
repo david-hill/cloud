@@ -550,7 +550,7 @@ function prepare_tripleo_docker_images {
       rc=$?
       if [ $rc -eq 0 ]; then
         if [ $vernum -ge 15 ]; then
-          if [ -e /home/stack/official ]; then
+          if [ ! -e /home/stack/internal ]; then
             source /home/stack/rhnlogin
             cat << EOF >> /home/stack/containers-prepare-parameter.yaml
   ContainerImageRegistryCredentials:
