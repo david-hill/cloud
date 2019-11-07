@@ -3,6 +3,7 @@ heat_template_version: 2016-04-08
 parameters:
   index:
     type: string
+    default: 0
   ssh_key:
     description: SSH public key used to access runners
     type: string
@@ -18,9 +19,34 @@ parameters:
   flavor:
     description: Flavor
     type: string
-    default: m1.tiny
+    default: m1.micro
+  ext_net:
+    description: Flavor
+    type: string
+    default: ext-net
+  network:
+    description: Private network
+    type: string
+    default: test
+  network_subnet:
+    description: Private subnet
+    type: string
+    default: test-subnet
+  security_group:
+    description: Security group
+    type: string
+    default: default
 
 resources:
+
+  instance_port:
+    type: OS::Neutron::Port
+    properties:
+      network: { get_param: network }
+      fixed_ips:
+        - subnet: { get_param: network_subnet }
+      security_groups: [{ get_param: security_group }]
+
   instance:
     type: OS::Nova::Server
     properties:
@@ -30,3 +56,10 @@ resources:
       flavor: { get_param: flavor }
       networks: [ "network": { get_param: network } ]
       key_name: { get_param: ssh_key }
+
+  floating_ip:
+    type: OS::Neutron::FloatingIP
+    properties:
+      floating_network: { get_param: ext_net }
+      port_id: { get_resource: instance_port }
+      value_specs: { floating_ip_address:  192.168.122.210 }
