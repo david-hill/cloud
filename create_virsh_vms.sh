@@ -27,7 +27,7 @@ else
 fi
 
 function gen_disks {
-  disk_list="vbd vdc vdd"
+  disk_list="vdb vdc vdd"
   sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
   rc=$?
   if [ $rc -eq 0 ]; then
