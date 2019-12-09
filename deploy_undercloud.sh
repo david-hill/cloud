@@ -494,6 +494,8 @@ function create_local_docker_registry {
         else
           endlog "error"
         fi
+      else
+        rm -rf /home/stack/${releasever}/overcloud_images.yaml
       fi
     fi
   fi
