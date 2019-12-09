@@ -323,7 +323,7 @@ function create_base_image {
 }
 
 function create_disks {
-  disk_list="vbd vdc vdd"
+  disk_list="vdb vdc vdd"
   for disk in $disk_list; do
     sudo qemu-img create -f qcow2 $jenkinspath/VMs/${vmname}-${disk}.qcow2 50G > /dev/null
     rc=$?
