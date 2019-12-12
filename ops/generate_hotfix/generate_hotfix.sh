@@ -5,6 +5,7 @@ set -x
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 
 bz=123456
+servicelist=nova-compute
 
 function build_image() {
     image_tag=$( cat /home/stack/local_registry_images.yaml  | grep $service |  awk -F: '{ print $3 }' )
@@ -26,8 +27,12 @@ git clone https://github.com/openstack/ansible-role-tripleo-modify-image
 mkdir ansible-role-tripleo-modify-image/roles
 ln -s $PWD/ansible-role-tripleo-modify-image $PWD/ansible-role-tripleo-modify-image/roles/tripleo-modify-image
 
-service=nova-compute
-registry=$( cat /home/stack/local_registry_images.yaml  | grep $service |  awk '{ print $3 }' | cut -d\/ -f1 )
+registry=registry.access.redhat.com
 
-build_image $service $registry $bz
+if [ -e /home/stack/local_registry_images.yaml ]; then
+  registry=$( cat /home/stack/local_registry_images.yaml  | grep imagename |  awk '{ print $3 }' | cut -d\/ -f1 | tail -1 )
+fi
 
+for service in $servicelist; do
+  build_image $service $registry $bz
+done
