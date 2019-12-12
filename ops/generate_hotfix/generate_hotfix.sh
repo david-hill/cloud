@@ -8,7 +8,6 @@ localregistry=""
 
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 
-
 function build_image() {
     image_tag=$( cat /home/stack/local_registry_images.yaml  | grep $service |  awk -F: '{ print $3 }' )
     set -e
@@ -18,13 +17,12 @@ function build_image() {
     cp hotfix.yaml $PWD/ansible-role-tripleo-modify-image
     cp *.rpm /tmp/hotfix
     cd $PWD/ansible-role-tripleo-modify-image
-    ansible-playbook -e "image_tag=$image_tag registry=$2 service=$1 bz=$3" hotfix.yaml
+    ansible-playbook -e "image_tag=$image_tag registry=$2 service=$1 bz=$3 localregistry=$4" hotfix.yaml
     if [ -e /home/stack/templates/overcloud_images.yaml ]; then
       sed -i "s/$service:$image_tag$/$service:${image_tag}-hotfix-bz$3/" /home/stack/templates/overcloud_images.yaml
     fi
     cd $TOP_DIR
     rm -rf /tmp/hotfix
-    docker tag $registry/rhosp13/openstack-$service:$image_tag-hotfix-bz$3 $localregistry/rhosp13/openstack-$service:$image_tag-hotfix-bz$3
     docker push $localregistry/rhosp13/openstack-$service:$image_tag-hotfix-bz$3
     set +e
 }
@@ -52,5 +50,5 @@ fi
 
 
 for service in $servicelist; do
-  build_image $service $registry $bz
+  build_image $service $registry $bz $localregistry
 done
