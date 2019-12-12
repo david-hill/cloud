@@ -2,10 +2,12 @@
 
 set -x
 
-TOP_DIR=$(cd $(dirname "$0") && pwd)
-
 bz=123456
 servicelist="nova-compute"
+localregistry=""
+
+TOP_DIR=$(cd $(dirname "$0") && pwd)
+
 
 function build_image() {
     image_tag=$( cat /home/stack/local_registry_images.yaml  | grep $service |  awk -F: '{ print $3 }' )
@@ -18,10 +20,12 @@ function build_image() {
     cd $PWD/ansible-role-tripleo-modify-image
     ansible-playbook -e "image_tag=$image_tag registry=$2 service=$1 bz=$3" hotfix.yaml
     if [ -e /home/stack/templates/overcloud_images.yaml ]; then
-      sed -i "s/$service:$image_tag$/service:${image_tag}-hotfix-bz-$3" /home/stack/templates/overcloud_images.yaml
+      sed -i "s/$service:$image_tag$/$service:${image_tag}-hotfix-bz$3/" /home/stack/templates/overcloud_images.yaml
     fi
     cd $TOP_DIR
     rm -rf /tmp/hotfix
+    docker tag $registry/rhosp13/openstack-$service:$image_tag-hotfix-bz$3 $localregistry/rhosp13/openstack-$service:$image_tag-hotfix-bz$3
+    docker push $localregistry/rhosp13/openstack-$service:$image_tag-hotfix-bz$3
     set +e
 }
 
@@ -34,7 +38,18 @@ registry=registry.access.redhat.com
 
 if [ -e /home/stack/local_registry_images.yaml ]; then
   registry=$( cat /home/stack/local_registry_images.yaml  | grep imagename |  awk '{ print $3 }' | cut -d\/ -f1 | tail -1 )
+  if [ -z "$localregistry" ]; then
+    localregistry=$( cat /home/stack/local_registry_images.yaml  | grep push_destination | awk '{ print $2 }' | tail -1 )
+    if [ -z "$localregistry" ]; then
+      echo "Error: localregistry is undefined"
+      exit 1
+    fi
+  fi
+else
+  echo Error: /home/stack/local_registry_images.yaml is missing
+  exit 1
 fi
+
 
 for service in $servicelist; do
   build_image $service $registry $bz
