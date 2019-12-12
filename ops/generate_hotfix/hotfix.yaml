@@ -1,0 +1,15 @@
+- hosts: localhost
+  tasks:
+  - name: ensure python-docker-py is installed
+    yum:
+      name: python-docker-py
+      state: present
+  - name: include tripleo-modify-image
+    import_role:
+      name: tripleo-modify-image
+    vars:
+      tasks_from: rpm_install.yml
+      source_image: "{{ registry }}/rhosp13/openstack-{{ service }}:{{ image_tag }}"
+      rpms_path: /tmp/hotfix/
+      modified_append_tag: -hotfix-bz{{ bz }}
+
