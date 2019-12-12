@@ -5,7 +5,7 @@ set -x
 TOP_DIR=$(cd $(dirname "$0") && pwd)
 
 bz=123456
-servicelist=nova-compute
+servicelist="nova-compute"
 
 function build_image() {
     image_tag=$( cat /home/stack/local_registry_images.yaml  | grep $service |  awk -F: '{ print $3 }' )
