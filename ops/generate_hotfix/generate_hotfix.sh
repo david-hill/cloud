@@ -17,6 +17,9 @@ function build_image() {
     cp *.rpm /tmp/hotfix
     cd $PWD/ansible-role-tripleo-modify-image
     ansible-playbook -e "image_tag=$image_tag registry=$2 service=$1 bz=$3" hotfix.yaml
+    if [ -e /home/stack/templates/overcloud_images.yaml ]; then
+      sed -i "s/$service:$image_tag$/service:${image_tag}-hotfix-bz-$3" /home/stack/templates/overcloud_images.yaml
+    fi
     cd $TOP_DIR
     rm -rf /tmp/hotfix
     set +e
