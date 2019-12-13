@@ -27,6 +27,10 @@ function build_image() {
     set +e
 }
 
+function gettags {
+   tags=$( curl -s ${localregistry}/v2/$p/tags/list )
+   echo $tags
+}
 
 git clone https://github.com/openstack/ansible-role-tripleo-modify-image
 mkdir ansible-role-tripleo-modify-image/roles
@@ -48,7 +52,10 @@ else
   exit 1
 fi
 
-
 for service in $servicelist; do
   build_image $service $registry $bz $localregistry
+  catalog=$( curl -s $localregistry/v2/_catalog )
+  for p in $(echo $catalog | sed -e 's/,/\n/g' | sed -e 's/repositories//' -e 's/"//g' -e 's/{:\[//g' -e 's/\]}//g' | grep $service); do
+    gettags
+  done
 done
