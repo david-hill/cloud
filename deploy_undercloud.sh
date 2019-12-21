@@ -523,6 +523,7 @@ function get_docker_url {
       url=registry.access.redhat.com
     fi
   fi
+  dockerregistry=$url
 }
 function prepare_docker {
   rc=0
@@ -567,10 +568,9 @@ EOF
         fi
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
           if [ -e /home/stack/internal ]; then
-            if [ -z "$dockerregistry" ]; then
-              dockerregistry=docker-registry.engineering.redhat.com
-	    fi
             sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
+            rc=$?
+            sed -i -e "s/ namespace: registry.redhat.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
             rc=$?
           fi
         else
