@@ -557,14 +557,12 @@ function prepare_tripleo_docker_images {
       rc=$?
       if [ $rc -eq 0 ]; then
         if [ $vernum -ge 15 ]; then
-          if [ ! -e /home/stack/internal ]; then
-            source /home/stack/rhnlogin
-            cat << EOF >> /home/stack/containers-prepare-parameter.yaml
+          source /home/stack/rhnlogin
+          cat << EOF >> /home/stack/containers-prepare-parameter.yaml
   ContainerImageRegistryCredentials:
     registry.redhat.io:
       ${rhnusername}: "$rhnpassword"
 EOF
-          fi
         fi
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
           if [ -e /home/stack/internal ]; then
@@ -577,9 +575,11 @@ EOF
             #sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
             #rc=$?
             if [ $vernum -ge 16 ]; then
-              sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: quay.io\/rhceph-dev\//g" /home/stack/containers-prepare-parameter.yaml
+              sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: registry.redhat.io\/rhceph-beta/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
-              sed -i -e "s/rhceph-4.0-rhel8/rhceph/g" /home/stack/containers-prepare-parameter.yaml
+              sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/ceph_tag: .*/ceph_tag: 4-8/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
             fi
           fi
