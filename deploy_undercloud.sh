@@ -511,11 +511,12 @@ function get_docker_url {
   if [ $use_docker -eq 1 ]; then
     if [ -e /home/stack/internal ]; then
       if [ -z $dockerregistry ]; then
-	if [ "$alpha" -eq 1 ]; then
+	      if [ "$alpha" -eq 1 ]; then
+          #url=registry.redhat.io/rhosp-beta
           url=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
-	else
+        else
           url=docker-registry.engineering.redhat.com
-	fi
+        fi
       else
         url=$dockerregistry
       fi
