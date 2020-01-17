@@ -2,8 +2,8 @@
 
 set -x
 
-bz=123456
-servicelist="nova-compute"
+bz=1780287
+servicelist="neutron-server neutron-dhcp-agent neutron-l3-agent neutron-metadata-agent neutron-openvswitch-agent"
 localregistry=""
 
 TOP_DIR=$(cd $(dirname "$0") && pwd)
@@ -33,6 +33,9 @@ function gettags {
 }
 
 git clone https://github.com/openstack/ansible-role-tripleo-modify-image
+cd ansible-role-tripleo-modify-image
+git fetch https://review.opendev.org/openstack/ansible-role-tripleo-modify-image refs/changes/02/703202/2 && git cherry-pick FETCH_HEAD
+cd ..
 mkdir ansible-role-tripleo-modify-image/roles
 ln -s $PWD/ansible-role-tripleo-modify-image $PWD/ansible-role-tripleo-modify-image/roles/tripleo-modify-image
 
