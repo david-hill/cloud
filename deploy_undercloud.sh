@@ -505,7 +505,8 @@ function get_docker_url {
       if [ -z $dockerregistry ]; then
 	      if [ "$alpha" -eq 1 ]; then
           #url=registry.redhat.io/rhosp-beta
-          url=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
+          url=registry-proxy.engineering.redhat.com/rh-osbs
+          #url=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
         else
           url=docker-registry.engineering.redhat.com
         fi
@@ -569,12 +570,14 @@ EOF
             #rc=$?
             #sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
             #rc=$?
-	    if [ $vernum -ge 16 ]; then
+	          if [ $vernum -ge 16 ]; then
               sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: quay.io\/rhceph-dev\//g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
               sed -i -e "s/rhceph-4.0-rhel8/rhceph/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
-	    fi
+              sed -i -e "s/name_prefix: .*/name_prefix: rhosp$vernum-openstack-/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            fi
           fi
         else
           rc=255
