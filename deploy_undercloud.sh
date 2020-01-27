@@ -568,7 +568,7 @@ EOF
             #rc=$?
             #sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
             #rc=$?
-	          if [ $vernum -ge 16 ]; then
+            if [ $vernum -ge 16 ]; then
               sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: quay.io\/rhceph-dev\//g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
               sed -i -e "s/rhceph-4.0-rhel8/rhceph/g" /home/stack/containers-prepare-parameter.yaml
