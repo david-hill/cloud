@@ -551,14 +551,12 @@ function prepare_tripleo_docker_images {
       rc=$?
       if [ $rc -eq 0 ]; then
         if [ $vernum -ge 15 ]; then
-          if [ -e /home/stack/official ]; then
-            source /home/stack/rhnlogin
-            cat << EOF >> /home/stack/containers-prepare-parameter.yaml
+          source /home/stack/rhnlogin
+          cat << EOF >> /home/stack/containers-prepare-parameter.yaml
   ContainerImageRegistryCredentials:
     registry.redhat.io:
       ${rhnusername}: "$rhnpassword"
 EOF
-          fi
         fi
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
           if [ -e /home/stack/internal ]; then
