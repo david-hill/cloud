@@ -618,7 +618,11 @@ if [ -e "/home/stack/stackrc" ]; then
 fi
 
 if [[ $releasever =~ rhosp ]]; then
-  vernum=$( echo $releasever | sed -e 's/rhosp//' )
+  if [[ $releasever =~ beta ]]; then
+    vernum=16
+  else
+    vernum=$( echo $releasever | sed -e 's/rhosp//' )
+  fi
 fi
 conformance
 disable_selinux
