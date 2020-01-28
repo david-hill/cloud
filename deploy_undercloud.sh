@@ -568,10 +568,17 @@ EOF
         fi
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
           if [ -e /home/stack/internal ]; then
-            sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
-            rc=$?
-            sed -i -e "s/ namespace: registry.redhat.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
-            rc=$?
+            if [ $vernum -ge 16 ]; then
+              sed -i -e "s# namespace: registry.access.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s# namespace: registry.redhat.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            else
+              sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/ namespace: registry.redhat.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            fi
             #sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: docker-registry.engineering.redhat.com\/ceph\//g" /home/stack/containers-prepare-parameter.yaml
             #rc=$?
             #sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
