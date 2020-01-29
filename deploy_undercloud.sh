@@ -586,6 +586,8 @@ EOF
               rc=$?
               sed -i -e "s/name_prefix: .*/name_prefix: rhosp$vernum-openstack-/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
+              sed -i -e "s/\(tag_from_label: .*\)/#\1/" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
             fi
           fi
         else
