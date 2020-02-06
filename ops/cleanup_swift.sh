@@ -30,7 +30,7 @@ for container in $( openstack container list -f value | grep gnocchi ); do
   delete_objects $container
 done
 
-delete_objects measures
+delete_objects measure
 count_containers
 while [ $var -gt 0 ]; do
   delete_containers
