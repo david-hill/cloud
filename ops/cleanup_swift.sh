@@ -7,7 +7,6 @@ function delete_objects {
     timeout 300 swift list $container > output
     split -l1000 output
     ls=$( ls x* | wc -l )
-  
     for p in x*; do
        echo $p
        time  swift delete $container $(cat $p ) > /dev/null
@@ -26,6 +25,10 @@ function delete_containers {
 function count_containers {
   var=$( swift list | wc -l )
 }
+
+for container in $( openstack container list -f value | grep gnocchi ); do
+  delete_objects $container
+done
 
 delete_objects measures
 count_containers
