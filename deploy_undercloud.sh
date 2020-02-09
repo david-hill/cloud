@@ -590,9 +590,23 @@ EOF
             #  rc=$?
             #  sed -i -e "s/ceph_tag: .*/ceph_tag: 4-8/g" /home/stack/containers-prepare-parameter.yaml
             #  rc=$?
-              sed -i -e "s#ceph_namespace: .*#ceph_namespace: docker-registry.upshift.redhat.com/ceph#" /home/stack/containers-prepare-parameter.yaml
+            # ceph_alertmanager_image: openshift-ose-prometheus-alertmanager
+            # ceph_alertmanager_namespace: rhos-qe-mirror-rdu2.usersys.redhat.com:5002/rh-osbs
+            # ceph_alertmanager_tag: v4.1
+            # ceph_grafana_image: rhceph-3-dashboard-rhel7
+            # ceph_grafana_namespace: registry.access.redhat.com/rhceph
+            # ceph_grafana_tag: 3
+            # ceph_node_exporter_image: openshift-ose-prometheus-node-exporter
+            # ceph_node_exporter_namespace: rhos-qe-mirror-rdu2.usersys.redhat.com:5002/rh-osbs
+            # ceph_node_exporter_tag: v4.1
+            # ceph_prometheus_image: openshift-ose-prometheus
+            # ceph_prometheus_namespace: rhos-qe-mirror-rdu2.usersys.redhat.com:5002/rh-osbs
+            # ceph_prometheus_tag: v4.1
+              sed -i -e "s#ceph_namespace: .*#ceph_namespace: registry-proxy.engineering.redhat.com/rh-osbs#" /home/stack/containers-prepare-parameter.yaml
               rc=$?
-              sed -i -e "s/rhceph-4-rhel8/rhceph-4.0-rhel8/g" /home/stack/containers-prepare-parameter.yaml
+              sed -i -e "s/ceph_image: .*/ceph_image: rhceph/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/ceph_tag: .*/ceph_tag: latest/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
               sed -i -e "s/name_prefix: .*/name_prefix: rhosp$vernum-openstack-/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
