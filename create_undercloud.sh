@@ -421,6 +421,7 @@ function customize_image {
   sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
   sed -i "s/###RDORELEASE###/$rdorelease/g" tmp/S01customize
   sed -i "s/###BRANCHTYPE###/$branchtype/g" tmp/S01customize
+  sed -i "s/###STANDALONE###/$standalone/g" tmp/S01customize
   sed -i "s/###ENABLENFS###/$enablenfs/g" tmp/S01customize
   sed -i "s/###EMAIL###/$email/g" tmp/S01customize
   sed -i "s/###RHNUSERNAME###/$rhnusername/g" tmp/S01customize
