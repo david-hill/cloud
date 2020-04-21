@@ -148,5 +148,10 @@ or other application using the libvirt API.
     <memballoon model='virtio'>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x07' function='0x0'/>
     </memballoon>
+    <channel type='unix'>
+      <source mode='bind' path='/var/lib/libvirt/qemu/###TYPE-INC###.agent'/>
+      <target type='virtio' name='org.qemu.guest_agent.0'/>
+      <address type='virtio-serial' controller='0' bus='0' port='2'/>
+    </channel>
   </devices>
 </domain>

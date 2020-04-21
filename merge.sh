@@ -1,7 +1,7 @@
 commits=$(git log | grep commit | head -1 | awk '{ print $2 }' )
 
 
-for p in $(git branch  | awk '{ print $1 }' | grep -v '\*'); do
+for p in $(git branch  | awk '{ print $1 }' | egrep "13|17" | grep -v '\*'); do
   git checkout $p
   git pull
   for commit in $commits; do
