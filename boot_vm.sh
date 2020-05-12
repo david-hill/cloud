@@ -171,18 +171,21 @@ function create_volume {
 }
 
 function delete_volume {
-  cinder list | grep -q $volid 
-  if [ $? -eq  0 ]; then
-    startlog "Deleting volume $volid"
-    cinder delete $volid 2>>$stderr 1>>$stdout
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      endlog "done"
+  rc=0
+  if [ ! -z "${volid}" ]; then
+    cinder list | grep -q $volid 
+    if [ $? -eq  0 ]; then
+      startlog "Deleting volume $volid"
+      cinder delete $volid 2>>$stderr 1>>$stdout
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+      else
+        endlog "error"
+      fi
     else
-      endlog "error"
+      rc=0
     fi
-  else
-    rc=0
   fi
   return $rc
 }
