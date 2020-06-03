@@ -493,10 +493,12 @@ function vpn_setup {
   rc=255
   vpnip=$(ip addr | grep "inet 10\." | awk ' { print $2 }' | sed -e 's#/.*##')
   if [ ! -z "${vpnip}" ]; then
-    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep -q $vpnip
+#    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep -q $vpnip
+    sudo iptables -t nat -nL -v | grep -q "MASQ.*tun0.*192.168.122.0"
     rc=$?
     if [ $rc -ne 0 ]; then
-      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip 2>>$stderr 1>>$stdout
+      sudo iptables -t nat -A POSTROUTING -s 192.168.122.0/24 -o tun0 -j MASQUERADE
+#      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip 2>>$stderr 1>>$stdout
       rc=$?
     fi
   fi
