@@ -616,6 +616,9 @@ EOF
           else
             if [[ $releasever =~ beta ]]; then
               sed -i "s/tag: '16.0'/tag: '16.1'/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i "s#namespace: registry.redhat.io/.*#namespace: registry.redhat.io/rhosp-beta#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
             fi
           fi
         else
