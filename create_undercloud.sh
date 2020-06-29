@@ -17,6 +17,10 @@ if [ ! -z $3 ]; then
   branchtype=$3;
 fi
 
+if [ -z "$rhelrelease" ]; then
+  rhelrelease=0
+fi
+
 validate_rpm libguestfs-tools
 
 if [ -e /etc/redhat-release ]; then
@@ -422,6 +426,7 @@ function customize_image {
   sed -i "s/###EMAIL###/$email/g" tmp/S01customize
   sed -i "s/###RHNUSERNAME###/$rhnusername/g" tmp/S01customize
   sed -i "s/###RHNPASSWORD###/$rhnpassword/g" tmp/S01customize
+  sed -i "s/###RHELRELEASE###/$rhelrelease/g" tmp/S01customize
   sed -i "s/###FULLNAME###/$fullname/g" tmp/S01customize
   echo sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud --selinux-relabel 2>>$stderr 1>>$stdout
   sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud --selinux-relabel --run-command 'yum remove cloud-init* -y' 2>>$stderr 1>>$stdout
