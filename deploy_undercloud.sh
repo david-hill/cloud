@@ -605,6 +605,10 @@ EOF
               sed -i -e "s/\(tag_from_label: .*\)/#\1/" /home/stack/containers-prepare-parameter.yaml
               rc=$?
             fi
+          else
+            if [[ $releasever =~ beta ]]; then
+              sed -i "s/tag: '16.0'/tag: '16.1'/g" /home/stack/containers-prepare-parameter.yaml
+            fi
           fi
         else
           rc=255
