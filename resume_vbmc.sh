@@ -1,4 +1,4 @@
-for p in $( vbmc list | grep rhosp | grep down | awk '{ print $6 }' ); do
+for p in $( vbmc list | grep rhosp | egrep "down|error" | awk '{ print $6 }' ); do
   ip a  | grep -q "$p/32"
   if [ $? -ne 0 ]; then
     echo Add $p to virbr0
