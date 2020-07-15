@@ -559,6 +559,9 @@ function prepare_tripleo_docker_images {
 EOF
         fi
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
+          if [ ! -z "$neutron_driver" ]; then
+              sed -i -e "s#neutron_driver: .*#neutron_driver: $neutron_driver#" /home/stack/containers-prepare-parameter.yaml
+          fi
           if [ -e /home/stack/internal ]; then
             if [ $vernum -ge 16 ]; then
               sed -i -e "s# namespace: registry.access.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
