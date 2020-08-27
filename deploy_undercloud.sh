@@ -109,40 +109,66 @@ function create_flavors {
   return $rc
 }
 
+function tag_from_name {
+  for role in compute control ceph swift block; do
+    list=$( openstack baremetal node list 2>>$stderr | grep $role | awk '{ print $2 }' )
+    for server in $list; do
+      if [[ $role =~ ceph ]]; then
+	thisrole=ceph-storage
+      elif [[ $role =~ swift ]]; then
+	thisrole=swift-storage
+      elif [[ $role =~ block ]]; then
+	thisrole=cwblockswift-storage
+      else
+	thisrole=$role
+      fi
+      openstack baremetal node set --property capabilities="profile:$role,boot_option:local,boot_mode:${boot_mode}" $server 2>>$stderr 1>>$stdout
+      if [ $? -eq 0 ]; then
+        inc=$( expr $inc + 1)
+      fi
+    done
+  done
+  return $inc
+}
+
 function tag_hosts {
   rc=0
   startlog "Tagging hosts"
   inc=0
-  ironic node-list 2>>$stderr | grep -q manag
-  if [ $? -eq 0 ]; then
-    ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
-  fi
-  openstack overcloud profiles list 2>>$stderr 1>>$stdout
-  ironic node-list 2>>$stderr 1>>$stdout
-  if [ $? -eq 0 ]; then
-    output=$(ironic node-list 2>>$stderr | grep available | awk '{ print $2 }')
-  else
-    output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
-  fi
-  for p in $output; do
-    if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $inc -lt 5 -a $controlscale -eq 5 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
-      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
-    elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
-      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
-    else
-      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
+  tag_from_name
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    ironic node-list 2>>$stderr | grep -q manag
+    if [ $? -eq 0 ]; then
+      ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
     fi
-    inc=$( expr $inc + 1)
-  done
+    openstack overcloud profiles list 2>>$stderr 1>>$stdout
+    ironic node-list 2>>$stderr 1>>$stdout
+    if [ $? -eq 0 ]; then
+      output=$(ironic node-list 2>>$stderr | grep available | awk '{ print $2 }')
+    else
+      output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
+    fi
+    for p in $output; do
+      if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $inc -lt 5 -a $controlscale -eq 5 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
+        ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
+        ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      else
+        ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      fi
+      inc=$( expr $inc + 1)
+    done
+  fi
   if [ $inc -eq 0 ]; then
     endlog "error"
     rc=1
