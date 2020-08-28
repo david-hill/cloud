@@ -174,6 +174,7 @@ function tag_hosts {
     rc=1
   else
     endlog "done"
+    rc=0
   fi
   return $rc
 }
