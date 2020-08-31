@@ -127,11 +127,11 @@ function tag_from_name {
       elif [[ $role =~ swift ]]; then
 	thisrole=swift-storage
       elif [[ $role =~ block ]]; then
-	thisrole=cwblockswift-storage
+	thisrole=blocks-storage
       else
 	thisrole=$role
       fi
-      openstack baremetal node set --property capabilities="profile:$role,boot_option:local,boot_mode:${boot_mode}" $server 2>>$stderr 1>>$stdout
+      openstack baremetal node set --property capabilities="profile:$thisrole,boot_option:local,boot_mode:${boot_mode}" $server 2>>$stderr 1>>$stdout
       if [ $? -eq 0 ]; then
         inc=$( expr $inc + 1)
       fi
