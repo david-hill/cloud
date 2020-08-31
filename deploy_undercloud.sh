@@ -110,6 +110,7 @@ function create_flavors {
 }
 
 function tag_from_name {
+  inc=0
   for role in compute control ceph swift block; do
     list=$( openstack baremetal node list 2>>$stderr | grep $role | awk '{ print $2 }' )
     for server in $list; do
@@ -132,7 +133,6 @@ function tag_from_name {
 }
 
 function tag_hosts {
-  rc=0
   startlog "Tagging hosts"
   inc=0
   tag_from_name
