@@ -577,7 +577,7 @@ EOF
               rc=$?
               sed -i -e "s# namespace: registry.redhat.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
-              sed -i "s/tag: '16.0'/tag: '$releasever'/g" /home/stack/containers-prepare-parameter.yaml
+              sed -i "s/tag: '16.0'/tag: '$minorver'/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
             else
               sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
