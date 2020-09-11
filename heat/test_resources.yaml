@@ -47,8 +47,18 @@ resources:
         - subnet: { get_param: network_subnet }
       security_groups: [{ get_param: security_group }]
 
+  delay:
+    type: OS::Heat::Delay
+    depends_on: instance_port
+    properties:
+      actions: ["CREATE"]
+      jitter_multiplier: 1.0
+      max_jitter: 0
+      min_wait: 10
+
   instance:
     type: OS::Nova::Server
+    depends_on: delay
     properties:
       name: 
         list_join: ["-", [ "testrg",  {get_param: index} ] ]
