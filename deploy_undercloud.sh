@@ -644,6 +644,8 @@ EOF
               rc=$?
               sed -i -e "s/\(tag_from_label: .*\)/#\1/" /home/stack/containers-prepare-parameter.yaml
               rc=$?
+              sed -i -e "s/tag: '1.*/tag: $minorver/" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
             fi
           else
             if [[ $releasever =~ beta ]]; then
