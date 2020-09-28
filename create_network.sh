@@ -18,18 +18,18 @@ function add_router_interface {
 }
 
 function create_router {
-  if [ "$dvr" == 1 ]; then
-    set_dvr="True"
-    set_ha="False"
+  if [ "$ha" == 1 ]; then
+    set_ha="--ha True "
   else
-    set_dvr="False"
-    set_ha="True"
+    set_ha=" "
   fi
-  if [ $minorver -gt 13 ]; then
-    dvrarg="--distributed $set_dvr"
+  if [ "$dvr" == 1 ]; then
+    set_dvr="--distributed True "
+  else
+    set_dvr=" "
   fi
   startlog "Creating router"
-  neutron router-create --ha $set_ha $dvrarg test-router 2>>$stderr 1>>$stdout
+  neutron router-create ${set_ha}${set_dvr}test-router 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
