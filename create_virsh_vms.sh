@@ -55,19 +55,19 @@ function update_instackenv {
   if [ ! -z "${vbmc}" ]; then
     if [ ! -z "$rootpassword" ]; then
       if [ ! -e instackenv.json ]; then
-         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
+         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
       else
          sed -i 's/\} \] \}$//' instackenv.json
-         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
+         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
       fi
     fi
   else
     if [ ! -z "$rootpassword" ]; then
       if [ ! -e instackenv.json ]; then
-         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
+         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
       else
          sed -i 's/\} \] \}$//' instackenv.json
-         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
+         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
       fi
     fi
   fi

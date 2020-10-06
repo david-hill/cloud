@@ -17,6 +17,10 @@ if [ ! -z $3 ]; then
   branchtype=$3;
 fi
 
+if [ -z "$lockedrhelrelease" ]; then
+  lockedrhelrelease=0
+fi
+
 validate_rpm libguestfs-tools
 
 if [ -e /etc/redhat-release ]; then
@@ -417,10 +421,12 @@ function customize_image {
   sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
   sed -i "s/###RDORELEASE###/$rdorelease/g" tmp/S01customize
   sed -i "s/###BRANCHTYPE###/$branchtype/g" tmp/S01customize
+  sed -i "s/###STANDALONE###/$standalone/g" tmp/S01customize
   sed -i "s/###ENABLENFS###/$enablenfs/g" tmp/S01customize
   sed -i "s/###EMAIL###/$email/g" tmp/S01customize
   sed -i "s/###RHNUSERNAME###/$rhnusername/g" tmp/S01customize
   sed -i "s/###RHNPASSWORD###/$rhnpassword/g" tmp/S01customize
+  sed -i "s/###LOCKEDRHELRELEASE###/$lockedrhelrelease/g" tmp/S01customize
   sed -i "s/###FULLNAME###/$fullname/g" tmp/S01customize
   echo sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud --selinux-relabel 2>>$stderr 1>>$stdout
   sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud --selinux-relabel --run-command 'yum remove cloud-init* -y' 2>>$stderr 1>>$stdout
@@ -492,10 +498,12 @@ function vpn_setup {
   rc=255
   vpnip=$(ip addr | grep "inet 10\." | awk ' { print $2 }' | sed -e 's#/.*##')
   if [ ! -z "${vpnip}" ]; then
-    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep -q $vpnip
+#    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep -q $vpnip
+    sudo iptables -t nat -nL -v | grep -q "MASQ.*tun0.*192.168.122.0"
     rc=$?
     if [ $rc -ne 0 ]; then
-      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip 2>>$stderr 1>>$stdout
+      sudo iptables -t nat -A POSTROUTING -s 192.168.122.0/24 -o tun0 -j MASQUERADE
+#      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip 2>>$stderr 1>>$stdout
       rc=$?
     fi
   fi

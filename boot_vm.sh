@@ -144,18 +144,21 @@ function create_volume {
 }
 
 function delete_volume {
-  cinder list | grep -q $volid 
-  if [ $? -eq  0 ]; then
-    startlog "Deleting volume $volid"
-    cinder delete $volid 2>>$stderr 1>>$stdout
-    rc=$?
-    if [ $rc -eq 0 ]; then
-      endlog "done"
+  rc=0
+  if [ ! -z "${volid}" ]; then
+    cinder list | grep -q $volid 
+    if [ $? -eq  0 ]; then
+      startlog "Deleting volume $volid"
+      cinder delete $volid 2>>$stderr 1>>$stdout
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+      else
+        endlog "error"
+      fi
     else
-      endlog "error"
+      rc=0
     fi
-  else
-    rc=0
   fi
   return $rc
 }
@@ -177,7 +180,7 @@ function create_boot_from_volume_test_vm {
       wait_for_volume
       if $( cinder list | grep $volid | grep -q available ); then
 #        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=preserve,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
-        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=remove,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
+        nova boot --key-name test --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=remove,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
         rc=$?
       else
         rc=252

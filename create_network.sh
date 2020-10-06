@@ -18,8 +18,18 @@ function add_router_interface {
 }
 
 function create_router {
+  if [ "$ha" == 1 ]; then
+    set_ha="--ha True "
+  else
+    set_ha=" "
+  fi
+  if [ "$dvr" == 1 ]; then
+    set_dvr="--distributed True "
+  else
+    set_dvr=" "
+  fi
   startlog "Creating router"
-  neutron router-create test-router 2>>$stderr 1>>$stdout
+  neutron router-create ${set_ha}${set_dvr}test-router 2>>$stderr 1>>$stdout
   rc=$?
   if [ $rc -eq 0 ]; then
     endlog "done"
