@@ -14,7 +14,7 @@ function getversion {
 function getfiles {
   local url=$1
   rc=255
-  for p in $(cat index.html  | grep "\.qcow2" | tail -1  | awk -F \" '{ print $6 }'); do
+  for p in $(cat index.html  | grep x86_64 | grep "\.qcow2" | tail -1  | awk -F \" '{ print $6 }'); do
     if [ ! -e $p ]; then
       wget -q $url/$p
       rc=$?
