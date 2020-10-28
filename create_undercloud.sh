@@ -212,6 +212,26 @@ function wait_for_undercloud_deployment {
   return $rc
 }
 
+function wait_for_all_in_one_deployment {
+  startlog "Waiting for all-in-one deployment"
+  rc=0
+  ttimeout=3600
+  while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; do
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e /home/root/.config/openstack/clouds.yaml ]; then echo completed; fi')
+    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+    sleep 1
+    ttimeout=$(( $ttimeout - 1 ))
+  done
+  if [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; then
+    endlog "done"
+    rc=0
+  else
+    endlog "error"
+    rc=255
+  fi
+  return $rc
+}
+
 function fetch_images {
   cd images/rdo-$rdorelease
   startlog "Fetch images"
@@ -590,21 +610,25 @@ if [ $rc -eq 0 ]; then
                     bash create_virsh_vms.sh $installtype $rdorelease
                     rc=$?
                     if [ $rc -eq 0 ]; then
-                      wait_for_undercloud_deployment
-                      rc=$?
-                      if [ $rc -eq 0 ]; then
-                        if [ -z $rdorelease ]; then
-                          get_new_images
-                          upload_rhel_image
-                        fi
-                        wait_for_introspection
+                      if [ $standalone -eq 0 ]; then
+                        wait_for_all_in_one_deployment
+                      else
+                        wait_for_undercloud_deployment
                         rc=$?
                         if [ $rc -eq 0 ]; then
-                          wait_for_overcloud_deployment
+                          if [ -z $rdorelease ]; then
+                            get_new_images
+                            upload_rhel_image
+                          fi
+                          wait_for_introspection
                           rc=$?
                           if [ $rc -eq 0 ]; then
-                            wait_for_overcloud_test
+                            wait_for_overcloud_deployment
                             rc=$?
+                            if [ $rc -eq 0 ]; then
+                              wait_for_overcloud_test
+                              rc=$?
+                            fi
                           fi
                         fi
                       fi
