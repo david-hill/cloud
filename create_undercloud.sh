@@ -605,7 +605,7 @@ if [ $rc -eq 0 ]; then
                     bash create_virsh_vms.sh $installtype $rdorelease
                     rc=$?
                     if [ $rc -eq 0 ]; then
-                      if [ $standalone -eq 0 ]; then
+                      if [ $standalone -eq 1 ]; then
                         wait_for_all_in_one_deployment
                       else
                         wait_for_undercloud_deployment
