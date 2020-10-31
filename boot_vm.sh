@@ -139,7 +139,6 @@ function create_flavor {
     nova flavor-create m1.micro auto 256 1 1 2>>$stderr 1>>$stdout
     rc=$?
     if [ $rc -eq 0 ]; then
-      openstack flavor set m1.micro --property hw:cpu_policy=dedicated
       endlog "done"
     else
       openstack flavor create m1.micro --ram 256 --vcpus 1 --disk 1 2>>$stderr 1>>$stdout
