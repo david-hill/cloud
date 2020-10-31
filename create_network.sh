@@ -83,8 +83,14 @@ function create_test_network {
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
-    endlog "error"
-    rc=255
+    openstack network create --provider-network-type $neutronnwtype test 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+      rc=255
+    fi
   fi
   return $rc
 }
@@ -96,8 +102,14 @@ function create_test_subnet {
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
-    endlog "error"
-    rc=255
+    openstack subnet create --network test --subnet-range 10.254.0.0/16 test-subnet 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+      rc=255
+    fi
   fi
   return $rc
 }
