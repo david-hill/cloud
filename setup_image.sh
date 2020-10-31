@@ -33,12 +33,17 @@ fi
 
 if [ $rc -eq 0 ]; then
   startlog "Listing glance image"
-  glance image-list | grep -q $imagename
+  glance image-list 2>>$stderr 1>>$stdout
   if [ $? -eq 0 ]; then
+    glance image-list | grep -q $imagename
+    rc=$?
+  else
+    openstack image list | grep -q $imagename
+    rc=$?
+  fi
+  if [ $rc -eq 1 ]; then
     endlog "done"
     rc=0
-  else
-    endlog "done"
     startlog "Creating glance image"
     glance image-create --name "$imagename" --file images/$imagename --disk-format qcow2 --container-format bare --is-public True --progress 2>>$stderr 1>>$stdout
     rc=$?
@@ -48,11 +53,19 @@ if [ $rc -eq 0 ]; then
       if [ $rc -eq 0 ]; then
         endlog "done"
       else
-        endlog "error"
+	openstack image create  "$imagename" --file images/$imagename --disk-format qcow2 --container-format bare --public  2>>$stderr 1>>$stdout
+	rc=$?
+        if [ $rc -eq 0 ]; then
+          endlog "done"
+        else
+          endlog "error"
+	fi
       fi
     else
       endlog "done"
     fi
+  else
+    endlog "done"
   fi
 fi
 
