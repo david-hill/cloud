@@ -217,7 +217,7 @@ function wait_for_all_in_one_deployment {
   rc=0
   ttimeout=3600
   while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; do
-    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e /home/root/.config/openstack/clouds.yaml ]; then echo completed; fi')
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e /home/stack/.config/openstack/clouds.yaml ]; then echo completed; fi')
     rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
     sleep 1
     ttimeout=$(( $ttimeout - 1 ))
