@@ -463,7 +463,6 @@ provision_vm
 rc=$?
 if [ $rc -eq 0 ]; then
   unprovision_vm
-echo
   rc=$?
 fi
 
