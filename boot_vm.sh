@@ -462,7 +462,7 @@ function provision_vm {
 provision_vm
 rc=$?
 if [ $rc -eq 0 ]; then
-#  unprovision_vm
+  unprovision_vm
 echo
   rc=$?
 fi
