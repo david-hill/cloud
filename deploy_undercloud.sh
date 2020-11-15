@@ -261,7 +261,7 @@ function configure_boot {
   if [ $rc -ne 0 ]; then
     inc=0
     rc=0
-    for p in $( openstack baremetal node list | grep False | awk '{ print $2 }' ); do
+    for p in $( openstack baremetal node list 2>>$stderr | grep False | awk '{ print $2 }' ); do
       openstack overcloud node configure $p 2>>$stderr 1>>$stdout
       trc=$?
       if [ $trc -ne 0 ]; then
