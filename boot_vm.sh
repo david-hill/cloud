@@ -9,7 +9,10 @@ rc=255
 vmname=test-vm
 
 startlog "Getting image list"
-image=$( glance image-list | grep cirros | head -1 | awk '{ print $2 }')
+image=$( glance image-list 2>>$stderr | grep cirros | head -1 | awk '{ print $2 }')
+if [ -z "${image}" ]; then
+  image=$( openstack image list 2>>$stderr | grep cirros | head -1 | awk '{ print $2 }')
+fi
 endlog "done"
 
 startlog "Getting network list"
@@ -82,7 +85,13 @@ function delete_flavor {
   if [ $rc -eq 0 ]; then
     endlog "done"
   else
-    endlog "error"
+    openstack flavor delete m1.micro 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
   fi
   return $rc
 }
@@ -110,6 +119,18 @@ function unprovision_vm {
   return $rc
 }
 
+function set_flavor {
+  startlog "Setting m1.micro flavor properties"
+  openstack flavor set m1.micro --property hw:cpu_policy=dedicated
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    endlog "done"
+  else
+    endlog "error"
+  fi
+
+  return $rc
+}
 function create_flavor {
   startlog "Creating m1.micro flavor"
   nova flavor-list 2>>$stderr | grep -q m1.micro
@@ -120,7 +141,13 @@ function create_flavor {
     if [ $rc -eq 0 ]; then
       endlog "done"
     else
-      endlog "error"
+      openstack flavor create m1.micro --ram 256 --vcpus 1 --disk 1 2>>$stderr 1>>$stdout
+      rc=$?
+      if [ $rc -eq 0 ]; then
+        endlog "done"
+      else
+        endlog "error"
+      fi
     fi
   else
     rc=0
@@ -179,7 +206,7 @@ function create_boot_from_volume_test_vm {
       wait_for_volume
       if $( cinder list | grep $volid | grep -q available ); then
 #        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=preserve,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
-        nova boot --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=remove,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
+        nova boot --key-name test --flavor m1.micro --block-device source=volume,id=$volid,dest=volume,size=1,shutdown=remove,bootindex=0  --nic net-id=$neutron ${vmname} 2>>$stderr 1>>$stdout
         rc=$?
       else
         rc=252
@@ -390,31 +417,35 @@ function provision_vm {
   create_flavor
   rc=$?
   if [ $rc -eq 0 ]; then
-    create_keypair
+    set_flavor
     rc=$?
     if [ $rc -eq 0 ]; then
-#      create_test_vm
-      create_boot_from_volume_test_vm
+      create_keypair
       rc=$?
       if [ $rc -eq 0 ]; then
-        wait_for_vm
+        create_test_vm
+#        create_boot_from_volume_test_vm
         rc=$?
         if [ $rc -eq 0 ]; then
-          add_secgroup_rule
+          wait_for_vm
           rc=$?
           if [ $rc -eq 0 ]; then
-            create_floating_ip
+            add_secgroup_rule
             rc=$?
             if [ $rc -eq 0 ]; then
-              if [ ! -z "$ip" ]; then
-                attach_floating_ip
-                rc=$?
-                if [ $rc -eq 0 ]; then
-                  validate_floating_ip
+              create_floating_ip
+              rc=$?
+              if [ $rc -eq 0 ]; then
+                if [ ! -z "$ip" ]; then
+                  attach_floating_ip
                   rc=$?
                   if [ $rc -eq 0 ]; then
-                    ping_floating_ip
+                    validate_floating_ip
                     rc=$?
+                    if [ $rc -eq 0 ]; then
+                      ping_floating_ip
+                      rc=$?
+                    fi
                   fi
                 fi
               fi

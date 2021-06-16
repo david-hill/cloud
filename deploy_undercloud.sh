@@ -117,45 +117,72 @@ function create_flavors {
   return $rc
 }
 
+function tag_from_name {
+  inc=0
+  for role in compute control ceph swift block; do
+    list=$( openstack baremetal node list 2>>$stderr | grep $role | awk '{ print $2 }' )
+    for server in $list; do
+      if [[ $role =~ ceph ]]; then
+	thisrole=ceph-storage
+      elif [[ $role =~ swift ]]; then
+	thisrole=swift-storage
+      elif [[ $role =~ block ]]; then
+	thisrole=blocks-storage
+      else
+	thisrole=$role
+      fi
+      openstack baremetal node set --property capabilities="profile:$thisrole,boot_option:local,boot_mode:${boot_mode}" $server 2>>$stderr 1>>$stdout
+      if [ $? -eq 0 ]; then
+        inc=$( expr $inc + 1)
+      fi
+    done
+  done
+  return $inc
+}
+
 function tag_hosts {
-  rc=0
   startlog "Tagging hosts"
   inc=0
-  ironic node-list 2>>$stderr | grep -q manag
-  if [ $? -eq 0 ]; then
-    ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
-  fi
-  openstack overcloud profiles list 2>>$stderr 1>>$stdout
-  ironic node-list 2>>$stderr 1>>$stdout
-  if [ $? -eq 0 ]; then
-    output=$(ironic node-list 2>>$stderr | grep available | awk '{ print $2 }')
-  else
-    output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
-  fi
-  for p in $output; do
-    if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $inc -lt 5 -a $controlscale -eq 5 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
-      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
-    elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
-      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
-    else
-      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
+  tag_from_name
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    ironic node-list 2>>$stderr | grep -q manag
+    if [ $? -eq 0 ]; then
+      ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
     fi
-    inc=$( expr $inc + 1)
-  done
+    openstack overcloud profiles list 2>>$stderr 1>>$stdout
+    ironic node-list 2>>$stderr 1>>$stdout
+    if [ $? -eq 0 ]; then
+      output=$(ironic node-list 2>>$stderr | grep available | awk '{ print $2 }')
+    else
+      output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
+    fi
+    for p in $output; do
+      if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $inc -lt 5 -a $controlscale -eq 5 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
+        ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
+        ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      else
+        ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      fi
+      inc=$( expr $inc + 1)
+    done
+  fi
   if [ $inc -eq 0 ]; then
     endlog "error"
     rc=1
   else
     endlog "done"
+    rc=0
   fi
   return $rc
 }
@@ -234,7 +261,7 @@ function configure_boot {
   if [ $rc -ne 0 ]; then
     inc=0
     rc=0
-    for p in $( openstack baremetal node list | grep False | awk '{ print $2 }' ); do
+    for p in $( openstack baremetal node list 2>>$stderr | grep False | awk '{ print $2 }' ); do
       openstack overcloud node configure $p 2>>$stderr 1>>$stdout
       trc=$?
       if [ $trc -ne 0 ]; then
@@ -567,11 +594,16 @@ function prepare_tripleo_docker_images {
 EOF
         fi
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
+          if [ ! -z "$neutron_driver" ]; then
+              sed -i -e "s#neutron_driver: .*#neutron_driver: $neutron_driver#" /home/stack/containers-prepare-parameter.yaml
+          fi
           if [ -e /home/stack/internal ]; then
             if [ $vernum -ge 16 ]; then
               sed -i -e "s# namespace: registry.access.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
               sed -i -e "s# namespace: registry.redhat.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i "s/tag: '1.*'/tag: '$minorver'/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
             else
               sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
@@ -611,6 +643,8 @@ EOF
               sed -i -e "s/name_prefix: .*/name_prefix: rhosp$vernum-openstack-/g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
               sed -i -e "s/\(tag_from_label: .*\)/#\1/" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/tag: '1.*/tag: '$minorver'/" /home/stack/containers-prepare-parameter.yaml
               rc=$?
             fi
           else
