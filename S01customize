@@ -489,6 +489,7 @@ function enable_repository {
   fi
   return $rc
 }
+
 function enable_required_repositories {
   enable_repository rhel-7-server-rpms
   rc=$?
@@ -510,6 +511,7 @@ function enable_required_repositories {
   fi
   return $rc
 }
+
 function enable_official_repositories {
   if [[ "$releasever" =~ rhosp7 ]]; then
     enable_repository rhel-7-server-openstack-7.0-director-rpms
@@ -730,16 +732,16 @@ function install_kernel {
 }
 
 function log_rotate {
-if [ -e /var/log/cloud-init.log.1 ]; then
-  mv /var/log/cloud-init.log.1 /var/log/cloud-init.log.2
-fi
-if [ -e /var/log/cloud-init.log.0 ]; then
-  mv /var/log/cloud-init.log.0 /var/log/cloud-init.log.1
-  mv /var/log/cloud-init.log /var/log/cloud-init.log.0
-else
-  mv /var/log/cloud-init.log /var/log/cloud-init.log.0
-fi
-touch /var/log/cloud-init.log
+  if [ -e /var/log/cloud-init.log.1 ]; then
+    mv /var/log/cloud-init.log.1 /var/log/cloud-init.log.2
+  fi
+  if [ -e /var/log/cloud-init.log.0 ]; then
+    mv /var/log/cloud-init.log.0 /var/log/cloud-init.log.1
+    mv /var/log/cloud-init.log /var/log/cloud-init.log.0
+  else
+    mv /var/log/cloud-init.log /var/log/cloud-init.log.0
+  fi
+  touch /var/log/cloud-init.log
 }
 
 function install_packages {
