@@ -624,6 +624,11 @@ EOF
               sed -i -e "s/tag: '1.*/tag: '$minorver'/" /home/stack/containers-prepare-parameter.yaml
               rc=$?
             fi
+          else
+            if [[ $releasever =~ beta ]]; then
+              sed -i "s# namespace: registry.redhat.io/.*# namespace: registry.redhat.io/rhosp-beta#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            fi
           fi
         else
           rc=255
