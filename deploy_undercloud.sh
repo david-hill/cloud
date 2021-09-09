@@ -615,7 +615,10 @@ EOF
             #rc=$?
             #sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
             #rc=$?
-            if [ $vernum -ge 16 ]; then
+            if [[ $releasever =~ beta ]]; then
+              sed -i "s# namespace: registry.redhat.io/.*# namespace: registry.redhat.io/rhosp-beta#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            elif [ $vernum -ge 16 ]; then
             #  sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: registry.redhat.io\/rhceph-beta/g" /home/stack/containers-prepare-parameter.yaml
             #  rc=$?
             #  sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
@@ -649,9 +652,7 @@ EOF
             fi
           else
             if [[ $releasever =~ beta ]]; then
-              sed -i "s/tag: '16.0'/tag: '16.1'/g" /home/stack/containers-prepare-parameter.yaml
-              rc=$?
-              sed -i "s# namespace: registry.redhat.io/.*#namespace: registry.redhat.io/rhosp-beta#g" /home/stack/containers-prepare-parameter.yaml
+              sed -i "s# namespace: registry.redhat.io/.*# namespace: registry.redhat.io/rhosp-beta#g" /home/stack/containers-prepare-parameter.yaml
               rc=$?
             fi
           fi
