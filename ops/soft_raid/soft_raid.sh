@@ -1,11 +1,25 @@
 nodes="control-0-rhosp16 control-1-rhosp16 control-2-rhosp16 compute-0-rhosp16 compute-1-rhosp16"
 
+function wait_for_active {
+  inc=$1
+  node=$2
+  openstack baremetal node list | grep -q "$node.*manage"
+  if [ $? -ne 0 ] && [ $inc -lt 10 ]; then
+    openstack baremetal node list | -q "$node.*avail"
+    if [ $? -ne 0 ]; then
+      sleep 10
+      inc=$(( $inc + 1 ))
+      wait_for_active $inc $node
+    fi
+  fi
+}
+
 for node in $nodes; do
  openstack baremetal node set --raid-interface agent $node
  
  openstack baremetal node manage $node
  
- openstack baremetal node set $node --property root_device='{"name": "/dev/md127"}'
+# openstack baremetal node set $node --property root_device='{"name": "/dev/md127"}'
  
  echo '{
    "logical_disks": [
@@ -31,9 +45,6 @@ for node in $nodes; do
    "interface": "raid",
    "step": "create_configuration"
  }]' | openstack baremetal node clean $node --clean-steps -
-done
-
-for node in $nodes; do
+ wait_for_active $inc $node
  openstack overcloud node provide $node
 done
-
