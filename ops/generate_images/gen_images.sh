@@ -1,4 +1,4 @@
-export DIB_LOCAL_IMAGE=./rhel-guest-image-8.4-1244.x86_64.qcow2
+export DIB_LOCAL_IMAGE=./rhel-8.4-x86_64-kvm.qcow2
 export REG_METHOD=portal
 export REG_USER=
 export REG_PASSWORD=""
@@ -17,27 +17,27 @@ export DIB_BLOCK_DEVICE_CONFIG='''
     base: image0
     label: mbr
     partitions:
-      - name: boot
-        flags: [ boot,primary ]
-        size: 1G
-        mkfs:
-          type: ext2
-          mount:
-            mount_point: /boot
-            fstab:
-              options: "defaults"
-              fsck-passno: 1
       - name: root
         flags: [ primary ]
         size: 15G
         mkfs:
-          type: ext2
+          type: xfs
           mount:
             mount_point: /
             fstab:
               options: "defaults"
               fsck-passno: 1
 '''
+#      - name: boot
+#        flags: [ boot,primary ]
+#        size: 1G
+#        mkfs:
+#          type: ext2
+#          mount:
+#            mount_point: /boot
+#            fstab:
+#              options: "defaults"
+#              fsck-passno: 1
 #export DIB_BLOCK_DEVICE_CONFIG='''
 #- local_loop:
 #    name: image0
@@ -145,8 +145,15 @@ export DIB_BLOCK_DEVICE_CONFIG='''
 #            fsck-passno: 2
 #'''
 
+cp /usr/share/openstack-tripleo-common/image-yaml/overcloud-hardened-images-python3.yaml .
+sed -i 's/40/16/g' overcloud-hardened-images-python3.yaml
+
+cp ~/images/ironic-python-agent.initramfs .
+cp ~/images/ironic-python-agent.kernel .
+
 openstack overcloud image build \
 --image-name overcloud-hardened-full \
---config-file /usr/share/openstack-tripleo-common/image-yaml/overcloud-hardened-images-python3.yaml \
+--config-file overcloud-hardened-images-python3.yaml \
 --config-file /usr/share/openstack-tripleo-common/image-yaml/overcloud-hardened-images-rhel8.yaml
 
+cp overcloud-hardened-full.qcow2 overcloud-full.qcow2
