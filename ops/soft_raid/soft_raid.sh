@@ -2,24 +2,23 @@ nodes="control-0-rhosp16 control-1-rhosp16 control-2-rhosp16 compute-0-rhosp16 c
 
 function wait_for_active {
   inc=$1
-  node=$2
-  openstack baremetal node list | grep -q "$node.*manage"
-  if [ $? -ne 0 ] && [ $inc -lt 10 ]; then
-    openstack baremetal node list | -q "$node.*avail"
+  tnode=$2
+  openstack baremetal node list | grep -q "$tnode.*manage"
+  if [ $? -ne 0 ] && [ $inc -lt 30 ]; then
+    openstack baremetal node list | grep -q "$tnode.*avail"
     if [ $? -ne 0 ]; then
       sleep 10
       inc=$(( $inc + 1 ))
-      wait_for_active $inc $node
+      wait_for_active $inc $tnode
     fi
   fi
 }
 
 for node in $nodes; do
+ inc=0
  openstack baremetal node set --raid-interface agent $node
  
  openstack baremetal node manage $node
- 
-# openstack baremetal node set $node --property root_device='{"name": "/dev/md127"}'
  
  echo '{
    "logical_disks": [
