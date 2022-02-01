@@ -18,8 +18,8 @@ export DIB_BLOCK_DEVICE_CONFIG='''
     label: mbr
     partitions:
       - name: root
-        flags: [ primary ]
-        size: 15G
+        flags: [ boot,primary ]
+        size: 5G
         mkfs:
           type: xfs
           mount:
@@ -27,17 +27,17 @@ export DIB_BLOCK_DEVICE_CONFIG='''
             fstab:
               options: "defaults"
               fsck-passno: 1
+      - name: var
+        flags: [ primary ]
+        size: 11G
+        mkfs:
+          type: xfs
+          mount:
+            mount_point: /var
+            fstab:
+              options: "defaults"
+              fsck-passno: 1
 '''
-#      - name: boot
-#        flags: [ boot,primary ]
-#        size: 1G
-#        mkfs:
-#          type: ext2
-#          mount:
-#            mount_point: /boot
-#            fstab:
-#              options: "defaults"
-#              fsck-passno: 1
 #export DIB_BLOCK_DEVICE_CONFIG='''
 #- local_loop:
 #    name: image0
