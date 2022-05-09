@@ -413,6 +413,9 @@ function customize_image {
   sed -i "s/###RHNUSERNAME###/$rhnusername/g" tmp/S01customize
   sed -i "s/###RHNPASSWORD###/$rhnpassord/g" tmp/S01customize
   sed -i "s/###FULLNAME###/$fullname/g" tmp/S01customize
+  if [[ $rhel =~ 9.0 ]]; then
+    sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 --mkdir /etc/rc.d/rc3.d/ --link /etc/rc.d/rc3.d:/etc/rc3.d 2>>$stderr 1>>$stdout
+  fi
   echo sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud --selinux-relabel 2>>$stderr 1>>$stdout
   sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 $uploadcmd iptables:/etc/sysconfig/ $uploadcmd customize.service:/etc/systemd/system/ $uploadcmd tmp/S01customize:/etc/rc.d/rc3.d/ $uploadcmd S01loader:/etc/rc.d/rc3.d/ --root-password password:$rootpasswd --link /etc/systemd/system/customize.service:/etc/systemd/system/multi-user.target.wants/customize.service $uploadcmd cloud.cfg:/etc/cloud --selinux-relabel --run-command 'yum remove cloud-init* -y' 2>>$stderr 1>>$stdout
   rc=$?
