@@ -563,24 +563,34 @@ function enable_repository {
 }
 
 function enable_required_repositories {
-  enable_repository rhel-${rhelrelease}-server-rpms
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    enable_repository rhel-${rhelrelease}-server-eus-rpms
+  if [ $rhelrelease -eq 7 ]; then
+    enable_repository rhel-${rhelrelease}-server-rpms
     rc=$?
     if [ $rc -eq 0 ]; then
-      enable_repository rhel-${rhelrelease}-server-optional-rpms
+      enable_repository rhel-${rhelrelease}-server-eus-rpms
       rc=$?
       if [ $rc -eq 0 ]; then
-        enable_repository rhel-${rhelrelease}-server-extras-rpms
+        enable_repository rhel-${rhelrelease}-server-optional-rpms
         rc=$?
         if [ $rc -eq 0 ]; then
-          enable_repository rhel-${rhelrelease}-server-rh-common-rpms
+          enable_repository rhel-${rhelrelease}-server-extras-rpms
           rc=$?
+          if [ $rc -eq 0 ]; then
+            enable_repository rhel-${rhelrelease}-server-rh-common-rpms
+            rc=$?
+          fi
         fi
       fi
     fi
+  else
+    enable_repository rhel-${rhelrelease}-for-x86_64-appstream-rpms
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      enable_repository rhel-${rhelrelease}-for-x86_64-baseos-rpms
+      rc=$?
+    fi
   fi
+
   return $rc
 }
 
@@ -684,30 +694,42 @@ function register_server_with_rhn {
   return $rc
 }
 function register_system {
-  wait_for_redhat
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    register_server_with_rhn
+  rc=0
+  if [ ! -e /home/stack/elrepo ]; then
+    wait_for_redhat
     rc=$?
     if [ $rc -eq 0 ]; then
-      wait_for_poolid
-      attach_pool
+      register_server_with_rhn
       rc=$?
       if [ $rc -eq 0 ]; then
-        disable_repositories
+        wait_for_poolid
+        attach_pool
         rc=$?
         if [ $rc -eq 0 ]; then
-          enable_required_repositories
+          disable_repositories
           rc=$?
-          if [[ "${installtype}" =~ official ]]; then
-            enable_official_repositories
+          if [ $rc -eq 0 ]; then
+            enable_required_repositories
             rc=$?
-          elif [[ "${installtype}" =~ rdo ]]; then
-            enable_rdo_repositories
-            rc=$?
-          else
-            enable_internal_repositories
-            rc=$?
+            if [[ "${installtype}" =~ official ]]; then
+              enable_official_repositories
+              rc=$?
+            elif [[ "${installtype}" =~ rdo ]]; then
+              enable_rdo_repositories
+              rc=$?
+            else
+              enable_internal_repositories
+              rc=$?
+            fi
+            if [ $vernum -ge 13 ]; then
+              if [ $rhelrelease -eq 7 ]; then
+                enable_repository rhel-${rhelrelease}-server-rhceph-3-tools-rpms
+                rc=$?
+              else
+                enable_repository rhceph-4-tools-for-rhel-${rhelrelease}-x86_64-rpms
+                rc=$?
+              fi
+            fi
           fi
         fi
       fi

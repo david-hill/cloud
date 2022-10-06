@@ -1,3 +1,17 @@
+function rhel_release {
+  grep -q "release 7" /etc/redhat-release
+  if [ $? -eq 0 ]; then
+    rc=7
+  elif $( grep -q "release 8" /etc/redhat-release ); then
+    rc=8
+  elif $( grep -q "release 9" /etc/redhat-release ); then
+    rc=9
+  else
+    rc=0
+  fi
+  return $rc
+}
+
 function restore_permissions {
   file=$1
   sudo chmod 660 $file
@@ -164,6 +178,8 @@ function openstack_oc_deploy {
          deploymentargs="$deploymentargs -e /home/stack/$releasever/containers-prepare-parameter.yaml"
        elif [ -e "/home/stack/${releasever}/overcloud_images.yaml" ]; then
          deploymentargs="$deploymentargs -e /home/stack/${releasever}/overcloud_images.yaml"
+       elif [ -e "/home/stack/containers-prepare-parameter.yaml" ]; then
+         deploymentargs="$deploymentargs -e /home/stack/containers-prepare-parameter.yaml"
        fi
     fi
 
@@ -277,8 +293,31 @@ function gen_xml {
     sed -i "s/###MAC1###/$mac1/" $tmpfile
     sed -i "s/###MAC2###/$mac2/" $tmpfile
     sed -i "s/###MEM###/$memory/" $tmpfile
+    halfmem=$(( $memory / 2 ))
+    sed -i "s/###HALFMEM###/$halfmem/" $tmpfile
     sed -i "s/###UUID###/$uuid/" $tmpfile
     sed -i "s/###VCPUS###/$vcpus/" $tmpfile
+    if [ $hugepages -eq 1 ]; then
+      sed -i "s|###HUGEPAGES###| <memoryBacking>\n <hugepages>\n <page size='1048576' unit='KiB' nodeset='0'/>\n <page size='1048576' unit='KiB' nodeset='1'/>\n </hugepages>\n </memoryBacking>\n |" $tmpfile
+    else
+      sed -i "s|###HUGEPAGES###||" $tmpfile
+    fi
+
+    lastcpunode0=$(( $vcpus / 2 - 1 ))
+    firstcpunode1=$(( $lastcpunode0 + 1 ))
+    lastcpunode1=$(( $vcpus - 1 ))
+    if [ $lastcpunode0 -gt 0 ]; then
+      cpunode0="0-$lastcpunode0"
+    else
+      cpunode0=0
+    fi
+    if [ $firstcpunode1 -ne $lastcpunode1 ]; then
+      cpunode1="$firstcpunode1-$lastcpunode1"
+    else
+      cpunode1=$lastcpunode1
+    fi
+    sed -i "s/###CPUNODE0###/$cpunode0/" $tmpfile
+    sed -i "s/###CPUNODE1###/$cpunode1/" $tmpfile
     sed -i "s/###TYPE-INC###/$type-$inc-$localtype/" $tmpfile
     sed -i "s/###DISK###/$type-$inc-$localtype/" $tmpfile
     sed -i "s|###PATH###|$tpath|" $tmpfile
@@ -333,9 +372,19 @@ function validate_rpm {
   return $rc
 }
 
+function validate_hugepages {
+  rc=0
+  if [ "${use_hugepages}" -eq 1 ]; then
+    nr_hugepages=$( sysctl -a 2>/dev/null | grep nr_hugepages\ =| awk -F= '{ print $2 }' | sed -e 's/ //g' )
+    if [ $nr_hugepages -eq 0 ]; then
+      rc=255
+    fi
+  fi
+  return $rc
+}
 function validate_env {
   rc=255
-  sudo dmidecode |grep -iq QEMU
+  sudo dmidecode 2>>$stderr |grep -iq QEMU
   if [ $? -ne 0 ]; then
     rc=0;
   fi

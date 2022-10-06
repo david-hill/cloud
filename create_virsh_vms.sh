@@ -27,18 +27,26 @@ else
 fi
 
 function gen_disks {
+  disk_list="vdb vdc vdd"
   sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever.qcow2 40G > /dev/null
   rc=$?
   if [ $rc -eq 0 ]; then
     restore_permissions $tpath/$type-$inc-$releasever.qcow2
     rc=$?
     if [ $rc -eq 0 ]; then
-      sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever-vdb.qcow2 50G > /dev/null
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        restore_permissions $tpath/$type-$inc-$releasever-vdb.qcow2
+      for disk in $disk_list; do
+        sudo qemu-img create -f qcow2 $tpath/$type-$inc-$releasever-${disk}.qcow2 50G > /dev/null
         rc=$?
-      fi
+        if [ $rc -eq 0 ]; then
+          restore_permissions $tpath/$type-$inc-$releasever-${disk}.qcow2
+          rc=$?
+          if [ $rc -ne 0 ]; then
+            break
+          fi
+        else
+          break
+        fi
+      done
     fi
   fi
   return $rc
@@ -47,19 +55,19 @@ function update_instackenv {
   if [ ! -z "${vbmc}" ]; then
     if [ ! -z "$rootpassword" ]; then
       if [ ! -e instackenv.json ]; then
-         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
+         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
       else
          sed -i 's/\} \] \}$//' instackenv.json
-         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
+         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$pm_ip\", \"pm_password\": \"root\", \"pm_type\": \"pxe_ipmitool\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
       fi
     fi
   else
     if [ ! -z "$rootpassword" ]; then
       if [ ! -e instackenv.json ]; then
-         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
+         echo "{ \"nodes\" : [ { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }" > instackenv.json
       else
          sed -i 's/\} \] \}$//' instackenv.json
-         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
+         echo "}, { \"arch\": \"x86_64\", \"pm_user\": \"root\", \"pm_addr\": \"$kvmhost\", \"pm_password\": \"$rootpassword\", \"pm_type\": \"pxe_ssh\", \"mac\": [ \"$mac1\" ], \"name\": \"$type-$inc-$releasever\", \"cpu\": \"1\", \"memory\": \"1024\", \"disk\": \"30\" } ] }">> instackenv.json
       fi
     fi
   fi
@@ -141,12 +149,15 @@ function create_vm {
   if [[ $type =~ control ]]; then
     max=$controlscale
     memory=$controlmemory
+    hugepages=0
   elif [[ $type =~ ceph ]]; then
     max=$cephscale
     memory=$cephmemory
+    hugepages=0
   else
     max=$computescale
     memory=$computememory
+    hugepages=$use_hugepages
   fi
   while [ $inc -lt $max ]; do
     tmpfile=$(mktemp)

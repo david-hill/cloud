@@ -16,17 +16,45 @@ function cleanup_logs {
 }
 
 function conformance {
+  rc=0
   startlog "Updating system"
   sudo yum update -y 2>>$stderr 1>>$stdout
+  rc=$?
   endlog "done"
-  startlog "Installing various packages"
-  sudo yum install -y ntpdate ntp screen libguestfs-tools wget vim 2>>$stderr 1>>$stdout
-  endlog "done"
-  startlog "Synching time"
-  sudo service ntpd stop 2>>$stderr 1>>$stdout
-  sudo ntpdate $ntpserver 2>>$stderr 1>>$stdout
-  sudo service ntpd start 2>>$stderr 1>>$stdout
-  endlog "done"
+  rhel_release
+  rc=$?
+  if [ $rc -eq 7 ]; then
+    startlog "Installing various packages"
+    sudo yum install -y ntpdate ntp screen libguestfs-tools wget vim 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+      startlog "Synching time"
+      sudo service ntpd stop 2>>$stderr 1>>$stdout
+      sudo ntpdate $ntpserver 2>>$stderr 1>>$stdout
+      sudo service ntpd start 2>>$stderr 1>>$stdout
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  elif [ $rc -eq 8 ]; then
+    startlog "Installing various packages"
+    sudo yum install -y tmux libguestfs-tools wget vim 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+      startlog "Synching time"
+      sudo service chronyd stop 2>>$stderr 1>>$stdout
+      sudo chronyd -q 2>>$stderr 1>>$stdout
+      sudo service chronyd start 2>>$stderr 1>>$stdout
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  else
+    rc=255
+  fi
+  return $rc
 }
 
 function create_flavors {
@@ -68,6 +96,10 @@ function create_flavors {
     if [ $? -ne 0 ]; then
       nova flavor-key $profile set "cpu_arch"="x86_64" "capabilities:boot_option"="local" "capabilities:profile"="$profile" "capabilities:boot_mode"="$boot_mode"2>>$stderr 1>>$stdout
     fi
+    openstack flavor set $profile --property resources:CUSTOM_BAREMETAL=1
+    openstack flavor set $profile --property resources:VCPU=0
+    openstack flavor set $profile --property resources:MEMORY_MB=0
+    openstack flavor set $profile --property resources:DISK_GB=0
   done
   openstack flavor delete baremetal 2>>$stderr 1>>$stdout
   if [ $? -ne 0 ]; then
@@ -77,49 +109,80 @@ function create_flavors {
   if [ $? -ne 0 ]; then
     nova flavor-create --swap $swap baremetal auto $bram $disk $vcpus 2>>$stderr 1>>$stdout
   fi
+  openstack flavor set baremetal --property resources:CUSTOM_BAREMETAL=1
+  openstack flavor set baremetal --property resources:VCPU=0
+  openstack flavor set baremetal --property resources:MEMORY_MB=0
+  openstack flavor set baremetal --property resources:DISK_GB=0
   endlog "done"
   return $rc
 }
 
+function tag_from_name {
+  inc=0
+  for role in compute control ceph swift block; do
+    list=$( openstack baremetal node list 2>>$stderr | grep $role | awk '{ print $2 }' )
+    for server in $list; do
+      if [[ $role =~ ceph ]]; then
+	thisrole=ceph-storage
+      elif [[ $role =~ swift ]]; then
+	thisrole=swift-storage
+      elif [[ $role =~ block ]]; then
+	thisrole=blocks-storage
+      else
+	thisrole=$role
+      fi
+      openstack baremetal node set --property capabilities="profile:$thisrole,boot_option:local,boot_mode:${boot_mode}" $server 2>>$stderr 1>>$stdout
+      if [ $? -eq 0 ]; then
+        inc=$( expr $inc + 1)
+      fi
+    done
+  done
+  return $inc
+}
+
 function tag_hosts {
-  rc=0
   startlog "Tagging hosts"
   inc=0
-  ironic node-list 2>>$stderr | grep -q manag
-  if [ $? -eq 0 ]; then
-    ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
-  fi
-  openstack overcloud profiles list 2>>$stderr 1>>$stdout
-  ironic node-list 2>>$stderr 1>>$stdout
-  if [ $? -eq 0 ]; then
-    output=$(ironic node-list 2>>$stderr | grep available | awk '{ print $2 }')
-  else
-    output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
-  fi
-  for p in $output; do
-    if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $inc -lt 5 -a $controlscale -eq 5 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
-      ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
-    elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
-      ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
-    else
-      ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
-      if [ $? -ne 0 ]; then
-        openstack baremetal node set --property capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
-      fi
+  tag_from_name
+  rc=$?
+  if [ $rc -eq 0 ]; then
+    ironic node-list 2>>$stderr | grep -q manag
+    if [ $? -eq 0 ]; then
+      ironic node-list 2>>$stderr | grep mana | awk '{ print $2 }' | xargs -I% ironic node-set-provision-state % provide
     fi
-    inc=$( expr $inc + 1)
-  done
+    openstack overcloud profiles list 2>>$stderr 1>>$stdout
+    ironic node-list 2>>$stderr 1>>$stdout
+    if [ $? -eq 0 ]; then
+      output=$(ironic node-list 2>>$stderr | grep available | awk '{ print $2 }')
+    else
+      output=$(openstack overcloud profiles list 2>>$stderr | grep available | awk '{ print $2 }')
+    fi
+    for p in $output; do
+      if [ $inc -lt 3 -a $controlscale -eq 3 ] || [ $inc -lt 5 -a $controlscale -eq 5 ] || [ $controlscale -eq 1 -a $inc -lt 1 ]; then
+        ironic node-update $p add properties/capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:control,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      elif [ $inc -lt 6 -a $cephscale -gt 0 ]; then
+        ironic node-update $p add properties/capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:ceph-storage,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      else
+        ironic node-update $p add properties/capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" 2>>$stderr 1>>$stdout
+        if [ $? -ne 0 ]; then
+          openstack baremetal node set --property capabilities="profile:compute,boot_option:local,boot_mode:${boot_mode}" $p 2>>$stderr 1>>$stdout
+        fi
+      fi
+      inc=$( expr $inc + 1)
+    done
+  fi
   if [ $inc -eq 0 ]; then
     endlog "error"
     rc=1
   else
     endlog "done"
+    rc=0
   fi
   return $rc
 }
@@ -144,7 +207,14 @@ function get_oc_images {
   fi
   if [ $diff -eq 1 ]; then
     startlog "Installing images RPMs"
-    sudo yum install -y rhosp-director-images rhosp-director-images-ipa 2>>$stderr 1>>$stdout
+    rhel_release
+    rc=$?
+    if [ $rc -ge 9 ]; then
+      packages="rhosp-director-images"
+    else
+      packages="rhosp-director-images rhosp-director-images-ipa"
+    fi
+    sudo yum install -y $packages 2>>$stderr 1>>$stdout
     rc=0
     if [ $rc -eq 0 ]; then
       endlog "done"
@@ -176,8 +246,9 @@ function upload_oc_images {
 }
 
 function clear_arp_table {
-  sudo ip neighbor flush dev eth0
-  sudo ip neighbor flush dev br-ctlplane
+  for dev in $( /sbin/ip a | grep "^[0-9]*:" | awk -F: '{ print $2 }' ); do
+    sudo ip neighbor flush dev $dev
+  done
 }
 
 function import_instackenv {
@@ -197,7 +268,7 @@ function configure_boot {
   if [ $rc -ne 0 ]; then
     inc=0
     rc=0
-    for p in $( openstack baremetal node list | grep False | awk '{ print $2 }' ); do
+    for p in $( openstack baremetal node list 2>>$stderr | grep False | awk '{ print $2 }' ); do
       openstack overcloud node configure $p 2>>$stderr 1>>$stdout
       trc=$?
       if [ $trc -ne 0 ]; then
@@ -294,9 +365,9 @@ function disable_selinux {
   if [ $? -ne 0 ]; then
     sudo setenforce 0
   fi
-  grep -q permissive /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
+  grep -q permissive /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml 2>>$stderr
   if [ $? -ne 0 ]; then
-    sudo sed -i 's/tripleo::selinux::mode:.*/tripleo::selinux::mode: permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml
+    sudo sed -i 's/tripleo::selinux::mode:.*/tripleo::selinux::mode: permissive/' /usr/share/instack-undercloud/puppet-stack-config/os-apply-config/etc/puppet/hieradata/RedHat.yaml 2>>$stderr
   fi
   grep -q SELINUX=enforcing /etc/selinux/config
   if [ $? -eq 0 ]; then
@@ -318,11 +389,21 @@ function install_undercloud {
 }
 
 function validate_network_environment {
-  startlog "Validating network environment"
-  git clone https://github.com/rthallisey/clapper 2>>$stderr 1>>$stdout
-  python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml 2>>$stderr 1>>$stdout
-  endlog "done"
+  rhel_release
   rc=$?
+  if [ $rc -eq 7 ]; then
+    startlog "Validating network environment"
+    git clone https://github.com/rthallisey/clapper 2>>$stderr 1>>$stdout
+    python clapper/network-environment-validator.py -n ../$releasever/network-environment.yaml 2>>$stderr 1>>$stdout
+    rc=$?
+    if [ $rc -eq 0 ]; then
+      endlog "done"
+    else
+      endlog "error"
+    fi
+  else
+    rc=0
+  fi
   return $rc
 }
 
@@ -366,6 +447,13 @@ function delete_nodes {
   endlog "done"
 }
 
+
+function set_docker_namespace {
+  file=$1
+  sed -i -e "s/ namespace: registry.access.*/ namespace: $url\/$releasever/g" $file
+  return $?
+}
+
 function create_local_docker_registry {
   rc=0
   if [ $use_docker -eq 1 ]; then
@@ -385,6 +473,7 @@ function create_local_docker_registry {
         openstack overcloud container image prepare ${extradockerimages} --namespace=${url}/${releasever} --prefix=openstack- --tag=$tag --output-images-file /home/stack/${releasever}/local_registry_images.yaml 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
+          set_docker_namespace /home/stack/${releasever}/local_registry_images.yaml
           endlog "done"
           startlog "Uploading local image registry"
           sudo openstack overcloud container image upload --config-file  /home/stack/${releasever}/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
@@ -409,18 +498,15 @@ function create_local_docker_registry {
         endlog "error"
       fi
     elif [[ $vernum -ge 13 ]]; then
-      startlog "Preparing container image configuration files"
-      if [ $cephscale -gt 0 ]; then
-        cephargs="--set ceph_namespace=registry.access.redhat.com/rhceph --set ceph_image=rhceph-3-rhel7 "
-      fi
-      openstack overcloud container image prepare ${extradockerimages} ${cephargs} --namespace=${url}/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
-      rc=$?
-      if [ $rc -eq 0 ]; then
-        endlog "done"
-        startlog "Uploading images"
-        sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
+      if [ ! -e /home/stack/containers-prepare-parameter.yaml ]; then
+        startlog "Preparing container image configuration files"
+        if [ $cephscale -gt 0 ]; then
+          cephargs="--set ceph_namespace=registry.access.redhat.com/rhceph --set ceph_image=rhceph-3-rhel7 "
+        fi
+        openstack overcloud container image prepare ${cephargs} ${extradockerimages} --namespace=${url}/${releasever} --push-destination=192.0.2.1:8787 --prefix=openstack- --tag-from-label {version}-{release} --output-env-file=/home/stack/${releasever}/overcloud_images.yaml --output-images-file /home/stack/local_registry_images.yaml 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
+          set_docker_namespace /home/stack/${releasever}/overcloud_images.yaml
           endlog "done"
           if [[ $vernum -ge 14 ]] ; then
             if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
@@ -429,18 +515,33 @@ function create_local_docker_registry {
                 sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
               fi
             fi
+          startlog "Uploading images"
+          sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
+          rc=$?
+          if [ $rc -eq 0 ]; then
+            endlog "done"
+            if [[ $vernum -ge 14 ]] ; then
+              if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
+                openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
+                set_docker_namespace /home/stack/$releasever/containers-prepare-parameter.yaml
+                if [[ $deploymentargs =~ ovn ]]; then
+                  sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
+                fi
+              fi
+            fi
+          else
+            endlog "error"
           fi
         else
           endlog "error"
         fi
       else
-        endlog "error"
+        rm -rf /home/stack/${releasever}/overcloud_images.yaml
       fi
     fi
   fi
   return $rc
 }
-
 
 function create_overcloud_route {
   sudo ip addr add 10.1.2.1 dev br-ctlplane 2>>$stderr 1>>$stdout
@@ -450,25 +551,42 @@ function create_overcloud_route {
 function get_docker_url {
   if [ $use_docker -eq 1 ]; then
     if [ -e /home/stack/internal ]; then
-      url=docker-registry.engineering.redhat.com
+      if [ -z $dockerregistry ]; then
+	      if [ "$alpha" -eq 1 ]; then
+          #url=registry.redhat.io/rhosp-beta
+          url=registry-proxy.engineering.redhat.com/rh-osbs
+          #url=brew-pulp-docker01.web.prod.ext.phx2.redhat.com:8888
+        else
+          url=docker-registry.engineering.redhat.com
+        fi
+      else
+        url=$dockerregistry
+      fi
     else
       url=registry.access.redhat.com
     fi
   fi
+  dockerregistry=$url
 }
 function prepare_docker {
   rc=0
   if [ $use_docker -eq 1 ]; then
     if [ -e /home/stack/internal ]; then
-      grep -q $url /etc/sysconfig/docker
+      rhel_release
       rc=$?
-      if [ $rc -ne 0 ]; then
-        sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
+      if [ $rc -eq 7 ]; then
+        grep -q $url /etc/sysconfig/docker 2>>/dev/null
         rc=$?
-        if [ $rc -eq 0 ]; then
-          sudo systemctl restart docker
+        if [ $rc -ne 0 ]; then
+          sudo sed -i -e "s/\"$/ --insecure-registry $url\"/" /etc/sysconfig/docker
           rc=$?
+          if [ $rc -eq 0 ]; then
+            sudo systemctl restart docker
+            rc=$?
+          fi
         fi
+      else
+        rc=0
       fi
     fi
   fi
@@ -478,13 +596,79 @@ function prepare_tripleo_docker_images {
   rc=0
   if [ $use_docker -eq 1 ]; then
     if [ $vernum -ge 14 ]; then
-      openstack tripleo container image prepare default --output-env-file /home/stack/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
+      openstack tripleo container image prepare default --local-push-destination --output-env-file /home/stack/containers-prepare-parameter.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
+        if [ $vernum -ge 15 ]; then
+          source /home/stack/rhnlogin
+          cat << EOF >> /home/stack/containers-prepare-parameter.yaml
+  ContainerImageRegistryCredentials:
+    registry.redhat.io:
+      ${rhnusername}: "$rhnpassword"
+EOF
+        fi
         if [ -e /home/stack/containers-prepare-parameter.yaml ]; then
+          if [ ! -z "$neutron_driver" ]; then
+              sed -i -e "s#neutron_driver: .*#neutron_driver: $neutron_driver#" /home/stack/containers-prepare-parameter.yaml
+          fi
           if [ -e /home/stack/internal ]; then
-            sed -i -e 's/registry.access/docker-registry.engineering/g' /home/stack/containers-prepare-parameter.yaml
-            rc=$?
+            if [ $vernum -ge 16 ]; then
+              sed -i -e "s# namespace: registry.access.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s# namespace: registry.redhat.*# namespace: $dockerregistry#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i "s/tag: '1.*'/tag: '$minorver'/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            else
+              sed -i -e "s/ namespace: registry.access.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/ namespace: registry.redhat.*/ namespace: $dockerregistry\/$releasever/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            fi
+            #sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: docker-registry.engineering.redhat.com\/ceph\//g" /home/stack/containers-prepare-parameter.yaml
+            #rc=$?
+            #sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
+            #rc=$?
+            if [[ $releasever =~ beta ]]; then
+              sed -i "s# namespace: registry.redhat.io/.*# namespace: registry.redhat.io/rhosp-beta#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            elif [ $vernum -ge 16 ]; then
+            #  sed -i -e "s/ ceph_namespace: .*/ ceph_namespace: registry.redhat.io\/rhceph-beta/g" /home/stack/containers-prepare-parameter.yaml
+            #  rc=$?
+            #  sed -i -e "s/rhceph-4.0-rhel8/rhceph-4-rhel8/g" /home/stack/containers-prepare-parameter.yaml
+            #  rc=$?
+            #  sed -i -e "s/ceph_tag: .*/ceph_tag: 4-8/g" /home/stack/containers-prepare-parameter.yaml
+            #  rc=$?
+            # ceph_alertmanager_image: openshift-ose-prometheus-alertmanager
+            # ceph_alertmanager_namespace: rhos-qe-mirror-rdu2.usersys.redhat.com:5002/rh-osbs
+            # ceph_alertmanager_tag: v4.1
+            # ceph_grafana_image: rhceph-3-dashboard-rhel7
+            # ceph_grafana_namespace: registry.access.redhat.com/rhceph
+            # ceph_grafana_tag: 3
+            # ceph_node_exporter_image: openshift-ose-prometheus-node-exporter
+            # ceph_node_exporter_namespace: rhos-qe-mirror-rdu2.usersys.redhat.com:5002/rh-osbs
+            # ceph_node_exporter_tag: v4.1
+            # ceph_prometheus_image: openshift-ose-prometheus
+            # ceph_prometheus_namespace: rhos-qe-mirror-rdu2.usersys.redhat.com:5002/rh-osbs
+            # ceph_prometheus_tag: v4.1
+              sed -i -e "s#ceph_namespace: .*#ceph_namespace: registry-proxy.engineering.redhat.com/rh-osbs#" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/ceph_image: .*/ceph_image: rhceph/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/ceph_tag: .*/ceph_tag: latest/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/name_prefix: .*/name_prefix: rhosp$vernum-openstack-/g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/\(tag_from_label: .*\)/#\1/" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+              sed -i -e "s/tag: '1.*/tag: '$minorver'/" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            fi
+          else
+            if [[ $releasever =~ beta ]]; then
+              sed -i "s# namespace: registry.redhat.io/.*# namespace: registry.redhat.io/rhosp-beta#g" /home/stack/containers-prepare-parameter.yaml
+              rc=$?
+            fi
           fi
         else
           rc=255
@@ -498,7 +682,7 @@ function prepare_tripleo_docker_images {
 function configure_ironic_cleaning_network {
   startlog "Configuring cleaning_network_uuid"
   rc=255
-  sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf
+  sudo grep -q "^#cleaning_network_uuid =" /etc/ironic/ironic.conf 2>>$stderr
   if [ $? -eq 0 ]; then
     cnu=$( neutron net-list | grep ctlplane | awk '{ print $2 }' )
     if [ ! -z "$cnu" ]; then
@@ -525,7 +709,11 @@ if [ -e "/home/stack/stackrc" ]; then
 fi
 
 if [[ $releasever =~ rhosp ]]; then
-  vernum=$( echo $releasever | sed -e 's/rhosp//' )
+  if [[ $releasever =~ beta ]]; then
+    vernum=16
+  else
+    vernum=$( echo $releasever | sed -e 's/rhosp//' )
+  fi
 fi
 conformance
 disable_selinux

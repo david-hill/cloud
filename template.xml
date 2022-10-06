@@ -9,6 +9,7 @@ or other application using the libvirt API.
   <name>###TYPE-INC###</name>
   <uuid>###UUID###</uuid>
   <memory unit='KiB'>###MEM###</memory>
+  ###HUGEPAGES###
   <currentMemory unit='KiB'>###MEM###</currentMemory>
   <vcpu placement='static'>###VCPUS###</vcpu>
   <os>
@@ -24,6 +25,11 @@ or other application using the libvirt API.
   <cpu mode='custom' match='exact'>
     <model fallback='allow'>###MODEL###</model>
     <feature policy='require' name='vmx'/>
+    <feature policy='require' name='pdpe1gb'/>
+    <numa>
+      <cell id='0' cpus='###CPUNODE0###' memory='###HALFMEM###' unit='KiB'/>
+      <cell id='1' cpus='###CPUNODE1###' memory='###HALFMEM###' unit='KiB'/>
+    </numa>
   </cpu>
   <clock offset='utc'>
     <timer name='rtc' tickpolicy='catchup'/>
@@ -52,6 +58,22 @@ or other application using the libvirt API.
       <target dev='vdb' bus='virtio'/>
       <alias name='virtio-disk2'/>
       <address type='pci' domain='0x0000' bus='0x00' slot='0x0a' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='###PATH###/###DISK###-vdc.qcow2'/>
+      <backingStore/>
+      <target dev='vdc' bus='virtio'/>
+      <alias name='virtio-disk3'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0b' function='0x0'/>
+    </disk>
+    <disk type='file' device='disk'>
+      <driver name='qemu' type='qcow2'/>
+      <source file='###PATH###/###DISK###-vdd.qcow2'/>
+      <backingStore/>
+      <target dev='vdd' bus='virtio'/>
+      <alias name='virtio-disk4'/>
+      <address type='pci' domain='0x0000' bus='0x00' slot='0x0c' function='0x0'/>
     </disk>
     <disk type='block' device='cdrom'>
       <driver name='qemu' type='raw'/>

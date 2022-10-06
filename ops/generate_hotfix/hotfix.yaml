@@ -8,8 +8,9 @@
     import_role:
       name: tripleo-modify-image
     vars:
-      tasks_from: rpm_install.yml
+      tasks_from: yum_update.yml
       source_image: "{{ registry }}/rhosp13/openstack-{{ service }}:{{ image_tag }}"
       rpms_path: /tmp/hotfix/
-      modified_append_tag: -hotfix-bz{{ bz }}
-
+      target_image: "{{ localregistry }}/rhosp13/openstack-{{ service }}:{{ image_tag }}-hotfix-bz{{ bz }}"
+      modified_append_tag: ""
+      container_build_tool: "docker"

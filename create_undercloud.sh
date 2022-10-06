@@ -17,6 +17,10 @@ if [ ! -z $3 ]; then
   branchtype=$3;
 fi
 
+if [ -z "$lockedrhelrelease" ]; then
+  lockedrhelrelease=0
+fi
+
 validate_rpm libguestfs-tools
 
 if [ -e /etc/redhat-release ]; then
@@ -78,7 +82,7 @@ function customize_rhel_image {
   rhelimage=$(ls -atr images/rhel/ | grep qcow2 | grep "\-$rhel" | tail -1)
   sudo cp images/rhel/$rhelimage tmp/rhel-guest-image-local.qcow2
   sudo chown qemu tmp/rhel-guest-image-local.qcow2
-  sudo virt-customize -v -a tmp/rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
+  sudo virt-customize -x -v -a tmp/rhel-guest-image-local.qcow2 $uploadcmd iptables:/etc/sysconfig/ 2>>$stderr 1>>$stdout
   endlog "done"
 }
 function get_new_images {
@@ -178,6 +182,7 @@ function spawn_undercloud_vm {
       tpath=$jenkinspath/VMs
       vcpus=4
       pxeenabled=off
+      hugepages=0
       gen_macs
       gen_xml
       create_domain
@@ -193,6 +198,26 @@ function wait_for_undercloud_deployment {
   ttimeout=3600
   while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; do
     rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e stackrc ]; then echo completed; fi')
+    rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
+    sleep 1
+    ttimeout=$(( $ttimeout - 1 ))
+  done
+  if [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; then
+    endlog "done"
+    rc=0
+  else
+    endlog "error"
+    rc=255
+  fi
+  return $rc
+}
+
+function wait_for_all_in_one_deployment {
+  startlog "Waiting for all-in-one deployment"
+  rc=0
+  ttimeout=3600
+  while [[ ! "$rc" =~ completed ]] && [[ ! "$rcf" =~ failed ]] && [[ $ttimeout -gt 0 ]]; do
+    rc=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e /home/stack/.config/openstack/clouds.yaml ]; then echo completed; fi')
     rcf=$(ssh -o LogLevel=quiet -o UserKnownHostsFile=/dev/null -o StrictHostKeyChecking=no -o PasswordAuthentication=no stack@$undercloudip 'if [ -e failed ]; then echo failed; fi')
     sleep 1
     ttimeout=$(( $ttimeout - 1 ))
@@ -321,13 +346,21 @@ function create_base_image {
   return $rc
 }
 
-function create_vdb {
-  sudo qemu-img create -f qcow2 $jenkinspath/VMs/${vmname}-vdb.qcow2 50G > /dev/null
-  rc=$?
-  if [ $rc -eq 0 ]; then
-    restore_permissions $jenkinspath/VMs/${vmname}-vdb.qcow2
+function create_disks {
+  disk_list="vdb vdc vdd"
+  for disk in $disk_list; do
+    sudo qemu-img create -f qcow2 $jenkinspath/VMs/${vmname}-${disk}.qcow2 50G > /dev/null
     rc=$?
-  fi
+    if [ $rc -eq 0 ]; then
+      restore_permissions $jenkinspath/VMs/${vmname}-${disk}.qcow2
+      rc=$?
+      if [ $rc -ne 0 ]; then
+        break
+      fi
+    else
+      break
+    fi
+  done
   return $rc
 }
  
@@ -408,10 +441,12 @@ function customize_image {
   sed -i "s/###INSTALLTYPE###/$installtype/g" tmp/S01customize
   sed -i "s/###RDORELEASE###/$rdorelease/g" tmp/S01customize
   sed -i "s/###BRANCHTYPE###/$branchtype/g" tmp/S01customize
+  sed -i "s/###STANDALONE###/$standalone/g" tmp/S01customize
   sed -i "s/###ENABLENFS###/$enablenfs/g" tmp/S01customize
   sed -i "s/###EMAIL###/$email/g" tmp/S01customize
   sed -i "s/###RHNUSERNAME###/$rhnusername/g" tmp/S01customize
-  sed -i "s/###RHNPASSWORD###/$rhnpassord/g" tmp/S01customize
+  sed -i "s/###RHNPASSWORD###/$rhnpassword/g" tmp/S01customize
+  sed -i "s/###LOCKEDRHELRELEASE###/$lockedrhelrelease/g" tmp/S01customize
   sed -i "s/###FULLNAME###/$fullname/g" tmp/S01customize
   if [[ $rhel =~ 9.0 ]]; then
     sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 --mkdir /etc/rc.d/rc3.d/ --link /etc/rc.d/rc3.d:/etc/rc3.d 2>>$stderr 1>>$stdout
@@ -486,10 +521,12 @@ function vpn_setup {
   rc=255
   vpnip=$(ip addr | grep "inet 10\." | awk ' { print $2 }' | sed -e 's#/.*##')
   if [ ! -z "${vpnip}" ]; then
-    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep -q $vpnip
+#    sudo iptables -t nat -nL POSTROUTING -v | grep 10.0.0.0 | grep -q $vpnip
+    sudo iptables -t nat -nL -v | grep -q "MASQ.*tun0.*192.168.122.0"
     rc=$?
     if [ $rc -ne 0 ]; then
-      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip 2>>$stderr 1>>$stdout
+      sudo iptables -t nat -A POSTROUTING -s 192.168.122.0/24 -o tun0 -j MASQUERADE
+#      sudo iptables -t nat -I POSTROUTING -s 192.168.122.0/24 -d 10.0.0.0/8 -o eno1 -j SNAT --to-source $vpnip 2>>$stderr 1>>$stdout
       rc=$?
     fi
   fi
@@ -501,94 +538,102 @@ if [ ! -d tmp ]; then
   mkdir tmp
 fi
 
-stop_vm_if_running
+validate_hugepages
+rc=$?
 
-rc=0
 if [ $rc -eq 0 ]; then
+  stop_vm_if_running
   rc=0
   if [ $rc -eq 0 ]; then
-    memory=$undercloudmemory
-    type=undercloud
-    inc=0
-    if [[ $installtype =~ rdo ]]; then
-      vmname="${type}-${inc}-${rdorelease}"
-    else
-      vmname="${type}-${inc}-${releasever}"
-    fi
-    if [ -e "S01customize.local" ]; then
-      cp S01customize.local tmp/S01customize
-    else    
-      cp S01customize tmp/S01customize
-    fi
-    restart_libvirtd
-    restart_vbmcd
-    wait_for_dnsmasq
-    rc=$?
-    if [ $? -eq 0 ]; then
-      kill_dnsmasq
-      rc=0
-    else
-      rc=0
-    fi
+    rc=0
     if [ $rc -eq 0 ]; then
-    #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
-      if [ ! -d $jenkinspath/VMs ]; then
-        mkdir -p $jenkinspath/VMs
-      fi
-      prepare_hypervisor
-      flush_arp_table
-      vpn_setup
-      if [ $? -eq 0 ]; then
-        fetch_internal_images
+      memory=$undercloudmemory
+      type=undercloud
+      inc=0
+      if [[ $installtype =~ rdo ]]; then
+        vmname="${type}-${inc}-${rdorelease}"
       else
-        echo "WARNING: No VPN IP found..."
+        vmname="${type}-${inc}-${releasever}"
       fi
-      create_base_image
+      if [ -e "S01customize.local" ]; then
+        cp S01customize.local tmp/S01customize
+      else    
+        cp S01customize tmp/S01customize
+      fi
+      restart_libvirtd
+      restart_vbmcd
+      wait_for_dnsmasq
       rc=$?
+      if [ $? -eq 0 ]; then
+        kill_dnsmasq
+        rc=0
+      else
+        rc=0
+      fi
       if [ $rc -eq 0 ]; then
-        customize_image
+      #  sed -i "s/rhosp8/$releasever/g" tmp/S01customize
+        if [ ! -d $jenkinspath/VMs ]; then
+          mkdir -p $jenkinspath/VMs
+        fi
+        prepare_hypervisor
+        flush_arp_table
+        vpn_setup
+        if [ $? -eq 0 ]; then
+          fetch_internal_images
+        else
+          echo "WARNING: No VPN IP found..."
+        fi
+        create_base_image
         rc=$?
         if [ $rc -eq 0 ]; then
-          create_vdb
+          customize_image
           rc=$?
           if [ $rc -eq 0 ]; then
-            spawn_undercloud_vm
-            wait_for_vm
+            create_disks
             rc=$?
             if [ $rc -eq 0 ]; then
-              wait_for_ssh
+              spawn_undercloud_vm
+              wait_for_vm
               rc=$?
               if [ $rc -eq 0 ]; then
-                if [ ! -z $rdorelease ]; then
-                  wait_for_reboot
-                  if [ $? -eq 0 ]; then
-                    customize_rhel_image
-                    upload_rhel_image
-                    generate_images
-                    rc=$?
-                  else
-                    endlog "error"
-                  fi
-                fi
+                wait_for_ssh
+                rc=$?
                 if [ $rc -eq 0 ]; then
-                  bash create_virsh_vms.sh $installtype $rdorelease
-                  rc=$?
+                  if [ ! -z $rdorelease ]; then
+                    wait_for_reboot
+                    if [ $? -eq 0 ]; then
+                      customize_rhel_image
+                      upload_rhel_image
+                      generate_images
+                      rc=$?
+                    else
+                      endlog "error"
+                    fi
+                  fi
                   if [ $rc -eq 0 ]; then
-                    wait_for_undercloud_deployment
+                    bash create_virsh_vms.sh $installtype $rdorelease
                     rc=$?
                     if [ $rc -eq 0 ]; then
-                      if [ -z $rdorelease ]; then
-                        get_new_images
-                        upload_rhel_image
-                      fi
-                      wait_for_introspection
-                      rc=$?
-                      if [ $rc -eq 0 ]; then
-                        wait_for_overcloud_deployment
+                      if [ $standalone -eq 1 ]; then
+                        wait_for_all_in_one_deployment
+                      else
+                        wait_for_undercloud_deployment
                         rc=$?
                         if [ $rc -eq 0 ]; then
-                          wait_for_overcloud_test
+                          if [ -z $rdorelease ]; then
+                            get_new_images
+                            upload_rhel_image
+                          fi
+                          wait_for_introspection
                           rc=$?
+                          if [ $rc -eq 0 ]; then
+                            wait_for_overcloud_deployment
+                            rc=$?
+                            if [ $rc -eq 0 ]; then
+                              wait_for_overcloud_test
+                              rc=$?
+                            fi
+                          fi
                         fi
                       fi
                     fi
@@ -601,6 +646,6 @@ if [ $rc -eq 0 ]; then
       fi
     fi
   fi
-fi
+fi 
 
 exit $rc
