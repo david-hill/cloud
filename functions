@@ -4,6 +4,8 @@ function rhel_release {
     rc=7
   elif $( grep -q "release 8" /etc/redhat-release ); then
     rc=8
+  elif $( grep -q "release 9" /etc/redhat-release ); then
+    rc=9
   else
     rc=0
   fi
