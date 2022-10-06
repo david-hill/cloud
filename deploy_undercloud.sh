@@ -508,13 +508,6 @@ function create_local_docker_registry {
         if [ $rc -eq 0 ]; then
           set_docker_namespace /home/stack/${releasever}/overcloud_images.yaml
           endlog "done"
-          if [[ $vernum -ge 14 ]] ; then
-            if [ ! -e /home/stack/$releasever/containers-prepare-parameter.yaml ]; then
-              openstack tripleo container image prepare default --output-env-file /home/stack/$releasever/containers-prepare-parameter.yaml
-              if [[ $deploymentargs =~ ovn ]]; then
-                sed -i -E 's/neutron_driver:([ ]\w+)/neutron_driver: ovn/' /home/stack/$releasever/containers-prepare-parameter.yaml
-              fi
-            fi
           startlog "Uploading images"
           sudo openstack overcloud container image upload --config-file  /home/stack/local_registry_images.yaml --verbose 2>>$stderr 1>>$stdout
           rc=$?
