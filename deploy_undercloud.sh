@@ -199,7 +199,14 @@ function get_oc_images {
   fi
   if [ $diff -eq 1 ]; then
     startlog "Installing images RPMs"
-    sudo yum install -y rhosp-director-images rhosp-director-images-ipa 2>>$stderr 1>>$stdout
+    rhel_release
+    rc=$?
+    if [ $rc -ge 9 ]; then
+      packages="rhosp-director-images"
+    else
+      packages="rhosp-director-images rhosp-director-images-ipa"
+    fi
+    sudo yum install -y $packages 2>>$stderr 1>>$stdout
     rc=0
     if [ $rc -eq 0 ]; then
       endlog "done"
