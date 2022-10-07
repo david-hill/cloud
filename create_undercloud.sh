@@ -442,6 +442,7 @@ function customize_image {
   sed -i "s/###RHNUSERNAME###/$rhnusername/g" tmp/S01customize
   sed -i "s/###RHNPASSWORD###/$rhnpassword/g" tmp/S01customize
   sed -i "s/###FULLNAME###/$fullname/g" tmp/S01customize
+  sed -i "s/###COMPUTESCALE###/$computescale/g" tmp/S01customize
   if [[ $rhel =~ 9.0 ]]; then
     sudo virt-customize -v -a $jenkinspath/VMs/${vmname}.qcow2 --mkdir /etc/rc.d/rc3.d/ --link /etc/rc.d/rc3.d:/etc/rc3.d 2>>$stderr 1>>$stdout
   fi
