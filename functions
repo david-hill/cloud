@@ -194,8 +194,9 @@ function openstack_oc_deploy {
         rc=$?
         if [ $rc -eq 0 ]; then
           endlog "done"
-#         cd /usr/share/openstack-tripleo-heat-templates/
-#         sudo python tools/process-templates.py
+          cd /home/stack/$releasever/my-overcloud
+          python tools/process-templates.py 2>>$stderr 1>>$stdout
+          cd /home/stack/cloud
           startlog "Provisioning nodes"
           openstack overcloud node provision --templates /home/stack/$releasever/my-overcloud --stack overcloud --network-config --output /home/stack/$releasever/overcloud-baremetal-deployed.yaml /home/stack/$releasever/baremetal.yaml 2>>$stderr 1>>$stdout
           rc=$?
