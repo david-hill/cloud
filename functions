@@ -185,19 +185,20 @@ function openstack_oc_deploy {
 
     if [[ $releasever =~ rhosp17 ]]; then
       startlog "Provisioning network"
-      openstack overcloud network provision  --output /home/stack/$releasever/networks-deployed-environment.yaml  /home/stack/$releasever/my-overcloud/network-data-samples/default-network-isolation.yaml 2>>$stderr 1>>$stdout
+      openstack overcloud network provision --templates /home/stack/$releasever/my-overcloud --output /home/stack/$releasever/networks-deployed-environment.yaml  /home/stack/$releasever/my-overcloud/network-data-samples/default-network-isolation.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
         startlog "Provisioning vips"
-        openstack overcloud network vip provision --stack overcloud  --output /home/stack/$releasever/vips-deployed-environment.yaml /home/stack/$releasever/my-overcloud/network-data-samples/vip-data-default-network-isolation.yaml 2>>$stderr 1>>$stdout
+        openstack overcloud network vip provision --templates /home/stack/$releasever/my-overcloud --stack overcloud  --output /home/stack/$releasever/vips-deployed-environment.yaml /home/stack/$releasever/my-overcloud/network-data-samples/vip-data-default-network-isolation.yaml 2>>$stderr 1>>$stdout
         rc=$?
         if [ $rc -eq 0 ]; then
           endlog "done"
 #         cd /usr/share/openstack-tripleo-heat-templates/
+          pwd
 #         sudo python tools/process-templates.py
           startlog "Provisioning nodes"
-          openstack overcloud node provision --stack overcloud --network-config --output /home/stack/$releasever/overcloud-baremetal-deployed.yaml /home/stack/$releasever/baremetal.yaml 2>>$stderr 1>>$stdout
+          openstack overcloud node provision --templates /home/stack/$releasever/my-overcloud --stack overcloud --network-config --output /home/stack/$releasever/overcloud-baremetal-deployed.yaml /home/stack/$releasever/baremetal.yaml 2>>$stderr 1>>$stdout
           rc=$?
           if [ $rc -eq 0 ]; then
             endlog "done"
