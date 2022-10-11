@@ -185,7 +185,7 @@ function openstack_oc_deploy {
 
     if [[ $releasever =~ rhosp17 ]]; then
       startlog "Provisioning network"
-      openstack overcloud network provision --templates /home/stack/$releasever/my-overcloud --output /home/stack/$releasever/networks-deployed-environment.yaml  /home/stack/$releasever/my-overcloud/network-data-samples/default-network-isolation.yaml 2>>$stderr 1>>$stdout
+      openstack overcloud network provision --templates /home/stack/$releasever/my-overcloud --output /home/stack/$releasever/networks-deployed-environment.yaml  /home/stack/$releasever/default-network-isolation.yaml 2>>$stderr 1>>$stdout
       rc=$?
       if [ $rc -eq 0 ]; then
         endlog "done"
