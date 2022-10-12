@@ -223,9 +223,14 @@ function openstack_oc_deploy {
     if [ $rc -eq 0 ]; then
       endlog "done"
       startlog "Cleaning up ssh-keys"
-      for ip in $(nova list | grep ACTIVE | awk -F= '{ print $2 }' | awk '{ print $1 }'); do
-        ssh-keygen -R $ip 2>>$stderr 1>>$stdout
-      done
+      if grep -q 192.0.2. ~/.ssh/known_hosts; then
+        for ip in $(nova list 2>>$stderr | grep ACTIVE | awk -F= '{ print $2 }' | awk '{ print $1 }'); do
+          ssh-keygen -R $ip 2>>$stderr 1>>$stdout
+        done
+        if grep -q 192.0.2. ~/.ssh/known_hosts; then
+          sed -i /^192.0.2/d ~/.ssh/known_hosts
+        fi
+      fi
       endlog "done"
     else
       endlog "error"
