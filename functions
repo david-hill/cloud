@@ -230,7 +230,7 @@ function openstack_oc_deploy {
         if grep -q 192.0.2. ~/.ssh/known_hosts; then
           for ip in $( metalsmith -f value -c "IP Addresses" list 2>>$stderr | sed -e 's/ctlplane=//' ); do
             ssh-keygen -R $ip 2>>$stderr 1>>$stdout
-          fi
+          done
         fi
       fi
       endlog "done"
