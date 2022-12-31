@@ -183,7 +183,7 @@ function get_oc_images {
     startlog "Installing images RPMs"
     rhel_release
     rc=$?
-    if [ $rc -ge 9 ]; then
+    if [ $rc -ge 8 ]; then
       packages="rhosp-director-images"
     else
       packages="rhosp-director-images rhosp-director-images-ipa"
