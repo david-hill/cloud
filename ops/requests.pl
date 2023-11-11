@@ -2,7 +2,7 @@
 use Time::Local;
 sub convertdate() {
         $value=shift;
-          my ($sec, $min, $hour, $day,$month,$year) = (localtime($value}))[0,1,2,3,4,5];
+          my ($sec, $min, $hour, $day,$month,$year) = (localtime($value))[0,1,2,3,4,5];
           $year += 1900;
           $month += 1;
           $month = &pad($month);
@@ -46,8 +46,8 @@ while (<READ>) {
 }
 foreach $req (sort keys %req) {
         if ($req{$req}{'elapsed'} > 0) {
-          $endtime=&convert_date($req{$req}{'last-seen'})
-          $starttime=&convert_date($req{$req}{'first-seen'})
+          $endtime=&convert_date($req{$req}{'last-seen'});
+          $starttime=&convert_date($req{$req}{'first-seen'});
           print $req ."\t$starttime\t$endtime\t" .$req{$req}{'elapsed'} . "\n";
         }
 }
