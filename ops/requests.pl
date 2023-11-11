@@ -4,7 +4,6 @@ sub convert_date() {
         $value=shift;
           my ($sec, $min, $hour, $day,$month,$year) = (localtime($value))[0,1,2,3,4,5];
           $year += 1900;
-          $month += 1;
           $month = &pad($month);
           $day = &pad($day);
           $hour = &pad($hour);
@@ -14,9 +13,7 @@ sub convert_date() {
 }
 sub pad() {
         $value = shift;
-        if ($value < 10) {
-                $value = "0$value";
-        }
+        if ($value < 10) { $value = "0$value"; }
         return $value;
 }
 
@@ -25,12 +22,7 @@ sub pad() {
 open READ, "req";
 while (<READ>) {
         if ($_ =~ /^([0-9]+)-([0-9]+)-([0-9]+) ([0-9]+):([0-9]+):([0-9]+)\.[0-9]+/) {
-                $y = $1;
-                $m = $2;
-                $d = $3;
-                $h = $4;
-                $M = $5;
-                $s = $6;
+                $y = $1; $m = $2; $d = $3; $h = $4; $M = $5; $s = $6;
         }
         if ($_ =~ /(req-[a-z0-9-]+)/) {
              $treq=$1;
