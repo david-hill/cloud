@@ -1,5 +1,17 @@
 #use Date::Parse;
 use Time::Local;
+sub convertdate() {
+        $value=shift;
+          my ($sec, $min, $hour, $day,$month,$year) = (localtime($value}))[0,1,2,3,4,5];
+          $year += 1900;
+          $month += 1;
+          $month = &pad($month);
+          $day = &pad($day);
+          $hour = &pad($hour);
+          $min = &pad($min);
+          $sec = &pad($sec);
+          return "$year-$month-$day|$hour:$min:$sec";
+}
 sub pad() {
         $value = shift;
         if ($value < 10) {
@@ -33,16 +45,9 @@ while (<READ>) {
         }
 }
 foreach $req (sort keys %req) {
-        my ($sec, $min, $hour, $day,$month,$year) = (localtime($req{$req}{'last-seen'}))[0,1,2,3,4,5];
-        $year += 1900;
-        $month += 1;
-        $month = &pad($month);
-        $day = &pad($day);
-        $hour = &pad($hour);
-        $min = &pad($min);
-        $sec = &pad($sec);
         if ($req{$req}{'elapsed'} > 0) {
-            print $req ."\t$year-$month-$day|$hour:$min:$sec\t" .$req{$req}{'elapsed'} . "\n";
-          }
+          $endtime=&convert_date($req{$req}{'last-seen'})
+          $starttime=&convert_date($req{$req}{'first-seen'})
+          print $req ."\t$starttime\t$endtime\t" .$req{$req}{'elapsed'} . "\n";
+        }
 }
-
