@@ -1,6 +1,6 @@
 #use Date::Parse;
 use Time::Local;
-sub convertdate() {
+sub convert_date() {
         $value=shift;
           my ($sec, $min, $hour, $day,$month,$year) = (localtime($value))[0,1,2,3,4,5];
           $year += 1900;
