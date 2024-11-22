@@ -1,0 +1,93 @@
+---
+- hosts: Controller[0]
+  tasks:
+    - name: get maintenance status
+      shell: pcs property show maintenance-mode
+      register: pcs_maintenance
+      become: true
+    - name: enable maintenance
+      shell: pcs property set maintenance-mode=true
+      when: '"maintenance-mode: false" in pcs_maintenance.stdout'
+      become: true
+    - name: get fencing concurrency value
+      shell: pcs property show concurrent-fencing
+      register: pcs_cf
+      become: true
+    - name: disable concurrent fencing
+      shell: pcs property set concurrent-fencing=false
+      when: '"concurrent-fencing: true" in pcs_cf.stdout'
+      become: true
+- hosts: ComputeGoldInstanceHA,ComputePlatinumOvsDpdk,ComputeSilverInstanceHA
+  name: Tweak pacemaker
+  vars:
+    buffer_size: 3594240
+  tasks:
+    - name: sysctl_output
+      shell: sysctl -a | grep net.core.wmem_max | awk -F= '{ print $2}' | sed -e 's/ //'g
+      become: true
+      register: sysctl_output
+    - name: ansible
+      ansible.builtin.debug:
+        msg: "{{sysctl_output.stdout}}"
+    - name: run sysctl
+      ansible.builtin.shell: "sysctl -w net.core.wmem_max={{buffer_size}}"
+      become: true
+      when: "{{sysctl_output.stdout}} != {{buffer_size}}"
+    - name: replace PCMK_ipc_buffer
+      replace:
+        path: /etc/sysconfig/pacemaker
+        regexp: "^(PCMK_ipc_buffer=.*|#.*PCMK_ipc_buffer=.*)"
+        replace: "PCMK_ipc_buffer={{buffer_size}}"
+      register: pcmk_buffer
+      become: true
+    - name: sysctl replace line in file
+      ansible.builtin.lineinfile:
+        path: /etc/sysctl.d/01-wmem.conf
+        regexp: '^net\.core\.wmem_max=.*'
+        line: "net.core.wmem_max={{buffer_size}}"
+        create: yes
+      become: true
+      when: "{{sysctl_output.stdout}} != {{buffer_size}}"
+    - name: Set up pacemaker.service override
+      ini_file:
+        dest: /etc/systemd/system/pacemaker.service.d/nofile_override.conf
+        owner: root
+        group: root
+        mode: 0644
+        section: Service
+        option: LimitNOFile
+        value: 16384
+      become: true
+      register: filelimit
+    - name: reload systemd
+      when: filelimit.changed
+      become: true
+      shell: systemctl daemon-reload
+    - name: Restart pcsd
+      when: pcmk_buffer.changed or filelimit.changed
+      service:
+        name: pcsd
+        state: restarted
+      become: true
+    - name: Restart pacemaker
+      when: pcmk_buffer.changed or filelimit.changed
+      service:
+        name: pacemaker
+        state: restarted
+      become: true
+    - name: Restart pacemaker_remote
+      when: pcmk_buffer.changed
+      service:
+        name: pacemaker_remote
+        state: restarted
+      become: true
+- hosts: Controller[0]
+  tasks:
+    - name: get maintenance status
+      shell: pcs property show maintenance-mode
+      register: pcs_maintenance
+      become: true
+    - name: disable maintenance
+      shell: pcs property set maintenance-mode=false
+      when: '"maintenance-mode: true" in pcs_maintenance.stdout'
+      become: true
