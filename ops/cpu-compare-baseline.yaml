@@ -1,0 +1,47 @@
+---
+- name: Collect CPU baseline from each Compute host and compare
+  hosts: all
+  become: true
+  tasks:
+    - name: Collect the CPU baseline and register it
+      ansible.builtin.shell: |
+        set -eo pipefail
+        podman exec -it nova_libvirt virsh domcapabilities | xmllint --xpath "//cpu/mode[@name='host-model']/*[self::model|self::vendor|self::feature]" - \
+        | sed 's/^/<cpu>/' | sed 's/$/<\/cpu>/'
+      register: _virsh_domcaps
+      changed_when: false
+    - name: Set fact for all nodes
+      ansible.builtin.set_fact:
+        virsh_domcaps: "{{ _virsh_domcaps.stdout }}"
+    - name: Create domcaps file on a delegate host
+      ansible.builtin.blockinfile:
+        marker: "<!-- {mark} ANSIBLE MANAGED BLOCK -->"
+        state: present
+        insertafter: EOF
+        dest: /tmp/domcaps-cpus.xml
+        content: "{{ item }}"
+        create: true
+        mode: '0644'
+      loop: >-
+        {{
+          ansible_play_hosts_all
+          | map('extract', hostvars, 'virsh_domcaps')
+          | list
+        }}
+      delegate_to: "{{ play_hosts | first }}"
+      run_once: true
+    - name: Copy file to the container
+      ansible.builtin.command: podman cp /tmp/domcaps-cpus.xml nova_libvirt:/tmp/domcaps-cpus.xml
+      changed_when: false
+      delegate_to: "{{ play_hosts | first }}"
+      run_once: true
+    - name: Run virsh hypervisor-cpu-baseline
+      ansible.builtin.command: podman exec -it nova_libvirt virsh hypervisor-cpu-baseline /tmp/domcaps-cpus.xml
+      register: _virsh_hypervisor_baseline
+      changed_when: false
+      delegate_to: "{{ play_hosts | first }}"
+      run_once: true
+    - name: Output results from virsh hypervisor-cpu-baseline
+      ansible.builtin.debug:
+        var: _virsh_hypervisor_baseline.stdout_lines
+      run_once: true
